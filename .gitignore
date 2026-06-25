@@ -1,0 +1,22 @@
+# --- Large reference media: kept LOCAL, not in git history ---
+# The board photos & PDFs are big (~67MB). BOARD_VERIFICATION.md captures what was
+# extracted from them. To version them anyway, delete these lines (consider git-lfs).
+docs/map/
+*.pdf
+
+# --- Node / build (for the upcoming React+TS app) ---
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+.env
+.env.*
+!.env.example
+
+# --- Editor / OS ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
