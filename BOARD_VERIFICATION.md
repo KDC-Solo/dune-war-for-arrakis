@@ -199,9 +199,15 @@ plateau **12** · mountain **19** · minor_erg **5** · deep-desert **23** · no
 *(The type-suffixed `s1_dd1`-style ids below are the OLD scheme — kept only as a per-type count
 reference; the real positional `s#_N` ids get assigned as we trace each sector. §2.2 holds them.)*
 
-**§2.2 Positional ids (reading order) — assigned as we trace:**
-- `s1` (NE-out): `s1_1`,`s1_2` = the two deep-desert areas at top-left, **left of Sihaya Ridge** ✅
-  (…remaining s1 unnamed: 16 total = 6 deep + 10 non-deep; continue numbering in reading order)
+**§2.2 Positional ids — read off the user's physically-marked board photos:**
+- `s1` (NE-out, 18 areas): **read from `north-east.jpg` (marked).** s1_1 top-left(N edge) · s1_2
+  top-center(N edge) · s1_3 left below s1_1 · s1_4 center-left by mesa, N of impassable border ·
+  s1_5 center(large), N of air zone · s1_6 center on mesa, right of s1_5 · s1_7 S/E of air zone
+  (inner, by Rimwall West) · s1_8 on long mesa, left of Sihaya Ridge · s1_9 right-center by mesa ·
+  s1_10 top-right(NE corner) · s1_11 bottom-center · s1_12 bottom-center-right · s1_13 right-lower ·
+  s1_14 bottom-right(edge) · **Sihaya Ridge** right-center (named, green triangle).
+  ⏳ Not yet found in this tile: **s1_15, s1_16, Gara Kulon** (Gara Kulon "Cara Kulon" glimpsed at
+  bottom edge — may spill into center-east/center tile, or still to mark).
 
 **Outer**
 - `s1` NE-out (18): **Sihaya Ridge** =`s1_dd1` + `s1_dd2..7` · **Gara Kulon** =`s1_nd1` + `s1_nd2..11`  ✅
