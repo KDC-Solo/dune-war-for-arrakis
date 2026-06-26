@@ -255,15 +255,23 @@ tasmin_sink: pasty_mesa
 windgap: false_wall_west, minor_erg_2          # Windgap, next to False Wall West
 ```
 
-> ⚠️ Outer-ring adjacency is still my weakest area. The core (cities/pole/plateau) is solid.
+> ✅ **City cluster adjacency PHOTO-VERIFIED** (new north-center photo): Arsunt–Carthag–Arrakeen
+> and Hagga Basin–Imperial Basin interlock as drafted; ringed by Shield Wall (W), Broken Land (N),
+> Rimwall West (NE), with an air zone between Hagga Basin & Imperial Basin.
+> ⚠️ Still weak: the outer desert ring, and which **unnamed** mountain/desert areas sit between the
+> named ones (the named areas don't all touch directly — unnamed areas fill the gaps). Needs the
+> §2.1 IDs assigned to map positions before the full graph can be drawn.
 
 ---
 
 ## 4. Impassable borders (red/white lines)
 
 ```
-shield_wall <-> (western desert area west of it)   # CONFIRMED red border; which area? (Bight of the Cliff side)
-# A few more red segments seen near the eastern mountains and around False Wall East — please add.
+shield_wall <-> (western desert area west of it)   # CONFIRMED red border (Bight of the Cliff side)
+broken_land  <-> (north desert)   # CONFIRMED: red border runs along the NORTH edge of the
+rimwall_west <-> (north desert)   #   Broken Land / Rimwall West arc — blocks city-mtns <-> north desert
+# The impassable line appears continuous along the N + W of the central mountain mass (Rimwall
+# West -> Broken Land -> Shield Wall). Confirm full extent; more red near False Wall East too.
 ```
 
 ---
