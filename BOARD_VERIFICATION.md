@@ -192,10 +192,16 @@ plateau **12** · mountain **19** · minor_erg **5** · deep-desert **23** · no
 
 ## 2.1 Area roster — canonical IDs for all 101 areas
 
-Mechanically derived from the confirmed §2 sector/type counts. **ID = `<sector>_<type><n>`**
-(sectors `s1`–`s8` per the table above, `np` = North Pole; types: `plt` plateau, `mtn` mountain,
-`erg` minor_erg, `dd` deep desert, `nd` non-deep desert). Named areas get a real name once slotted
-into their sector slot (see "named → slot" notes; some still TBD).
+**ID scheme (user-chosen):** unnamed areas = **`s<sector>_<N>`**, numbered in **reading order**
+(left→right, top→bottom) within the sector; **named areas keep their names** (used as landmarks).
+**Terrain type is NOT in the id** — it's a separate attribute (annotated inline as `(deep)`,
+`(mtn)`, etc. when discussing). `np` = North Pole.
+*(The type-suffixed `s1_dd1`-style ids below are the OLD scheme — kept only as a per-type count
+reference; the real positional `s#_N` ids get assigned as we trace each sector. §2.2 holds them.)*
+
+**§2.2 Positional ids (reading order) — assigned as we trace:**
+- `s1` (NE-out): `s1_1`,`s1_2` = the two deep-desert areas at top-left, **left of Sihaya Ridge** ✅
+  (…remaining s1 unnamed: 16 total = 6 deep + 10 non-deep; continue numbering in reading order)
 
 **Outer**
 - `s1` NE-out (18): **Sihaya Ridge** =`s1_dd1` + `s1_dd2..7` · **Gara Kulon** =`s1_nd1` + `s1_nd2..11`  ✅
