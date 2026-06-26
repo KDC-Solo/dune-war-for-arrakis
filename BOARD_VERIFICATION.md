@@ -203,18 +203,18 @@ into their sector slot (see "named → slot" notes; some still TBD).
 - `s4` NW-out (20): `s4_mtn1..4`(unnamed; Shield Wall NOT here) · **The Great Flat** =`s4_dd1`, **Rock Outcroppings** =`s4_dd2` + `s4_dd3..6` · **Bight of the Cliff** =`s4_nd1`, **The Funeral Plain** =`s4_nd2` + `s4_nd3..10`  ✅
 
 **Inner** (exclude North Pole)
-- `s5` NE-in (16): `s5_plt1..4` · `s5_mtn1..9` · `s5_erg4..5` · `s5_nd1`  — named mtn likely: Hole in the Rock, Splintered Rock, Rimwall West, Broken Land, False Wall East
+- `s5` NE-in (16): **Carthag** =`s5_plt1`, **Arrakeen** =`s5_plt2`, **Imperial Basin** =`s5_plt3` + `s5_plt4` · **Broken Land** =`s5_mtn1`, **Rimwall West** =`s5_mtn2`, **Hole in the Rock** =`s5_mtn3`, **Shield Wall** =`s5_mtn4` + `s5_mtn5..9` · `s5_erg4..5` · `s5_nd1`  ✅
 - `s6` SE-in (9): `s6_plt1` · `s6_mtn1` · **Harg Pass** + `s6_erg2..3` · `s6_dd1` · `s6_nd1..3`
 - `s7` SW-in (8): `s7_plt1..2` · `s7_nd1..6`  — named likely: Windgap, Habbanya Ridge (nd, by FW West)
 - `s8` NW-in (9): `s8_plt1..2` · `s8_mtn1..4` · `s8_nd1..3`  — named mtn likely: Shield Wall
 - `np` (1): **North Pole** (mtn; shared by all 4 inner sectors s5–s8)
 
 **Placement tracker (26 named):**
-- ✅ **Placed (10):** np North Pole · s1 Sihaya Ridge, Gara Kulon · s2 Pasty Mesa, Tasmin Sink ·
-  s3 Habbanya Ridge · s4 The Great Flat, Rock Outcroppings, Bight of the Cliff, The Funeral Plain.
-- ⏳ **Remaining 16 — all INNER (s5–s8):** plateaus Arrakeen, Carthag, Arsunt, Hagga Basin, Imperial
-  Basin, False Wall West, False Wall South · mountains Hole in the Rock, Shield Wall, Broken Land,
-  Rimwall West, Splintered Rock, False Wall East · minor erg Harg Pass · sietches Windgap, Hobars Gap.
+- ✅ **Placed (17):** np North Pole · s1 Sihaya Ridge, Gara Kulon · s2 Pasty Mesa, Tasmin Sink ·
+  s3 Habbanya Ridge · s4 The Great Flat, Rock Outcroppings, Bight of the Cliff, The Funeral Plain ·
+  s5 Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West, Hole in the Rock, Shield Wall.
+- ⏳ **Remaining 9 — inner (s6–s8):** plateaus Arsunt, Hagga Basin, False Wall West, False Wall South ·
+  mountains Splintered Rock, False Wall East · minor erg Harg Pass · sietches Windgap, Hobars Gap.
 
 ---
 
