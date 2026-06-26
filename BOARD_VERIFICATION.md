@@ -304,7 +304,7 @@ s1_1:    s1_2 ✅, s1_3 ✅, s1_4 ✅, s4_3 ✅(seam, per s4 trace)
 s1_2:    s1_1 ✅, s1_4 ✅, s1_5 ✅, s1_6 ✅, sihaya_ridge ✅
 s1_3:    s1_1 ✅, s1_4 ✅, s4_11 ✅, s4_3 ✅(seam)   # S border = Broken Land (impassable §4)
 s1_4:    s1_3 ✅, s1_2 ✅, s1_5 ✅, s1_1 ✅   # S border = Broken Land arc (impassable §4)
-s1_5:    s1_2 ✅, s1_4 ✅, s1_8 ✅, s1_7 ✅, s1_6 ✅   # SW corner = air zone; S = Rimwall West (impassable §4)
+s1_5:    s1_2 ✅, s1_4 ✅, s1_8 ✅, s1_7 ✅, s1_6 ✅   # SW=air zone; S→rimwall_west RED §4; + s5_5 RED §4
 s1_6:    s1_2 ✅, s1_8 ✅, s1_9 ✅, sihaya_ridge ✅, s1_5 ✅
 s1_7:    s1_5 ✅, s1_11 ✅, s1_8 ✅, s5_6 ✅   # W = air zone + Rimwall West (impassable §4); s5_6 = white crossing
 s1_8:    s1_5 ✅, s1_6 ✅, s1_9 ✅, s1_12 ✅, s1_11 ✅, s1_7 ✅
@@ -554,6 +554,7 @@ s4_15 <-> s4_16   # ✅ CONFIRMED (user): red line runs along the Shield Wall cr
                   #   broken_land. So the red arc is the s4_15|s4_16 seam here, NOT desert|mountain.
 broken_land  <-> s1_3            # red arc along the N edge of Broken Land (⚠️ confirm passable vs red)
 rimwall_west <-> s1_4, s1_5      # user lists these as rimwall_west neighbours; treated as RED arc (⚠️ confirm)
+s1_5 <-> s5_5                    # ✅ CONFIRMED (user): red impassable
 # REVISED MODEL: the red impassable arc is NOT simply "all mountain edges." It threads specific
 # borders: s4_15|s4_16, and along the N face of Broken Land/Rimwall West facing the s1 desert.
 # s4_16/shield_wall/broken_land are mutually passable on the city side. Re-derive full extent with
