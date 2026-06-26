@@ -381,6 +381,48 @@ s3_3↔s4_12.  →s7: s3_3↔s7_1 · s3_5↔{s7_1, false_wall_west} · s3_8↔{f
 s3_9↔{windgap, s7_6}.  →s8: s3_3↔s8_3 (already in §3a).  →s6: s3_9↔s6_5.
 **s3 resolved — no open questions.**
 
+### 3a-s4. Sector s4 (NW-outer, 20 areas) — PHOTO-TRACED DRAFT (north-west.jpg + center-west.jpg)
+✅ clear · 🟡 likely. W edge (left) = Supremacy track; N edge = top; pole = lower-right (Shield Wall/cities).
+Pre-pinned by user lines: s8_3↔{bight, s4_12, s4_13} (§3a) · s3↔s4: s3_1↔great_flat, s3_2↔{great_flat, s4_12}, s3_3↔s4_12.
+Shield Wall & Broken Land borders are IMPASSABLE (red) → §4, not listed as nbrs here.
+Spatial layout (NW quadrant):
+```
+[N edge top]
+   s4_2          s4_3 ──seam→ s1_1
+ s4_1  rock_outcr   s4_10  s4_11 ──seam→ s1_3
+    s4_4    s4_9    s4_15   s4_16 ──seam→ s5_1
+ funeral_plain  s4_8   s4_14  [Shield Wall red]
+ s4_5   s4_7   s4_13(air zone)
+ s4_6    s4_12   bight   s8_3
+ great_flat
+[W edge left / S edge bottom]
+```
+```
+s4_1:    s4_2 ✅, s4_5 ✅, the_funeral_plain ✅, the_great_flat ✅           # W edge (+ N→desert_nw corner?)
+s4_2:    s4_1 ✅, s4_4 ✅, the_funeral_plain ✅, rock_outcroppings ✅, s4_3 🟡   # N edge
+s4_3:    s4_2 ✅, rock_outcroppings ✅, s4_10 ✅, s4_11 ✅, s1_1 🟡(seam)      # N edge
+s4_4:    s4_2 ✅, s4_7 ✅, s4_8 ✅, the_funeral_plain ✅, rock_outcroppings ✅, s4_9 🟡
+s4_5:    s4_1 ✅, s4_6 ✅, the_great_flat ✅, the_funeral_plain 🟡             # W edge
+s4_6:    s4_5 ✅, s4_7 ✅, s4_12 ✅, bight_of_the_cliff ✅, the_great_flat ✅, the_funeral_plain 🟡
+s4_7:    s4_4 ✅, s4_6 ✅, s4_8 ✅, s4_13 ✅, bight_of_the_cliff ✅, the_funeral_plain 🟡
+s4_8:    s4_4 ✅, s4_7 ✅, s4_9 ✅, s4_13 🟡, s4_14 🟡
+s4_9:    s4_8 ✅, s4_10 ✅, s4_14 ✅, s4_15 ✅, rock_outcroppings ✅, s4_4 🟡
+s4_10:   s4_3 ✅, s4_9 ✅, s4_11 ✅, s4_15 ✅, rock_outcroppings ✅            # S = Shield Wall (impassable §4)
+s4_11:   s4_3 ✅, s4_10 ✅, s4_16 ✅, s1_3 🟡(seam)                          # E = Broken Land (impassable §4)
+s4_12:   s4_6 ✅, bight_of_the_cliff ✅, the_great_flat ✅, s8_3 ✅, s3_2 ✅, s3_3 ✅
+s4_13:   s4_7 ✅, s8_3 ✅, s4_8 🟡, s4_14 🟡, s8_1 🟡, bight_of_the_cliff 🟡   # air zone
+s4_14:   s4_9 ✅, s4_15 ✅, s4_8 🟡, s4_13 🟡                                # air zone; Shield Wall (impassable §4)
+s4_15:   s4_9 ✅, s4_10 ✅, s4_14 ✅, s4_16 ✅                               # Shield Wall (impassable §4)
+s4_16:   s4_11 ✅, s4_15 ✅, s5_1 🟡(seam)                                   # Shield Wall + Broken Land (impassable §4)
+the_funeral_plain: s4_1 ✅, s4_2 ✅, s4_4 ✅, s4_5 🟡, s4_6 🟡, s4_7 🟡       # large central desert
+rock_outcroppings: s4_2 ✅, s4_3 ✅, s4_4 ✅, s4_9 ✅, s4_10 ✅              # deep-desert sietch
+bight_of_the_cliff: s4_6 ✅, s4_7 ✅, s4_12 ✅, s8_3 ✅, s4_13 🟡            # non-deep desert sietch
+the_great_flat: s4_1 ✅, s4_5 ✅, s4_6 ✅, s4_12 ✅, s3_1 ✅, s3_2 ✅        # deep-desert (SW corner of s4)
+```
+**Open s4 questions (batched):** Funeral Plain — which of s4_5/s4_6/s4_7 touch it? · air-zone cluster:
+s4_8↔s4_13? s4_8↔s4_14? s4_13↔s4_14? s4_13↔s8_1? s4_13↔bight? · seam crossings s4_3↔s1_1, s4_11↔s1_3,
+s4_16↔s5_1? · s4_2↔s4_3? · s4_4↔s4_9?
+
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
 ```
