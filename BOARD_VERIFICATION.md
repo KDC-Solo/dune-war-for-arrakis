@@ -141,17 +141,20 @@ plateau named 8 · mountain named 7 · non-deep desert named 7. Real totals come
 
 | sector | c/o | #areas | plat | mtn | m.erg | deep des | desert |
 |--------|-----|--------|------|-----|-------|----------|--------|
-| SW | outer | 10 | 1 | 0 | 0 | 5 | 4 |
-| SE | outer | 10 | 2 | 0 | 0 | 4 | 4 |
-| NE | outer | 18 | 0 | 0 | 0 | 7 | 11 |
-| NW | outer | 20 | 0 | 4 | 0 | 6 | 10 |
-| **outer Σ** | | **58** | **3** | **4** | **0** | **22** | **29** |
-| SW-in | central | 8 | 2 | 0 | 0 | 0 | 6 |
-| SE-in | central | 9 | 1 | 1 | 3 | 1 | 3 |
-| NE-in | central | 16 | 4 | 9 | 2 | 0 | 1 |
-| NW-in | central | 9 | 2 | 4 | 0 | 0 | 3 |
-| North Pole | all 4 central | 1 | 0 | 1 | 0 | 0 | 0 |
+| sector | dir | #areas | plat | mtn | m.erg | deep des | desert |
+| s1 | NE outer | 18 | 0 | 0 | 0 | 7 | 11 |
+| s2 | SE outer | 10 | 2 | 0 | 0 | 4 | 4 |
+| s3 | SW outer | 10 | 1 | 0 | 0 | 5 | 4 |
+| s4 | NW outer | 20 | 0 | 4 | 0 | 6 | 10 |
+| **outer Σ** | s1–s4 | **58** | **3** | **4** | **0** | **22** | **29** |
+| s5 | NE inner | 16 | 4 | 9 | 2 | 0 | 1 |
+| s6 | SE inner | 9 | 1 | 1 | 3 | 1 | 3 |
+| s7 | SW inner | 8 | 2 | 0 | 0 | 0 | 6 |
+| s8 | NW inner | 9 | 2 | 4 | 0 | 0 | 3 |
+| np | North Pole | 1 | 0 | 1 | 0 | 0 | 0 |
 | **TOTAL** | | **101** | **12** | **19** | **5** | **23** | **42** |
+
+*(Sector ids: **s1 NE-outer → clockwise outer → s5 NE-inner → clockwise inner**. np = North Pole, shared by inner s5–s8.)*
 
 *(Inner-sector counts **EXCLUDE North Pole** — it's 1 mountain area shared by all 4 central
 sectors, counted once. It's added as its own row above.)*
@@ -189,27 +192,27 @@ plateau **12** · mountain **19** · minor_erg **5** · deep-desert **23** · no
 ## 2.1 Area roster — canonical IDs for all 101 areas
 
 Mechanically derived from the confirmed §2 sector/type counts. **ID = `<sector>_<type><n>`**
-(sectors: `nwo/neo/swo/seo` outer, `nwi/nei/swi/sei` inner, `np` = North Pole; types: `plt`
-plateau, `mtn` mountain, `erg` minor_erg, `dd` deep desert, `nd` non-deep desert). Named areas
-get a real name once slotted into their sector slot (see "named → slot" notes; some still TBD).
+(sectors `s1`–`s8` per the table above, `np` = North Pole; types: `plt` plateau, `mtn` mountain,
+`erg` minor_erg, `dd` deep desert, `nd` non-deep desert). Named areas get a real name once slotted
+into their sector slot (see "named → slot" notes; some still TBD).
 
 **Outer**
-- `nwo` (20): `nwo_mtn1..4` · `nwo_dd1..6` · `nwo_nd1..10`  — named here likely: Rock Outcroppings (dd), The Funeral Plain (nd), Bight of the Cliff (nd)
-- `neo` (18): `neo_dd1..7` · `neo_nd1..11`  — named: Sihaya Ridge (dd), Gara Kulon (nd)
-- `swo` (10): **False Wall West** (plt) · `swo_dd1..5` · `swo_nd1..4`  — named: The Great Flat (dd)
-- `seo` (10): **False Wall South**, **Pasty Mesa** (plt) · `seo_dd1..4` · `seo_nd1..4`  — named: Hobars Gap (nd, by FW South), Tasmin Sink (nd, by Pasty Mesa)
+- `s1` NE-out (18): `s1_dd1..7` · `s1_nd1..11`  — named: Sihaya Ridge (dd), Gara Kulon (nd)
+- `s2` SE-out (10): **False Wall South**, **Pasty Mesa** (plt) · `s2_dd1..4` · `s2_nd1..4`  — named: Hobars Gap (nd, by FW South), Tasmin Sink (nd, by Pasty Mesa)
+- `s3` SW-out (10): **False Wall West** (plt) · `s3_dd1..5` · `s3_nd1..4`  — named: The Great Flat (dd)
+- `s4` NW-out (20): `s4_mtn1..4` · `s4_dd1..6` · `s4_nd1..10`  — named likely: Rock Outcroppings (dd), The Funeral Plain (nd), Bight of the Cliff (nd)
 
 **Inner** (exclude North Pole)
-- `swi` (8): `swi_plt1..2` · `swi_nd1..6`  — named likely: Windgap, Habbanya Ridge (nd, by FW West)
-- `sei` (9): `sei_plt1` · `sei_mtn1` · **Harg Pass** + `sei_erg2..3` · `sei_dd1` · `sei_nd1..3`
-- `nei` (16): `nei_plt1..4` · `nei_mtn1..9` · `nei_erg4..5` · `nei_nd1`  — named mtn likely: Hole in the Rock, Splintered Rock, Rimwall West, Broken Land, False Wall East
-- `nwi` (9): `nwi_plt1..2` · `nwi_mtn1..4` · `nwi_nd1..3`  — named mtn likely: Shield Wall
-- `np` (1): **North Pole** (mtn; shared by all 4 inner sectors)
+- `s5` NE-in (16): `s5_plt1..4` · `s5_mtn1..9` · `s5_erg4..5` · `s5_nd1`  — named mtn likely: Hole in the Rock, Splintered Rock, Rimwall West, Broken Land, False Wall East
+- `s6` SE-in (9): `s6_plt1` · `s6_mtn1` · **Harg Pass** + `s6_erg2..3` · `s6_dd1` · `s6_nd1..3`
+- `s7` SW-in (8): `s7_plt1..2` · `s7_nd1..6`  — named likely: Windgap, Habbanya Ridge (nd, by FW West)
+- `s8` NW-in (9): `s8_plt1..2` · `s8_mtn1..4` · `s8_nd1..3`  — named mtn likely: Shield Wall
+- `np` (1): **North Pole** (mtn; shared by all 4 inner sectors s5–s8)
 
 **Named areas to slot (26):** 5 city plateaus (Arrakeen, Carthag, Arsunt, Hagga Basin, Imperial
 Basin — inner, exact sector TBD) · False Wall West/South, Pasty Mesa (outer, placed) · 7 mountains
 (North Pole placed; Hole in the Rock, Shield Wall, Broken Land, Rimwall West, Splintered Rock,
-False Wall East — inner/NW-out, exact sector TBD) · Harg Pass (sei) · 8 sietches + Funeral Plain +
+False Wall East — inner / s4, exact sector TBD) · Harg Pass (s6) · 8 sietches + Funeral Plain +
 Great Flat (placed above as best-guess). **The exact sector of each city + inner mountain still
 needs confirming** — that's the main open item for the roster.
 
