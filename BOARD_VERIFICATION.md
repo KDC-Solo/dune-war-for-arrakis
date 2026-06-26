@@ -143,14 +143,21 @@ Kulon, Hobars Gap, Tasmin Sink, Funeral Plain) = **50 areas**
 | SW | outer | 10 | 1 | 0 | 0 | 5 | 4 |
 | SE | outer | 10 | 2 | 0 | 0 | 4 | 4 |
 | NE | outer | 18 | 0 | 0 | 0 | 7 | 11 |
+| NW | outer | 20 | 0 | 4 | 0 | 6 | 10 |
+| **outer Σ** | | **58** | **3** | **4** | **0** | **22** | **29** |
 
-**Running tally (3 of 8 sectors):** plateau 3/8 · mountain 0/7 · minor_erg 0/5 · deep-desert **16**/23 · non-deep desert **19** · **areas 38**
+**Running tally (4 of 8 = all outer):** plateau 3/8 · mountain 4/7 · minor_erg 0/5 · deep-desert **22**/23 · non-deep desert **29** · **areas 58**
 
-> ⚠️ **Cross-check notes:**
-> - **deep-desert 16/23** — tracking toward the target; NW outer + central sectors should supply ~7 more.
-> - **non-deep desert = 19** but only **7 are named** → ~12 **unnamed non-deep** desert areas so far
->   (the inner row of the outer ring). True board total is well **> 50**; sectors are revealing it.
->   We'll add all the unnamed non-deep areas to §1 once the 8 sectors are in.
+> **Cross-check after all 4 outer sectors:**
+> - ✅ **Plateau 3 outer / 5 left for central** — and the 5 remaining must be the **5 city plateaus**
+>   (Arrakeen, Carthag, Arsunt, Hagga Basin, Imperial Basin) = the storm-safe "5 central plateaus". Clean!
+> - ✅ **minor_erg 0 outer** — all 5 (Harg Pass chain) fall in central, as expected.
+> - ✅ **mountain 4 outer / 3 left for central** (incl. North Pole the hub).
+> - ⚠️ **deep-desert = 22, expected 23.** Central sectors should have **0** deep desert (they're inner),
+>   so we're **1 short**. Likely an off-by-one in a per-edge count (the 20 unnamed) or one sector. To
+>   reconcile: do central (confirm 0 deep there), then we recheck one edge. (Everything else reconciles.)
+> - **non-deep desert 29** (7 named + ~22 unnamed) — central will add a few more; we'll catalogue all
+>   the unnamed non-deep areas in §1 after the 8 sectors are in.
 
 > Rules note: Coriolis storms spare "the 5 **central plateau** areas." With the corrected types
 > this is almost certainly the **5 city plateaus** (Arrakeen, Carthag, Arsunt, Hagga Basin,
