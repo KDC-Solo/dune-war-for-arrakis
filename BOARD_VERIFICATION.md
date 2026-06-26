@@ -321,6 +321,33 @@ s1_16:   s1_15 ✅, s1_14 ✅                    # SE-ish; S edge → into s5/ai
 **Still-OPEN s1 questions (revisit when tracing s5):** s1_11↔s1_15? · s1_14↔s1_15? ·
 s1↔s5 ground crossings near Gara Kulon / s1_15 / s1_16 (white border vs air-zone vs impassable).
 
+### 3a-s2. Sector s2 (SE-outer) — PHOTO-TRACED DRAFT (from south-east.jpg)
+✅ = clear white border, 🟡 = likely (needs your eye). E edge (right) = Prescience track; S edge = bottom.
+Spatial layout (board N = top; this is the SE quadrant):
+```
+   [s6 inner + air-zone band above]
+   pasty_mesa  s2_5   s2_1   s2_2
+               tasmin_sink   s2_3
+      s2_8   s2_6      s2_7   s2_4
+         (air zone SW)   [S edge]
+```
+```
+s2_1:    s2_2 ✅, s2_3 ✅, s2_5 ✅, tasmin_sink ✅           # N border = s6/air-zone band
+s2_2:    s2_1 ✅, s2_3 ✅, s2_4 ✅                          # E edge (Prescience track); N→ s1 corner? — Q
+s2_3:    s2_1 ✅, s2_2 ✅, s2_4 ✅, s2_6 ✅, s2_7 ✅, tasmin_sink ✅
+s2_4:    s2_2 ✅, s2_3 ✅, s2_7 ✅                          # E edge, lower
+s2_5:    s2_1 ✅, s2_6 ✅, pasty_mesa ✅, tasmin_sink ✅
+s2_6:    s2_3 ✅, s2_5 ✅, s2_7 ✅, s2_8 ✅, tasmin_sink 🟡
+s2_7:    s2_3 ✅, s2_4 ✅, s2_6 ✅, s2_8 ✅                  # S edge
+s2_8:    s2_6 ✅, s2_7 ✅, pasty_mesa 🟡                    # SW air zone; S edge; → s3 corner? — Q
+pasty_mesa:  s2_5 ✅, tasmin_sink 🟡, s2_8 🟡, + false_wall_south/hobars_gap (s6)? — Q   # plateau
+tasmin_sink: s2_1 ✅, s2_3 ✅, s2_5 ✅, s2_6 🟡, pasty_mesa 🟡   # non-deep desert sietch
+```
+**Open s2 questions (batched):** s2_6↔tasmin_sink? · s2_8↔pasty_mesa? · pasty_mesa neighbours into
+s6 (false_wall_south / hobars_gap)? · s2↔s1 crossing on the E edge (s2_2 ↔ s1_16 / desert_e)? ·
+s2↔s3 crossing at the S-edge SW corner (s2_8 ↔ s3_9 / desert_se)? · which s6 areas border s2 across
+the air-zone band.
+
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
 ```
