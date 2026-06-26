@@ -240,6 +240,11 @@ reference; the real positional `s#_N` ids get assigned as we trace each sector. 
   s8_4 bottom-left (by air zone) · **Arsunt** (named, by Carthag) · **Hagga Basin** (settlement I) ·
   **Splintered Rock** (mtn) · **Shield Wall #2** (mtn, red border) · **Wind Pass** (named nd).
   ⏳ s8_1,2,4 + 5 named found; **s8_3 to locate**.
+- `s5` (NE-in, 16): from `center-east.jpg`. s5_1 top-center (by Imperial Basin) · s5_2 center-left
+  (by Hole in the Rock) · s5_3 center · s5_4 center-bottom · s5_5 center-right · s5_6 right · s5_7
+  bottom-center · s5_8 bottom-right · s5_9 center-right (by s1_15) · **Carthag, Arrakeen, Imperial
+  Basin** (plt) · **Broken Land, Rimwall West, Hole in the Rock, Shield Wall #1** (mtn). ✅ s5_1..s5_9
+  + 7 named = 16.
 
 **Outer**
 - `s1` NE-out (18): **Sihaya Ridge** =`s1_dd1` + `s1_dd2..7` · **Gara Kulon** =`s1_nd1` + `s1_nd2..11`  ✅
