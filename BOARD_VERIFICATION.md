@@ -236,10 +236,10 @@ reference; the real positional `s#_N` ids get assigned as we trace each sector. 
   **Rock Outcroppings** (green triangle) · **Bight of the Cliff** (green triangle) · **The Great Flat**
   (deep, SW edge). ✅ s4_1..s4_16 + 4 named = 20.
 - `s8` (NW-in, 9): from `center-west.jpg`. s8_1 W edge (by Shield Wall #2's red border) · s8_2
-  center-left (W of Hagga Basin) · s8_3 🟡 not yet pinned (likely near Wind Pass/Splintered Rock) ·
+  center-left (W of Hagga Basin) · s8_3 🟡 SW corner of s8 (s4/s3/s7/s8 junction) ·
   s8_4 bottom-left (by air zone) · **Arsunt** (named, by Carthag) · **Hagga Basin** (settlement I) ·
   **Splintered Rock** (mtn) · **Shield Wall #2** (mtn, red border) · **Wind Pass** (named nd).
-  ⏳ s8_1,2,4 + 5 named found; **s8_3 to locate**.
+  ⏳ s8_1..s8_4 + 5 named = 9. ✅ s8 complete.
 - `s5` (NE-in, 16): from `center-east.jpg`. s5_1 top-center (by Imperial Basin) · s5_2 center-left
   (by Hole in the Rock) · s5_3 center · s5_4 center-bottom · s5_5 center-right · s5_6 right · s5_7
   bottom-center · s5_8 bottom-right · s5_9 center-right (by s1_15) · **Carthag, Arrakeen, Imperial
@@ -281,6 +281,7 @@ Each line lists known neighbors so far; we complete each area's full list over t
 shield_wall_1 (s5_mtn4):  gara_kulon (s1_nd1), <a minor erg in s5 = s5_erg4 or s5_erg5>
 shield_wall_2 (s8_mtn2):  arsunt (s8_plt1), hagga_basin (s8_plt2)
 wind_pass     (s8_nd1):   north_pole (np), splintered_rock (s8_mtn1)
+s8_3:                     bight_of_the_cliff, s4_12, s4_13, s8_1, s8_4, s3_3, s7_1   # COMPLETE (7 nbrs); 4-sector junction
 ```
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
