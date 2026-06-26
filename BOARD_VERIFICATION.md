@@ -145,8 +145,12 @@ Kulon, Hobars Gap, Tasmin Sink, Funeral Plain) = **50 areas**
 | NE | outer | 18 | 0 | 0 | 0 | 7 | 11 |
 | NW | outer | 20 | 0 | 4 | 0 | 6 | 10 |
 | **outer Σ** | | **58** | **3** | **4** | **0** | **22** | **29** |
+| SW-in | central | 8 | 2 | 0 | 0 | 0 | 6 |
 
-**Running tally (4 of 8 = all outer):** plateau 3/8 · mountain 4/7 · minor_erg 0/5 · deep-desert **22**/23 · non-deep desert **29** · **areas 58**
+*(Inner-sector counts **EXCLUDE North Pole** — it's 1 mountain area shared by all 4 central
+sectors, counted once separately at the end. So board mountain total = inner mountains + outer 4 + North Pole.)*
+
+**Running tally (5 of 8):** plateau **5**/8 · mountain 4/7 (+ North Pole pending) · minor_erg 0/5 · deep-desert **22**/23 (central confirming 0 deep ✓) · non-deep desert **35** · **areas 66** (+ North Pole)
 
 > **Cross-check after all 4 outer sectors:**
 > - ✅ **Plateau 3 outer / 5 left for central** — and the 5 remaining must be the **5 city plateaus**
