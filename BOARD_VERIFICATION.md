@@ -226,6 +226,15 @@ reference; the real positional `s#_N` ids get assigned as we trace each sector. 
   top-left (on a ridge) · s7_3 center-left · s7_4 center-top (S of North Pole) · s7_5 center · s7_6
   bottom-center · **False Wall West** (plt ridge, left) · **Windgap** (green triangle sietch, bottom-left).
   ✅ s7_1..s7_6 + False Wall West + Windgap = 8.
+- `s4` (NW-out, 20): from `north-west.jpg` (most) + `center-west.jpg` (s4_12, Bight, Great Flat).
+  s4_1 left (W, by supremacy track) · s4_2 top-center · s4_3 top-right (N edge) · s4_4 center-right ·
+  s4_5 left (W edge, lower) · s4_6 center (by Bight of the Cliff) · s4_7 N (top of center-west) ·
+  s4_8 left-center · s4_9 center (by Rock Outcroppings) · s4_10 center-right (by s8 Shield Wall) ·
+  s4_11 right (N of cities, by seam) · s4_12 center-south (by Great Flat/Bight) · s4_13 bottom (by air
+  zone) · s4_14 center-bottom (by s8 Shield Wall) · s4_15 center-right (by s8 Shield Wall) · s4_16
+  right (large, by Shield Wall + western cities) · **The Funeral Plain** (named, center-left) ·
+  **Rock Outcroppings** (green triangle) · **Bight of the Cliff** (green triangle) · **The Great Flat**
+  (deep, SW edge). ✅ s4_1..s4_16 + 4 named = 20.
 
 **Outer**
 - `s1` NE-out (18): **Sihaya Ridge** =`s1_dd1` + `s1_dd2..7` · **Gara Kulon** =`s1_nd1` + `s1_nd2..11`  ✅
