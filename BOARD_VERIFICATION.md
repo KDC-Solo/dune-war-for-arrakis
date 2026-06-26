@@ -146,20 +146,20 @@ Kulon, Hobars Gap, Tasmin Sink, Funeral Plain) = **50 areas**
 | NW | outer | 20 | 0 | 4 | 0 | 6 | 10 |
 | **outer Σ** | | **58** | **3** | **4** | **0** | **22** | **29** |
 | SW-in | central | 8 | 2 | 0 | 0 | 0 | 6 |
+| SE-in | central | 9 | 1 | 1 | 3 | 1 | 3 |
 
 *(Inner-sector counts **EXCLUDE North Pole** — it's 1 mountain area shared by all 4 central
 sectors, counted once separately at the end. So board mountain total = inner mountains + outer 4 + North Pole.)*
 
-**Running tally (5 of 8):** plateau **5**/8 · mountain 4/7 (+ North Pole pending) · minor_erg 0/5 · deep-desert **22**/23 (central confirming 0 deep ✓) · non-deep desert **35** · **areas 66** (+ North Pole)
+**Running tally (6 of 8):** plateau **6**/8 · mountain **5**/7 (+ North Pole pending) · minor_erg **3**/5 · deep-desert **23/23 ✅ RESOLVED** (22 outer + 1 SE-inner) · non-deep desert **38** · **areas 75** (+ North Pole)
 
 > **Cross-check after all 4 outer sectors:**
 > - ✅ **Plateau 3 outer / 5 left for central** — and the 5 remaining must be the **5 city plateaus**
 >   (Arrakeen, Carthag, Arsunt, Hagga Basin, Imperial Basin) = the storm-safe "5 central plateaus". Clean!
 > - ✅ **minor_erg 0 outer** — all 5 (Harg Pass chain) fall in central, as expected.
 > - ✅ **mountain 4 outer / 3 left for central** (incl. North Pole the hub).
-> - ⚠️ **deep-desert = 22, expected 23.** Central sectors should have **0** deep desert (they're inner),
->   so we're **1 short**. Likely an off-by-one in a per-edge count (the 20 unnamed) or one sector. To
->   reconcile: do central (confirm 0 deep there), then we recheck one edge. (Everything else reconciles.)
+> - ✅ **deep-desert = 23 RESOLVED.** Was 22 after outer; the SE **inner** sector has 1 deep-desert
+>   area (so not every central sector is 0 deep). 22 outer + 1 SE-inner = 23. No off-by-one after all.
 > - **non-deep desert 29** (7 named + ~22 unnamed) — central will add a few more; we'll catalogue all
 >   the unnamed non-deep areas in §1 after the 8 sectors are in.
 
