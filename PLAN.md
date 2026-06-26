@@ -27,16 +27,20 @@ solo player (playing Atreides) doesn't have to execute the Harkonnen priority ru
 
 ## 3. Build phases
 
-### Phase 0 — Board data  *(IN PROGRESS)*
+### Phase 0 — Board data  *(IN PROGRESS — at §3 Adjacency)*
+> **Resume here (next session): trace s1 adjacency** from the numbered photos, then the other
+> sectors; see §2.2/§3a in `BOARD_VERIFICATION.md`. Dense mountain core (s5/s8) may need the
+> user's direct `s8_3`-style neighbour descriptions.
 Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `docs/map/`.
 - [x] Area names + types (colour rule: orange=plateau, grey=mountain, sand=desert, + minor_erg)
 - [x] Settlements (Arrakeen III, Carthag II, 4 Pyon villages I: Arsunt, Hagga Basin, Imperial Basin, North Pole)
 - [x] All 8 sietches named
 - [x] `deep` (deep-desert) flag per named desert (deep = Sihaya Ridge, Rock Outcroppings, The Great Flat)
-- [ ] §2 Sectors (8: 4 central + 4 outer) — assign each area
+- [x] §2 Sectors (s1–s8 = 4 outer + 4 inner) — every area assigned; **board has 101 areas** (not ~50: plateau/mountain have many unnamed areas too)
+- [x] §2.1/§2.2 all 101 areas have ids + positions (user physically numbered the board `s#_N`; read off the marked `docs/map/*.jpg` tiles)
+- [ ] **§3 Adjacency — IN PROGRESS, the active task.** A few edges done in §3a (shield_wall_1/2, wind_pass, s8_3). Workflow: I trace clear edges + structural facts from the numbered photos, batch ambiguous-edge questions per sector (phone-alert the user), cross-check reciprocity + type counts. NEXT: trace s1.
+- [ ] §4 Impassable borders (confirmed so far: Shield Wall #2 west; the red arc along Broken Land→Rimwall West north blocks s1↔s5)
 - [ ] §5 Air zones (~8) — which two sectors each straddles
-- [ ] §3 Adjacency finalised (outer ring + minor-erg chain order)
-- [ ] §4 Impassable borders (Shield Wall west confirmed; trace the rest)
 
 ### Phase 1 — `board.ts`
 - [ ] Generate typed board module from the verified `BOARD_VERIFICATION.md`
