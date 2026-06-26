@@ -299,9 +299,9 @@ Spatial layout (board N = top):
 (specific s4 id TBD when tracing s4). All 4 queried internal pairs confirmed adjacent ✅
 (s1_1↔s1_4, s1_5↔s1_6, s1_7↔s1_8, s1_8↔s1_11). Gara-Kulon-junction Qs still OPEN (🟡 below).
 ```
-s1_1:    s1_2 ✅, s1_3 ✅, s1_4 ✅, <s4 across seam ✅ id-TBD>
+s1_1:    s1_2 ✅, s1_3 ✅, s1_4 ✅, s4_3 ✅(seam, per s4 trace)
 s1_2:    s1_1 ✅, s1_4 ✅, s1_5 ✅, s1_6 ✅, sihaya_ridge ✅
-s1_3:    s1_1 ✅, s1_4 ✅, <s4 across seam ✅ id-TBD>   # S border = Broken Land (impassable §4)
+s1_3:    s1_1 ✅, s1_4 ✅, s4_11 ✅, s4_16 ✅(seam, per s4 trace)   # S border = Broken Land (impassable §4)
 s1_4:    s1_3 ✅, s1_2 ✅, s1_5 ✅, s1_1 ✅   # S border = Broken Land arc (impassable §4)
 s1_5:    s1_2 ✅, s1_4 ✅, s1_8 ✅, s1_7 ✅, s1_6 ✅   # SW corner = air zone; S = Rimwall West (impassable §4)
 s1_6:    s1_2 ✅, s1_8 ✅, s1_9 ✅, sihaya_ridge ✅, s1_5 ✅
@@ -397,31 +397,35 @@ Spatial layout (NW quadrant):
  great_flat
 [W edge left / S edge bottom]
 ```
+**User answers (2026-06-27) — s4 desert edges RESOLVED.** Funeral Plain ringed by s4_1,2,4,5,6,7.
+NOT adjacent: s4_2↔s4_3, s4_4↔s4_9. Seam: s4_3↔s1_1, s4_11↔s1_3, s4_16↔s1_3 (NOT s4_16↔s5_1).
+⚠️ User also listed s4_15↔shield_wall and s4_16↔{shield_wall, broken_land, arsunt} — these are the
+RED mountain edges → treated as **impassable (§4)** pending the confirm Q below.
 ```
-s4_1:    s4_2 ✅, s4_5 ✅, the_funeral_plain ✅, the_great_flat ✅           # W edge (+ N→desert_nw corner?)
-s4_2:    s4_1 ✅, s4_4 ✅, the_funeral_plain ✅, rock_outcroppings ✅, s4_3 🟡   # N edge
-s4_3:    s4_2 ✅, rock_outcroppings ✅, s4_10 ✅, s4_11 ✅, s1_1 🟡(seam)      # N edge
-s4_4:    s4_2 ✅, s4_7 ✅, s4_8 ✅, the_funeral_plain ✅, rock_outcroppings ✅, s4_9 🟡
-s4_5:    s4_1 ✅, s4_6 ✅, the_great_flat ✅, the_funeral_plain 🟡             # W edge
-s4_6:    s4_5 ✅, s4_7 ✅, s4_12 ✅, bight_of_the_cliff ✅, the_great_flat ✅, the_funeral_plain 🟡
-s4_7:    s4_4 ✅, s4_6 ✅, s4_8 ✅, s4_13 ✅, bight_of_the_cliff ✅, the_funeral_plain 🟡
-s4_8:    s4_4 ✅, s4_7 ✅, s4_9 ✅, s4_13 🟡, s4_14 🟡
-s4_9:    s4_8 ✅, s4_10 ✅, s4_14 ✅, s4_15 ✅, rock_outcroppings ✅, s4_4 🟡
-s4_10:   s4_3 ✅, s4_9 ✅, s4_11 ✅, s4_15 ✅, rock_outcroppings ✅            # S = Shield Wall (impassable §4)
-s4_11:   s4_3 ✅, s4_10 ✅, s4_16 ✅, s1_3 🟡(seam)                          # E = Broken Land (impassable §4)
+s4_1:    s4_2 ✅, s4_5 ✅, the_funeral_plain ✅, the_great_flat ✅           # W edge
+s4_2:    s4_1 ✅, s4_4 ✅, the_funeral_plain ✅, rock_outcroppings ✅        # N edge (NOT s4_3)
+s4_3:    s4_10 ✅, s4_11 ✅, rock_outcroppings ✅, s1_1 ✅(seam)             # N edge (NOT s4_2)
+s4_4:    s4_2 ✅, s4_7 ✅, s4_8 ✅, the_funeral_plain ✅, rock_outcroppings ✅   # (NOT s4_9)
+s4_5:    s4_1 ✅, s4_6 ✅, the_great_flat ✅, the_funeral_plain ✅           # W edge
+s4_6:    s4_5 ✅, s4_7 ✅, s4_12 ✅, bight_of_the_cliff ✅, the_great_flat ✅, the_funeral_plain ✅
+s4_7:    s4_4 ✅, s4_6 ✅, s4_8 ✅, s4_13 ✅, bight_of_the_cliff ✅, the_funeral_plain ✅
+s4_8:    s4_4 ✅, s4_7 ✅, s4_9 ✅, s4_13 ✅, s4_14 ✅
+s4_9:    s4_8 ✅, s4_10 ✅, s4_14 ✅, s4_15 ✅, rock_outcroppings ✅         # (NOT s4_4)
+s4_10:   s4_3 ✅, s4_9 ✅, s4_11 ✅, s4_15 ✅, rock_outcroppings ✅
+s4_11:   s4_3 ✅, s4_10 ✅, s4_15 ✅, s4_16 ✅, s1_3 ✅(seam)                # Broken Land (impassable §4)
 s4_12:   s4_6 ✅, bight_of_the_cliff ✅, the_great_flat ✅, s8_3 ✅, s3_2 ✅, s3_3 ✅
-s4_13:   s4_7 ✅, s8_3 ✅, s4_8 🟡, s4_14 🟡, s8_1 🟡, bight_of_the_cliff 🟡   # air zone
-s4_14:   s4_9 ✅, s4_15 ✅, s4_8 🟡, s4_13 🟡                                # air zone; Shield Wall (impassable §4)
-s4_15:   s4_9 ✅, s4_10 ✅, s4_14 ✅, s4_16 ✅                               # Shield Wall (impassable §4)
-s4_16:   s4_11 ✅, s4_15 ✅, s5_1 🟡(seam)                                   # Shield Wall + Broken Land (impassable §4)
-the_funeral_plain: s4_1 ✅, s4_2 ✅, s4_4 ✅, s4_5 🟡, s4_6 🟡, s4_7 🟡       # large central desert
-rock_outcroppings: s4_2 ✅, s4_3 ✅, s4_4 ✅, s4_9 ✅, s4_10 ✅              # deep-desert sietch
-bight_of_the_cliff: s4_6 ✅, s4_7 ✅, s4_12 ✅, s8_3 ✅, s4_13 🟡            # non-deep desert sietch
-the_great_flat: s4_1 ✅, s4_5 ✅, s4_6 ✅, s4_12 ✅, s3_1 ✅, s3_2 ✅        # deep-desert (SW corner of s4)
+s4_13:   s4_7 ✅, s4_8 ✅, s4_14 ✅, s8_1 ✅, s8_3 ✅, bight_of_the_cliff ✅   # air zone
+s4_14:   s4_8 ✅, s4_9 ✅, s4_13 ✅, s4_15 ✅, s8_1 ✅                       # air zone
+s4_15:   s4_9 ✅, s4_10 ✅, s4_11 ✅, s4_14 ✅, s4_16 ✅                     # + shield_wall (red → §4, confirm)
+s4_16:   s4_11 ✅, s4_15 ✅, s1_3 ✅(seam)                                  # + shield_wall, broken_land, arsunt (red → §4, confirm)
+the_funeral_plain: s4_1 ✅, s4_2 ✅, s4_4 ✅, s4_5 ✅, s4_6 ✅, s4_7 ✅      # ringed by all 6
+rock_outcroppings: s4_2 ✅, s4_3 ✅, s4_4 ✅, s4_9 ✅, s4_10 ✅             # deep-desert sietch
+bight_of_the_cliff: s4_6 ✅, s4_7 ✅, s4_12 ✅, s4_13 ✅, s8_3 ✅           # non-deep desert sietch
+the_great_flat: s4_1 ✅, s4_5 ✅, s4_6 ✅, s4_12 ✅, s3_1 ✅, s3_2 ✅       # deep-desert (SW corner of s4)
 ```
-**Open s4 questions (batched):** Funeral Plain — which of s4_5/s4_6/s4_7 touch it? · air-zone cluster:
-s4_8↔s4_13? s4_8↔s4_14? s4_13↔s4_14? s4_13↔s8_1? s4_13↔bight? · seam crossings s4_3↔s1_1, s4_11↔s1_3,
-s4_16↔s5_1? · s4_2↔s4_3? · s4_4↔s4_9?
+**s4 cross-sector edges to mirror:** →s1 (seam): s4_3↔s1_1 · s4_11↔s1_3 · s4_16↔s1_3.
+→s8: s4_13↔{s8_1, s8_3} · s4_14↔s8_1 · s4_12↔s8_3 · bight↔s8_3.  →s3: s4_12↔{s3_2,s3_3} · great_flat↔{s3_1,s3_2}.
+**s4 open:** only the §4 classification of s4_15/s4_16 ↔ Shield Wall / Broken Land / Arsunt (passable?).
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
