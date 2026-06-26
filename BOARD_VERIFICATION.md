@@ -458,6 +458,36 @@ red-or-white? · splintered_rock's mtn neighbours (hole_in_the_rock, north_pole,
 arsunt↔{carthag, broken_land}.
 **s8→s5 cross-sector to mirror:** hagga_basin↔{s5_1, s5_2, carthag}.
 
+### 3a-s5. Sector s5 (NE-inner, 16 areas) — SKELETON (densest core; needs your direct lists)
+✅ known · 🟡 photo-guess. Named (7): Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West,
+Hole in the Rock, Shield Wall #1. Unnamed s5_1..s5_9 (types per §2.1: 1 extra plateau, 5 mtn, 2 m.erg, 1 nd).
+Pre-known: shield_wall_1↔{gara_kulon, an s5 minor erg} (§3a) · hagga_basin↔{s5_1, s5_2, carthag} (§3a-s8).
+Rough positions (center-east.jpg): s5_1 top-ctr (by Imperial Basin) · s5_2 ctr-left (by Hole in the Rock/
+Splintered Rock) · s5_3 ctr · s5_4 ctr-bottom (by North Pole) · s5_5 ctr-right · s5_6 right (by Rimwall West,
+red) · s5_7 bottom-ctr (air zone) · s5_8 bottom-right · s5_9 far right (by Gara Kulon/Shield Wall #1).
+```
+# PHOTO-GUESS skeleton — confirm with direct neighbour lists (s8_3-style). NOT yet authoritative.
+s5_1:  imperial_basin 🟡, carthag 🟡, hagga_basin ✅, s5_2 🟡, hole_in_the_rock 🟡
+s5_2:  hagga_basin ✅, splintered_rock 🟡, hole_in_the_rock 🟡, north_pole 🟡, s5_1 🟡, s5_3 🟡
+s5_3:  s5_2 🟡, s5_4 🟡, s5_5 🟡, hole_in_the_rock 🟡, north_pole 🟡
+s5_4:  s5_3 🟡, s5_7 🟡, north_pole 🟡, hole_in_the_rock 🟡
+s5_5:  s5_3 🟡, s5_6 🟡, s5_7 🟡, hole_in_the_rock 🟡, rimwall_west 🟡
+s5_6:  s5_5 🟡, s5_9 🟡, rimwall_west 🟡   # E = Rimwall West red arc (impassable, s1 side)
+s5_7:  s5_4 🟡, s5_5 🟡, s5_8 🟡, north_pole 🟡   # air zone
+s5_8:  s5_7 🟡, s5_9 🟡, s5_5 🟡
+s5_9:  s5_8 🟡, s5_6 🟡, gara_kulon 🟡, shield_wall_1 🟡   # the s1↔s5 junction area
+# Named hubs (need your lists):
+carthag:        arsunt 🟡, arrakeen 🟡, hagga_basin ✅, imperial_basin 🟡, broken_land 🟡, s5_1 🟡
+arrakeen:       carthag 🟡, imperial_basin 🟡, broken_land 🟡, rimwall_west 🟡
+imperial_basin: carthag 🟡, arrakeen 🟡, hole_in_the_rock 🟡, rimwall_west 🟡, s5_1 🟡   # NOT hagga_basin (air zone)
+broken_land:    arsunt 🟡, carthag 🟡, arrakeen 🟡, rimwall_west 🟡, s4_16 ✅(§3a-s4)
+rimwall_west:   arrakeen 🟡, imperial_basin 🟡, broken_land 🟡, hole_in_the_rock 🟡, s5_5/s5_6 🟡, sihaya_ridge 🟡(s1)
+hole_in_the_rock: imperial_basin 🟡, rimwall_west 🟡, north_pole 🟡, splintered_rock 🟡, false_wall_east 🟡, s5_2/3/4/5 🟡
+shield_wall_1:  gara_kulon ✅, <an s5 minor erg> ✅, s5_9 🟡
+```
+**Open s5 questions (batched first round below):** the Gara Kulon↔s5 junction (s5_9/shield_wall_1) ·
+the city cluster (Carthag/Arrakeen/Imperial Basin direct lists) · then North Pole + the mountain web.
+
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
 ```
