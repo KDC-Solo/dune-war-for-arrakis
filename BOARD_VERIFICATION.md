@@ -235,6 +235,11 @@ reference; the real positional `s#_N` ids get assigned as we trace each sector. 
   right (large, by Shield Wall + western cities) · **The Funeral Plain** (named, center-left) ·
   **Rock Outcroppings** (green triangle) · **Bight of the Cliff** (green triangle) · **The Great Flat**
   (deep, SW edge). ✅ s4_1..s4_16 + 4 named = 20.
+- `s8` (NW-in, 9): from `center-west.jpg`. s8_1 W edge (by Shield Wall #2's red border) · s8_2
+  center-left (W of Hagga Basin) · s8_3 🟡 not yet pinned (likely near Wind Pass/Splintered Rock) ·
+  s8_4 bottom-left (by air zone) · **Arsunt** (named, by Carthag) · **Hagga Basin** (settlement I) ·
+  **Splintered Rock** (mtn) · **Shield Wall #2** (mtn, red border) · **Wind Pass** (named nd).
+  ⏳ s8_1,2,4 + 5 named found; **s8_3 to locate**.
 
 **Outer**
 - `s1` NE-out (18): **Sihaya Ridge** =`s1_dd1` + `s1_dd2..7` · **Gara Kulon** =`s1_nd1` + `s1_nd2..11`  ✅
