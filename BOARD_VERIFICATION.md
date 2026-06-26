@@ -149,19 +149,26 @@ plateau named 8 · mountain named 7 · non-deep desert named 7. Real totals come
 | SW-in | central | 8 | 2 | 0 | 0 | 0 | 6 |
 | SE-in | central | 9 | 1 | 1 | 3 | 1 | 3 |
 | NE-in | central | 16 | 4 | 9 | 2 | 0 | 1 |
+| NW-in | central | 9 | 2 | 4 | 0 | 0 | 3 |
+| North Pole | all 4 central | 1 | 0 | 1 | 0 | 0 | 0 |
+| **TOTAL** | | **101** | **12** | **19** | **5** | **23** | **42** |
 
 *(Inner-sector counts **EXCLUDE North Pole** — it's 1 mountain area shared by all 4 central
-sectors, counted once separately at the end. So board mountain total = inner mountains + outer 4 + North Pole.)*
+sectors, counted once. It's added as its own row above.)*
 
-**Running tally (7 of 8):** plateau **10** (named=8 ❗exceeded) · mountain **14** (named=7 ❗exceeded) (+ North Pole) · minor_erg **5/5 ✅** · deep-desert **23/23 ✅** · non-deep desert **39** · **areas 91** (+ North Pole)
+**FINAL totals (all 8 sectors + North Pole):**
+plateau **12** · mountain **19** · minor_erg **5** · deep-desert **23** · non-deep desert **42** = **101 areas**
 
-> 🔴 **Major finding:** plateau (10) and mountain (14) have blown past the **named** counts (8, 7).
-> Just like the deserts, **plateau and mountain ALSO have many unnamed areas** — the grey mountain
-> arc and orange plateau are each subdivided into many areas; the named ones are only a subset.
-> So the only true pre-sector caps were **minor_erg = 5** and **deep-desert = 23** (both ✅ confirmed,
-> validating the user's explicit counts). The **board is much larger than 50** — sector counts are the
-> ground truth. After the last sector we'll know the real totals and how many unnamed plateau/mountain/
-> non-deep-desert areas to add to §1.
+> 🔴 **Major finding:** plateau & mountain have many **unnamed** areas too (named were only 8 & 7).
+> Only minor_erg (5) and deep-desert (23) were real caps — both matched exactly ✅.
+>
+> **Named vs unnamed (101 total):** 26 named, **75 unnamed** —
+> plateau 4 unnamed (12−8) · mountain 12 unnamed (19−7) · minor_erg 4 unnamed (Harg Pass chain) ·
+> deep-desert 20 unnamed · non-deep desert 35 unnamed (42−7).
+>
+> ⚠️ **Sanity-check please:** 101 areas (19 mountain!) is large — worth a glance to confirm before we
+> build the adjacency graph for all 101. Your minor_erg & deep-desert counts matched perfectly, so the
+> method looks sound, but the mountain count especially is worth a second look.
 
 > **Cross-check after all 4 outer sectors:**
 > - ✅ **Plateau 3 outer / 5 left for central** — and the 5 remaining must be the **5 city plateaus**
