@@ -140,9 +140,15 @@ Kulon, Hobars Gap, Tasmin Sink, Funeral Plain) = **50 areas**
 
 | sector | c/o | #areas | plat | mtn | m.erg | deep des | desert |
 |--------|-----|--------|------|-----|-------|----------|--------|
-| SW | ? | 10 | 1 | 0 | 0 | 5 | 4 |
+| SW | outer | 10 | 1 | 0 | 0 | 5 | 4 |
+| SE | outer | 10 | 2 | 0 | 0 | 4 | 4 |
 
-**Running tally:** plateau 1/8 · mountain 0/7 · minor_erg 0/5 · deep-desert 5/23 · desert 4/7 · **areas 10/50**
+**Running tally:** plateau 3/8 · mountain 0/7 · minor_erg 0/5 · deep-desert 9/23 · desert **8** (named non-deep baseline = 7) · **areas 20/≥50**
+
+> ⚠️ **Cross-check flag:** non-deep "desert" is already **8** after just SW+SE, but there are only
+> **7 named** non-deep deserts board-wide (and one of those, Funeral Plain, is in the NW — not here).
+> → there are **unnamed non-deep desert areas** we haven't catalogued, so the true total is **> 50**.
+> The sector counts will reveal how many; we'll add the unnamed non-deep areas to §1 afterward.
 
 > Rules note: Coriolis storms spare "the 5 **central plateau** areas." With the corrected types
 > this is almost certainly the **5 city plateaus** (Arrakeen, Carthag, Arsunt, Hagga Basin,
