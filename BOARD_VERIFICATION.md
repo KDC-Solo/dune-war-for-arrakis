@@ -218,6 +218,14 @@ reference; the real positional `s#_N` ids get assigned as we trace each sector. 
   s6_3 center-right · s6_4 center-bottom (S of False Wall South) · s6_5 bottom-left · **False Wall East**
   (mtn ridge) · **False Wall South** (plt ridge) · **Harg Pass** (minor erg) · **Hobars Gap** (green
   triangle sietch) · `np` North Pole (top-left). ✅ s6_1..s6_5 + 4 named = 9.
+- `s3` (SW-out, 10): from `south-west.jpg`. s3_1 left (W edge) · s3_2 top-center · s3_3 top-center-right ·
+  s3_4 bottom-left (🟡 verify) · s3_5 center-right (by False Wall West) · s3_6 bottom-center · s3_7
+  bottom-right · s3_8 bottom-left (S edge) · s3_9 bottom-center (S edge, by air zone) · **Habbanya Ridge**
+  center green triangle. ✅ s3_1..s3_9 + Habbanya Ridge = 10.
+- `s7` (SW-in, 8): from `south-west.jpg`. s7_1 top-right (near North Pole / False Wall West) · s7_2
+  top-left (on a ridge) · s7_3 center-left · s7_4 center-top (S of North Pole) · s7_5 center · s7_6
+  bottom-center · **False Wall West** (plt ridge, left) · **Windgap** (green triangle sietch, bottom-left).
+  ✅ s7_1..s7_6 + False Wall West + Windgap = 8.
 
 **Outer**
 - `s1` NE-out (18): **Sihaya Ridge** =`s1_dd1` + `s1_dd2..7` · **Gara Kulon** =`s1_nd1` + `s1_nd2..11`  ✅
