@@ -280,7 +280,7 @@ Each line lists known neighbors so far; we complete each area's full list over t
 ```
 shield_wall_1 (s5_mtn4):  gara_kulon (s1_nd1), <a minor erg in s5 = s5_erg4 or s5_erg5>
 shield_wall_2 (s8_mtn2):  arsunt (s8_plt1), hagga_basin (s8_plt2)
-wind_pass     (s8_nd1):   north_pole (np), splintered_rock (s8_mtn1)
+wind_pass     (s8_nd1):   north_pole (np), splintered_rock (s8_mtn1), s8_4, s8_2   # NOT false_wall_west
 s8_3:                     bight_of_the_cliff, s4_12, s4_13, s8_1, s8_4, s3_3, s7_1   # COMPLETE (7 nbrs); 4-sector junction
 ```
 
@@ -438,21 +438,25 @@ wind_pass↔{north_pole, splintered_rock} (§3a) · s8_1↔{s4_13, s4_14} & s4�
 shield_wall_2↔{s4_15, s4_16} & s4_16↔arsunt (§3a-s4). Areas: s8_1, s8_2, s8_3, s8_4, arsunt, hagga_basin,
 splintered_rock, shield_wall_2, wind_pass. Layout (center-west.jpg): s8_1 NW (W=air zone s4_13, E=Shield Wall #2
 red), s8_2 mtn on Splintered Rock massif, s8_3 SW junction, s8_4 S by Wind Pass; cities/Splintered Rock to the E.
+**User answers (2026-06-27):** s8_1↔s8_2 and s8_1↔Shield Wall #2 are BOTH RED impassable (→§4).
+s8_2 borders splintered_rock/hagga_basin/wind_pass/s8_4 (+ s8_1 red, +shield_wall_2 🟡). s8_4↔wind_pass
+yes but s8_4↔splintered_rock NO; wind_pass↔false_wall_west NO. Hagga Basin: arsunt/carthag/s5_1/s5_2/
+splintered_rock/s8_2/shield_wall_2 — **NOT north_pole, NOT imperial_basin (air zone)**.
 ```
-s8_1:    s8_3 ✅, s4_13 ✅, s4_14 ✅, s8_2 🟡          # E border = Shield Wall #2 = RED impassable? — Q
-s8_2:    s8_4 ✅, s8_1 🟡, s8_3 🟡, splintered_rock 🟡, hagga_basin 🟡   # unnamed MOUNTAIN area
+s8_1:    s8_3 ✅, s4_13 ✅, s4_14 ✅                   # s8_1↔s8_2 & s8_1↔Shield Wall #2 = RED impassable (§4)
+s8_2:    splintered_rock ✅, hagga_basin ✅, wind_pass ✅, s8_4 ✅   # unnamed MTN; +s8_1 RED; +shield_wall_2 🟡(red?)
 s8_3:    bight_of_the_cliff ✅, s4_12 ✅, s4_13 ✅, s8_1 ✅, s8_4 ✅, s3_3 ✅, s7_1 ✅   # COMPLETE
-s8_4:    s8_3 ✅, s8_2 ✅, splintered_rock 🟡, wind_pass 🟡
-arsunt:        shield_wall_2 ✅, s4_16 ✅, carthag 🟡, hagga_basin 🟡, broken_land 🟡   # city I
-hagga_basin:   shield_wall_2 ✅, splintered_rock 🟡, s8_2 🟡, carthag 🟡, imperial_basin 🟡, arsunt 🟡, north_pole 🟡   # city I; air zone to Imperial Basin
-splintered_rock: wind_pass ✅, s8_2 🟡, s8_4 🟡, hagga_basin 🟡, hole_in_the_rock 🟡, north_pole 🟡, false_wall_east 🟡, false_wall_west 🟡
-shield_wall_2: arsunt ✅, hagga_basin ✅, s4_15 ✅, s4_16 ✅            # W border (s8_1/s4_13 side) = RED impassable §4
-wind_pass:     north_pole ✅, splintered_rock ✅, s8_4 🟡, false_wall_west 🟡
+s8_4:    s8_3 ✅, s8_2 ✅, wind_pass ✅                 # NOT splintered_rock
+arsunt:        shield_wall_2 ✅, s4_16 ✅, hagga_basin ✅, carthag 🟡, broken_land 🟡   # city I (carthag/broken_land → confirm in s5)
+hagga_basin:   arsunt ✅, carthag ✅, s5_1 ✅, s5_2 ✅, splintered_rock ✅, s8_2 ✅, shield_wall_2 ✅   # city I; NOT north_pole / imperial_basin(air zone)
+splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, hole_in_the_rock 🟡, north_pole 🟡, false_wall_east 🟡, false_wall_west 🟡   # NOT s8_4
+shield_wall_2: arsunt ✅, hagga_basin ✅, s4_15 ✅, s4_16 ✅            # W side (s8_1, s4_13, s8_2?) = RED impassable §4
+wind_pass:     north_pole ✅, splintered_rock ✅, s8_4 ✅, s8_2 ✅      # NOT false_wall_west
 ```
-**Open s8 questions (batched):** s8_1: is its E border (Shield Wall #2) red/impassable, and does s8_1↔s8_2? ·
-s8_2 neighbours (s8_1? s8_3? splintered_rock? hagga_basin?) · s8_4↔splintered_rock? s8_4↔wind_pass? ·
-wind_pass↔{s8_4, false_wall_west}? · For the city/mtn hub (arsunt, hagga_basin, splintered_rock) please give
-direct neighbour lists like you did for s8_3.
+**s8 unnamed areas (s8_1..s8_4) RESOLVED.** Remaining (resolve while tracing s5/s6): s8_2↔shield_wall_2
+red-or-white? · splintered_rock's mtn neighbours (hole_in_the_rock, north_pole, false_wall_east/west) ·
+arsunt↔{carthag, broken_land}.
+**s8→s5 cross-sector to mirror:** hagga_basin↔{s5_1, s5_2, carthag}.
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
@@ -504,6 +508,8 @@ windgap: false_wall_west, minor_erg_2          # Windgap, next to False Wall Wes
 ## 4. Impassable borders (red/white lines)
 
 ```
+s8_1  <-> s8_2          # ✅ CONFIRMED (user): red impassable
+s8_1  <-> shield_wall_2 # ✅ CONFIRMED (user): red impassable = Shield Wall #2 west border
 s4_15 <-> s4_16   # ✅ CONFIRMED (user): red line runs along the Shield Wall crest BETWEEN these two.
                   #   s4_16 is a MOUNTAIN area on the city side; it IS passable to arsunt/shield_wall_2/
                   #   broken_land. So the red arc is the s4_15|s4_16 seam here, NOT desert|mountain.
