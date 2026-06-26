@@ -83,6 +83,7 @@ judge from the photos — please eyeball these.
 | gara_kulon | Gara Kulon | desert | N | sietch | ✅ (name) |
 | hobars_gap | Hobars Gap | desert | N | sietch | ✅ (name) |
 | tasmin_sink | Tasmin Sink | desert | N | sietch | ✅ (name) |
+| wind_pass | Wind Pass | desert | N | – | ✅ (s8; new — not a sietch) |
 
 > **All 8 sietches named** ✅: Sihaya Ridge, Rock Outcroppings, Bight of the Cliff, Windgap,
 > Habbanya Ridge, Gara Kulon, Hobars Gap, Tasmin Sink. (Still set `deep` Y/N per sietch.)
@@ -203,18 +204,20 @@ into their sector slot (see "named → slot" notes; some still TBD).
 - `s4` NW-out (20): `s4_mtn1..4`(unnamed; Shield Wall NOT here) · **The Great Flat** =`s4_dd1`, **Rock Outcroppings** =`s4_dd2` + `s4_dd3..6` · **Bight of the Cliff** =`s4_nd1`, **The Funeral Plain** =`s4_nd2` + `s4_nd3..10`  ✅
 
 **Inner** (exclude North Pole)
-- `s5` NE-in (16): **Carthag** =`s5_plt1`, **Arrakeen** =`s5_plt2`, **Imperial Basin** =`s5_plt3` + `s5_plt4` · **Broken Land** =`s5_mtn1`, **Rimwall West** =`s5_mtn2`, **Hole in the Rock** =`s5_mtn3`, **Shield Wall** =`s5_mtn4` + `s5_mtn5..9` · `s5_erg4..5` · `s5_nd1`  ✅
+- `s5` NE-in (16): **Carthag** =`s5_plt1`, **Arrakeen** =`s5_plt2`, **Imperial Basin** =`s5_plt3` + `s5_plt4` · **Broken Land** =`s5_mtn1`, **Rimwall West** =`s5_mtn2`, **Hole in the Rock** =`s5_mtn3` + `s5_mtn4..9` · `s5_erg4..5` · `s5_nd1`  ✅ (Shield Wall moved to s8)
 - `s6` SE-in (9): **False Wall South** =`s6_plt1` · **False Wall East** =`s6_mtn1` · **Harg Pass** =`s6_erg1` + `s6_erg2..3` · `s6_dd1` · **Hobars Gap** =`s6_nd1` + `s6_nd2..3`  ✅
 - `s7` SW-in (8): **False Wall West** =`s7_plt1` + `s7_plt2`(unnamed) · **Windgap** =`s7_nd1` + `s7_nd2..6`  ✅
-- `s8` NW-in (9): `s8_plt1..2` · `s8_mtn1..4` · `s8_nd1..3`  — named mtn likely: Shield Wall
+- `s8` NW-in (9): **Arsunt** =`s8_plt1`, **Hagga Basin** =`s8_plt2` · **Splintered Rock** =`s8_mtn1`, **Shield Wall** =`s8_mtn2` + `s8_mtn3..4` · **Wind Pass** =`s8_nd1` + `s8_nd2..3`  ✅ (Shield Wall MOVED here from s5; Wind Pass = NEW name — confirm ≠ Windgap)
 - `np` (1): **North Pole** (mtn; shared by all 4 inner sectors s5–s8)
 
 **Placement tracker (26 named):**
-- ✅ **Placed (23):** np North Pole · s1 Sihaya Ridge, Gara Kulon · s2 Pasty Mesa, Tasmin Sink ·
-  s3 Habbanya Ridge · s4 The Great Flat, Rock Outcroppings, Bight of the Cliff, The Funeral Plain ·
-  s5 Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West, Hole in the Rock, Shield Wall ·
-  s6 False Wall South, False Wall East, Harg Pass, Hobars Gap · s7 False Wall West, Windgap.
-- ⏳ **Remaining 3 — all s8 (NW inner):** plateaus **Arsunt, Hagga Basin** · mountain **Splintered Rock**.
+- ✅ **ALL placed (27 named — was 26 + new "Wind Pass"):**
+  np North Pole · s1 Sihaya Ridge, Gara Kulon · s2 Pasty Mesa, Tasmin Sink · s3 Habbanya Ridge ·
+  s4 The Great Flat, Rock Outcroppings, Bight of the Cliff, The Funeral Plain ·
+  s5 Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West, Hole in the Rock ·
+  s6 False Wall South, False Wall East, Harg Pass, Hobars Gap · s7 False Wall West, Windgap ·
+  s8 Arsunt, Hagga Basin, Splintered Rock, **Shield Wall** (moved from s5), **Wind Pass** (new).
+- ⚠️ Confirm: (a) Shield Wall in **s8** not s5; (b) **Wind Pass** (s8) is distinct from **Windgap** (s7).
 
 ---
 
