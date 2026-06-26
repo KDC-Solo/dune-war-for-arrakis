@@ -362,21 +362,24 @@ Spatial layout (SW quadrant):
    s3_4   s3_6   s3_7   s3_9
    [S edge bottom]
 ```
+**User answers (2026-06-27) — s3 FULLY RESOLVED (all edges ✅):** Habbanya is ringed by s3_1..s3_6
+(all six). s3_5↔s3_7 ✅. Rich cross-sector crossings confirmed (see x-sector block).
 ```
-s3_1:    s3_2 ✅, habbanya_ridge ✅, s3_4 ✅           # W edge; N→ s4 across W edge? — Q
-s3_2:    s3_1 ✅, s3_3 ✅, habbanya_ridge ✅           # N = air-zone band (s7)
-s3_3:    s3_2 ✅, s3_5 ✅, s7_1 ✅, s8_3 ✅, habbanya_ridge 🟡   # 4-sector junction (s3/s4/s7/s8)
-s3_4:    s3_1 ✅, s3_6 ✅, habbanya_ridge 🟡           # W + S edges
-s3_5:    s3_3 ✅, habbanya_ridge ✅, s3_6 ✅, s3_8 ✅, s3_7 🟡
-s3_6:    s3_4 ✅, s3_5 ✅, s3_7 ✅, habbanya_ridge 🟡   # S edge
-s3_7:    s3_6 ✅, s3_8 ✅, s3_9 ✅, s3_5 🟡             # S edge
-s3_8:    s3_5 ✅, s3_7 ✅, s3_9 ✅                      # by air zone → s7 (False Wall West / Windgap)
-s3_9:    s3_7 ✅, s3_8 ✅                              # S edge; NO s2 link (air zone, per s2 trace); → s7 band
-habbanya_ridge: s3_1 ✅, s3_2 ✅, s3_5 ✅, s3_3 🟡, s3_4 🟡, s3_6 🟡   # non-deep desert sietch
+s3_1:    s3_2 ✅, s3_4 ✅, habbanya_ridge ✅, the_great_flat ✅(s4)        # W edge
+s3_2:    s3_1 ✅, s3_3 ✅, habbanya_ridge ✅, the_great_flat ✅(s4), s4_12 ✅
+s3_3:    s3_2 ✅, s3_5 ✅, habbanya_ridge ✅, s4_12 ✅, s8_3 ✅, s7_1 ✅     # s3/s4/s7/s8 4-sector junction
+s3_4:    s3_1 ✅, s3_6 ✅, habbanya_ridge ✅                               # W + S edges
+s3_5:    s3_3 ✅, s3_6 ✅, s3_7 ✅, s3_8 ✅, habbanya_ridge ✅, s7_1 ✅, false_wall_west ✅(s7)
+s3_6:    s3_4 ✅, s3_5 ✅, s3_7 ✅, habbanya_ridge ✅                       # S edge
+s3_7:    s3_5 ✅, s3_6 ✅, s3_8 ✅, s3_9 ✅                                # S edge
+s3_8:    s3_5 ✅, s3_7 ✅, s3_9 ✅, false_wall_west ✅(s7), windgap ✅(s7)
+s3_9:    s3_7 ✅, s3_8 ✅, windgap ✅(s7), s7_6 ✅, s6_5 ✅(s6)             # S edge; NO s2 link (air zone)
+habbanya_ridge: s3_1 ✅, s3_2 ✅, s3_3 ✅, s3_4 ✅, s3_5 ✅, s3_6 ✅       # sietch; ringed by all of s3_1..6
 ```
-**Open s3 questions (batched):** which of s3_3/s3_4/s3_6 actually touch Habbanya Ridge? · s3_5↔s3_7? ·
-s3↔s4 white border across the W edge (s3_1/s3_2 ↔ an s4 area)? · besides s3_3↔s7_1, any s3↔s7 ground
-crossing at s3_8/s3_9, or air-zone-only?
+**s3 cross-sector edges to mirror later:** →s4: s3_1↔the_great_flat · s3_2↔{the_great_flat, s4_12} ·
+s3_3↔s4_12.  →s7: s3_3↔s7_1 · s3_5↔{s7_1, false_wall_west} · s3_8↔{false_wall_west, windgap} ·
+s3_9↔{windgap, s7_6}.  →s8: s3_3↔s8_3 (already in §3a).  →s6: s3_9↔s6_5.
+**s3 resolved — no open questions.**
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
