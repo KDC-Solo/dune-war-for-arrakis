@@ -204,20 +204,21 @@ into their sector slot (see "named → slot" notes; some still TBD).
 - `s4` NW-out (20): `s4_mtn1..4`(unnamed; Shield Wall NOT here) · **The Great Flat** =`s4_dd1`, **Rock Outcroppings** =`s4_dd2` + `s4_dd3..6` · **Bight of the Cliff** =`s4_nd1`, **The Funeral Plain** =`s4_nd2` + `s4_nd3..10`  ✅
 
 **Inner** (exclude North Pole)
-- `s5` NE-in (16): **Carthag** =`s5_plt1`, **Arrakeen** =`s5_plt2`, **Imperial Basin** =`s5_plt3` + `s5_plt4` · **Broken Land** =`s5_mtn1`, **Rimwall West** =`s5_mtn2`, **Hole in the Rock** =`s5_mtn3`, **Shield Wall** =`s5_mtn4` + `s5_mtn5..9` · `s5_erg4..5` · `s5_nd1`  ✅
+- `s5` NE-in (16): **Carthag** =`s5_plt1`, **Arrakeen** =`s5_plt2`, **Imperial Basin** =`s5_plt3` + `s5_plt4` · **Broken Land** =`s5_mtn1`, **Rimwall West** =`s5_mtn2`, **Hole in the Rock** =`s5_mtn3`, **Shield Wall #1** =`s5_mtn4` + `s5_mtn5..9` · `s5_erg4..5` · `s5_nd1`  ✅
 - `s6` SE-in (9): **False Wall South** =`s6_plt1` · **False Wall East** =`s6_mtn1` · **Harg Pass** =`s6_erg1` + `s6_erg2..3` · `s6_dd1` · **Hobars Gap** =`s6_nd1` + `s6_nd2..3`  ✅
 - `s7` SW-in (8): **False Wall West** =`s7_plt1` + `s7_plt2`(unnamed) · **Windgap** =`s7_nd1` + `s7_nd2..6`  ✅
-- `s8` NW-in (9): **Arsunt** =`s8_plt1`, **Hagga Basin** =`s8_plt2` · **Splintered Rock** =`s8_mtn1` + `s8_mtn2..4` · **Wind Pass** =`s8_nd1` + `s8_nd2..3`  ✅ (Shield Wall is in s5, not here. Wind Pass = NEW name — confirm ≠ Windgap)
+- `s8` NW-in (9): **Arsunt** =`s8_plt1`, **Hagga Basin** =`s8_plt2` · **Splintered Rock** =`s8_mtn1`, **Shield Wall #2** =`s8_mtn2` + `s8_mtn3..4` · **Wind Pass** =`s8_nd1` + `s8_nd2..3`  ✅ (TWO "Shield Wall" areas: #1 in s5, #2 here by the western cities. Wind Pass = NEW, confirm ≠ Windgap)
 - `np` (1): **North Pole** (mtn; shared by all 4 inner sectors s5–s8)
 
 **Placement tracker (26 named):**
-- ✅ **ALL placed (27 named — was 26 + new "Wind Pass"):**
+- ✅ **ALL placed (28 named — 26 + "Wind Pass" + a 2nd "Shield Wall"):**
   np North Pole · s1 Sihaya Ridge, Gara Kulon · s2 Pasty Mesa, Tasmin Sink · s3 Habbanya Ridge ·
   s4 The Great Flat, Rock Outcroppings, Bight of the Cliff, The Funeral Plain ·
-  s5 Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West, Hole in the Rock, **Shield Wall** ·
+  s5 Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West, Hole in the Rock, **Shield Wall #1** ·
   s6 False Wall South, False Wall East, Harg Pass, Hobars Gap · s7 False Wall West, Windgap ·
-  s8 Arsunt, Hagga Basin, Splintered Rock, **Wind Pass** (new).
-- ⚠️ Confirm only: **Wind Pass** (s8) is distinct from **Windgap** (s7). (Shield Wall settled in s5.)
+  s8 Arsunt, Hagga Basin, Splintered Rock, **Shield Wall #2**, **Wind Pass** (new).
+- ⚠️ Confirm only: **Wind Pass** (s8) ≠ **Windgap** (s7). (TWO Shield Walls confirmed: #1 in s5, #2 in s8.)
+- 👀 Watch for other **duplicate-named** areas (long ridges): e.g. is there a "Rimwall East" too?
 
 ---
 
@@ -228,8 +229,9 @@ White-border neighbors only. `# impassable` notes go to §4. Use §2.1 IDs.
 ### 3a. Confirmed adjacency (from user — AUTHORITATIVE; partial neighbor lists OK)
 Each line lists known neighbors so far; we complete each area's full list over time.
 ```
-shield_wall (s5_mtn4):  gara_kulon (s1_nd1), <a minor erg in s5 = s5_erg4 or s5_erg5>
-wind_pass (s8_nd1):     north_pole (np), splintered_rock (s8_mtn1)
+shield_wall_1 (s5_mtn4):  gara_kulon (s1_nd1), <a minor erg in s5 = s5_erg4 or s5_erg5>
+shield_wall_2 (s8_mtn2):  arsunt (s8_plt1), hagga_basin (s8_plt2)
+wind_pass     (s8_nd1):   north_pole (np), splintered_rock (s8_mtn1)
 ```
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
