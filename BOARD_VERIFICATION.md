@@ -316,7 +316,7 @@ s1_14:   s1_12 ✅, s1_13 ✅, s1_16 ✅, gara_kulon ✅, s1_15 🟡   # E-edge
 sihaya_ridge: s1_2 ✅, s1_6 ✅, s1_9 ✅, s1_10 ✅   # deep-desert sietch
 gara_kulon:   s1_11 ✅, s1_14 ✅, s1_15 ✅, shield_wall_1/s5_mtn4 ✅(§3a)   # + s5_9? — OPEN
 s1_15:   gara_kulon ✅, s1_16 ✅, s1_11 🟡, s1_14 🟡   # + s5_9 (Shield Wall side)? sector boundary — OPEN
-s1_16:   s1_15 ✅, s1_14 ✅                    # SE-ish; S edge → into s5/air-zone band — OPEN
+s1_16:   s1_15 ✅, s1_14 ✅, s2_2 ✅(E-edge x-sector, per s2 trace)   # S edge → into s5/air-zone band — OPEN
 ```
 **Still-OPEN s1 questions (revisit when tracing s5):** s1_11↔s1_15? · s1_14↔s1_15? ·
 s1↔s5 ground crossings near Gara Kulon / s1_15 / s1_16 (white border vs air-zone vs impassable).
@@ -331,22 +331,25 @@ Spatial layout (board N = top; this is the SE quadrant):
       s2_8   s2_6      s2_7   s2_4
          (air zone SW)   [S edge]
 ```
+**User answers (2026-06-27):** s2_6↔tasmin_sink ✅ · pasty_mesa↔tasmin_sink ✅ · s2_8↔pasty_mesa
+NO (not adjacent) · Pasty Mesa has NO ground crossing into s6 (air zone only) · s2↔s1 on E edge YES
+(s2_2 ↔ s1_16, exact s1 id to pin) · **s2↔s3 do NOT connect at the S-edge SW corner (air zone there)
+— outer ring is broken at the SE/SW seam.**
 ```
 s2_1:    s2_2 ✅, s2_3 ✅, s2_5 ✅, tasmin_sink ✅           # N border = s6/air-zone band
-s2_2:    s2_1 ✅, s2_3 ✅, s2_4 ✅                          # E edge (Prescience track); N→ s1 corner? — Q
+s2_2:    s2_1 ✅, s2_3 ✅, s2_4 ✅, s1_16 ✅(E-edge x-sector; exact s1 id 🟡)
 s2_3:    s2_1 ✅, s2_2 ✅, s2_4 ✅, s2_6 ✅, s2_7 ✅, tasmin_sink ✅
 s2_4:    s2_2 ✅, s2_3 ✅, s2_7 ✅                          # E edge, lower
 s2_5:    s2_1 ✅, s2_6 ✅, pasty_mesa ✅, tasmin_sink ✅
-s2_6:    s2_3 ✅, s2_5 ✅, s2_7 ✅, s2_8 ✅, tasmin_sink 🟡
+s2_6:    s2_3 ✅, s2_5 ✅, s2_7 ✅, s2_8 ✅, tasmin_sink ✅
 s2_7:    s2_3 ✅, s2_4 ✅, s2_6 ✅, s2_8 ✅                  # S edge
-s2_8:    s2_6 ✅, s2_7 ✅, pasty_mesa 🟡                    # SW air zone; S edge; → s3 corner? — Q
-pasty_mesa:  s2_5 ✅, tasmin_sink 🟡, s2_8 🟡, + false_wall_south/hobars_gap (s6)? — Q   # plateau
-tasmin_sink: s2_1 ✅, s2_3 ✅, s2_5 ✅, s2_6 🟡, pasty_mesa 🟡   # non-deep desert sietch
+s2_8:    s2_6 ✅, s2_7 ✅                                   # SW air zone; S edge; NO s3 crossing
+pasty_mesa:  s2_5 ✅, tasmin_sink ✅                        # plateau; NO ground link into s6 (air zone)
+tasmin_sink: s2_1 ✅, s2_3 ✅, s2_5 ✅, s2_6 ✅, pasty_mesa ✅   # non-deep desert sietch
 ```
-**Open s2 questions (batched):** s2_6↔tasmin_sink? · s2_8↔pasty_mesa? · pasty_mesa neighbours into
-s6 (false_wall_south / hobars_gap)? · s2↔s1 crossing on the E edge (s2_2 ↔ s1_16 / desert_e)? ·
-s2↔s3 crossing at the S-edge SW corner (s2_8 ↔ s3_9 / desert_se)? · which s6 areas border s2 across
-the air-zone band.
+**s2 resolved.** Open only: pin which exact s1 E-edge area is s2_2's neighbour (s1_16 vs s1_14) —
+confirm when finalising s1/s2 seam. Note: s2↔s6 is air-zone-only at Pasty Mesa; other s2/s6 air-zone
+straddles to catalogue in §5.
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
