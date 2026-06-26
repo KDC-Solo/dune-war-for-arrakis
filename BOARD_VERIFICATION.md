@@ -186,7 +186,36 @@ plateau **12** · mountain **19** · minor_erg **5** · deep-desert **23** · no
 
 ---
 
-## 3. Adjacency (ground movement) — improved draft, please correct
+## 2.1 Area roster — canonical IDs for all 101 areas
+
+Mechanically derived from the confirmed §2 sector/type counts. **ID = `<sector>_<type><n>`**
+(sectors: `nwo/neo/swo/seo` outer, `nwi/nei/swi/sei` inner, `np` = North Pole; types: `plt`
+plateau, `mtn` mountain, `erg` minor_erg, `dd` deep desert, `nd` non-deep desert). Named areas
+get a real name once slotted into their sector slot (see "named → slot" notes; some still TBD).
+
+**Outer**
+- `nwo` (20): `nwo_mtn1..4` · `nwo_dd1..6` · `nwo_nd1..10`  — named here likely: Rock Outcroppings (dd), The Funeral Plain (nd), Bight of the Cliff (nd)
+- `neo` (18): `neo_dd1..7` · `neo_nd1..11`  — named: Sihaya Ridge (dd), Gara Kulon (nd)
+- `swo` (10): **False Wall West** (plt) · `swo_dd1..5` · `swo_nd1..4`  — named: The Great Flat (dd)
+- `seo` (10): **False Wall South**, **Pasty Mesa** (plt) · `seo_dd1..4` · `seo_nd1..4`  — named: Hobars Gap (nd, by FW South), Tasmin Sink (nd, by Pasty Mesa)
+
+**Inner** (exclude North Pole)
+- `swi` (8): `swi_plt1..2` · `swi_nd1..6`  — named likely: Windgap, Habbanya Ridge (nd, by FW West)
+- `sei` (9): `sei_plt1` · `sei_mtn1` · **Harg Pass** + `sei_erg2..3` · `sei_dd1` · `sei_nd1..3`
+- `nei` (16): `nei_plt1..4` · `nei_mtn1..9` · `nei_erg4..5` · `nei_nd1`  — named mtn likely: Hole in the Rock, Splintered Rock, Rimwall West, Broken Land, False Wall East
+- `nwi` (9): `nwi_plt1..2` · `nwi_mtn1..4` · `nwi_nd1..3`  — named mtn likely: Shield Wall
+- `np` (1): **North Pole** (mtn; shared by all 4 inner sectors)
+
+**Named areas to slot (26):** 5 city plateaus (Arrakeen, Carthag, Arsunt, Hagga Basin, Imperial
+Basin — inner, exact sector TBD) · False Wall West/South, Pasty Mesa (outer, placed) · 7 mountains
+(North Pole placed; Hole in the Rock, Shield Wall, Broken Land, Rimwall West, Splintered Rock,
+False Wall East — inner/NW-out, exact sector TBD) · Harg Pass (sei) · 8 sietches + Funeral Plain +
+Great Flat (placed above as best-guess). **The exact sector of each city + inner mountain still
+needs confirming** — that's the main open item for the roster.
+
+---
+
+## 3. Adjacency (ground movement) — DRAFT (named core only; see §2.1 for all 101 IDs)
 
 White-border neighbors only. `# impassable` notes go to §4.
 
