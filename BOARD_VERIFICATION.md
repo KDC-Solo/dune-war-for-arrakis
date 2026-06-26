@@ -134,13 +134,15 @@ Each **area belongs to exactly one sector**. For each sector you give: **# areas
 against the grand totals as we go, then assign the actual member areas.
 
 **Grand totals to reconcile against:**
-plateau **8** · mountain **7** · minor_erg **5** · desert **30** (10 named + 20 unnamed deep) = **50 areas**
+plateau **8** · mountain **7** · minor_erg **5** · deep-desert **23** (20 unnamed + Sihaya Ridge,
+Rock Outcroppings, Great Flat) · desert/non-deep **7** (Bight, Windgap, Habbanya Ridge, Gara
+Kulon, Hobars Gap, Tasmin Sink, Funeral Plain) = **50 areas**
 
-| sector | central/outer | #areas | plateau | mountain | minor_erg | desert | member areas |
-|--------|---------------|--------|---------|----------|-----------|--------|--------------|
-| _(awaiting input — one row per sector)_ | | | | | | | |
+| sector | c/o | #areas | plat | mtn | m.erg | deep des | desert |
+|--------|-----|--------|------|-----|-------|----------|--------|
+| SW | ? | 10 | 1 | 0 | 0 | 5 | 4 |
 
-**Running tally:** plateau 0/8 · mountain 0/7 · minor_erg 0/5 · desert 0/30 · **areas 0/50**
+**Running tally:** plateau 1/8 · mountain 0/7 · minor_erg 0/5 · deep-desert 5/23 · desert 4/7 · **areas 10/50**
 
 > Rules note: Coriolis storms spare "the 5 **central plateau** areas." With the corrected types
 > this is almost certainly the **5 city plateaus** (Arrakeen, Carthag, Arsunt, Hagga Basin,
