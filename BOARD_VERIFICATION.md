@@ -306,7 +306,7 @@ s1_3:    s1_1 ✅, s1_4 ✅, s4_11 ✅, s4_16 ✅(seam, per s4 trace)   # S bord
 s1_4:    s1_3 ✅, s1_2 ✅, s1_5 ✅, s1_1 ✅   # S border = Broken Land arc (impassable §4)
 s1_5:    s1_2 ✅, s1_4 ✅, s1_8 ✅, s1_7 ✅, s1_6 ✅   # SW corner = air zone; S = Rimwall West (impassable §4)
 s1_6:    s1_2 ✅, s1_8 ✅, s1_9 ✅, sihaya_ridge ✅, s1_5 ✅
-s1_7:    s1_5 ✅, s1_11 ✅, s1_8 ✅           # W = air zone + Rimwall West (impassable §4)
+s1_7:    s1_5 ✅, s1_11 ✅, s1_8 ✅, s5_6 ✅   # W = air zone + Rimwall West (impassable §4); s5_6 = white crossing
 s1_8:    s1_5 ✅, s1_6 ✅, s1_9 ✅, s1_12 ✅, s1_11 ✅, s1_7 ✅
 s1_9:    s1_6 ✅, s1_8 ✅, sihaya_ridge ✅, s1_10 ✅, s1_12 ✅, s1_13 ✅
 s1_10:   sihaya_ridge ✅, s1_9 ✅, s1_13 ✅   # NE corner (desert_ne); E-edge (Prescience track)
@@ -476,9 +476,9 @@ s5_2:  hagga_basin ✅, hole_in_the_rock ✅, s5_3 ✅, splintered_rock 🟡
 s5_3:  hole_in_the_rock ✅, north_pole ✅, s5_2 ✅, s5_4 ✅, s5_5 ✅   # the s5 area touching the pole
 s5_4:  imperial_basin ✅, hole_in_the_rock ✅, s5_3 ✅, s5_7 🟡
 s5_5:  imperial_basin ✅, rimwall_west ✅, s5_3 ✅, s5_6 ✅, s5_7 🟡
-s5_6:  s5_5 ✅, ??? 🟡   # NOT rimwall_west, NOT s5_9 — needs own list
+s5_6:  s5_5 ✅, s5_8 ✅, s1_7 ✅   # + shield_wall_1 = RED impassable (§4); NOT rimwall_west / s5_9
 s5_7:  s5_8 ✅, s5_4 🟡, s5_5 🟡   # air zone (NOT north_pole)
-s5_8:  s5_7 ✅, s5_9 ✅, s5_5 🟡
+s5_8:  s5_7 ✅, s5_9 ✅, s5_6 ✅, s5_5 🟡
 s5_9:  gara_kulon ✅, shield_wall_1 ✅, s1_11 ✅, s1_12 ✅, s1_14 ✅, s1_15 ✅, s1_16 ✅, s5_8 ✅   # NOT s5_6
 # Named hubs:
 carthag:        arsunt ✅, arrakeen ✅, hagga_basin ✅, broken_land ✅, s5_1 ✅   # COMPLETE (NOT imperial_basin)
@@ -487,7 +487,7 @@ imperial_basin: arrakeen ✅, hole_in_the_rock ✅, rimwall_west ✅, s5_1 ✅, 
 hole_in_the_rock: imperial_basin ✅, s5_1 ✅, s5_2 ✅, s5_3 ✅, s5_4 ✅   # ✅ COMPLETE (embedded in s5)
 rimwall_west:   broken_land ✅, arrakeen ✅, imperial_basin ✅, s5_5 ✅, s1_4 ✅, s1_5 ✅   # ✅ COMPLETE; s1_4/s1_5 = RED impassable arc (§4)
 broken_land:    carthag ✅, arrakeen ✅, rimwall_west ✅, s4_16 ✅, arsunt 🟡
-shield_wall_1:  gara_kulon ✅, s5_9 ✅, <an s5 minor erg> ✅
+shield_wall_1:  gara_kulon ✅, s5_9 ✅, <an s5 minor erg> ✅   # + s5_6 = RED impassable (§4)
 gara_kulon:     s1_11 ✅, s1_14 ✅, s1_15 ✅, shield_wall_1 ✅, s5_9 ✅
 ```
 **🌟 North Pole COMPLETE (user):** `north_pole: wind_pass(s8), s5_3, s6_1, s7_4` — exactly ONE area per inner
@@ -546,6 +546,7 @@ windgap: false_wall_west, minor_erg_2          # Windgap, next to False Wall Wes
 ## 4. Impassable borders (red/white lines)
 
 ```
+s5_6  <-> shield_wall_1 # ✅ CONFIRMED (user): red impassable
 s8_1  <-> s8_2          # ✅ CONFIRMED (user): red impassable
 s8_1  <-> shield_wall_2 # ✅ CONFIRMED (user): red impassable = Shield Wall #2 west border
 s4_15 <-> s4_16   # ✅ CONFIRMED (user): red line runs along the Shield Wall crest BETWEEN these two.
