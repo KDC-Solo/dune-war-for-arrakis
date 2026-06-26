@@ -302,7 +302,7 @@ Spatial layout (board N = top):
 ```
 s1_1:    s1_2 ✅, s1_3 ✅, s1_4 ✅, s4_3 ✅(seam, per s4 trace)
 s1_2:    s1_1 ✅, s1_4 ✅, s1_5 ✅, s1_6 ✅, sihaya_ridge ✅
-s1_3:    s1_1 ✅, s1_4 ✅, s4_11 ✅, s4_16 ✅(seam, per s4 trace)   # S border = Broken Land (impassable §4)
+s1_3:    s1_1 ✅, s1_4 ✅, s4_11 ✅, s4_3 ✅(seam)   # S border = Broken Land (impassable §4)
 s1_4:    s1_3 ✅, s1_2 ✅, s1_5 ✅, s1_1 ✅   # S border = Broken Land arc (impassable §4)
 s1_5:    s1_2 ✅, s1_4 ✅, s1_8 ✅, s1_7 ✅, s1_6 ✅   # SW corner = air zone; S = Rimwall West (impassable §4)
 s1_6:    s1_2 ✅, s1_8 ✅, s1_9 ✅, sihaya_ridge ✅, s1_5 ✅
@@ -405,7 +405,7 @@ RED mountain edges → treated as **impassable (§4)** pending the confirm Q bel
 ```
 s4_1:    s4_2 ✅, s4_5 ✅, the_funeral_plain ✅, the_great_flat ✅           # W edge
 s4_2:    s4_1 ✅, s4_4 ✅, the_funeral_plain ✅, rock_outcroppings ✅        # N edge (NOT s4_3)
-s4_3:    s4_10 ✅, s4_11 ✅, rock_outcroppings ✅, s1_1 ✅(seam)             # N edge (NOT s4_2)
+s4_3:    s4_10 ✅, s4_11 ✅, rock_outcroppings ✅, s1_1 ✅, s1_3 ✅(seam)     # N edge (NOT s4_2)
 s4_4:    s4_2 ✅, s4_7 ✅, s4_8 ✅, the_funeral_plain ✅, rock_outcroppings ✅   # (NOT s4_9)
 s4_5:    s4_1 ✅, s4_6 ✅, the_great_flat ✅, the_funeral_plain ✅           # W edge
 s4_6:    s4_5 ✅, s4_7 ✅, s4_12 ✅, bight_of_the_cliff ✅, the_great_flat ✅, the_funeral_plain ✅
@@ -418,13 +418,13 @@ s4_12:   s4_6 ✅, bight_of_the_cliff ✅, the_great_flat ✅, s8_3 ✅, s3_2 �
 s4_13:   s4_7 ✅, s4_8 ✅, s4_14 ✅, s8_1 ✅, s8_3 ✅, bight_of_the_cliff ✅   # air zone
 s4_14:   s4_8 ✅, s4_9 ✅, s4_13 ✅, s4_15 ✅, s8_1 ✅                       # air zone
 s4_15:   s4_9 ✅, s4_10 ✅, s4_11 ✅, s4_14 ✅, shield_wall_2 ✅             # s4_15↔s4_16 is RED impassable (§4)!
-s4_16:   s4_11 ✅, s1_3 ✅(seam), broken_land ✅, arsunt ✅, shield_wall_2 ✅   # ⚠️ s4_16 is a MOUNTAIN area on the Shield Wall massif (city side of red line); NOT adj s4_15 (red §4)
+s4_16:   s4_11 ✅, broken_land ✅, arsunt ✅, shield_wall_2 ✅   # MOUNTAIN area on Shield Wall massif (city side); NOT adj s4_15 (red §4); NOT s1_3
 the_funeral_plain: s4_1 ✅, s4_2 ✅, s4_4 ✅, s4_5 ✅, s4_6 ✅, s4_7 ✅      # ringed by all 6
 rock_outcroppings: s4_2 ✅, s4_3 ✅, s4_4 ✅, s4_9 ✅, s4_10 ✅             # deep-desert sietch
 bight_of_the_cliff: s4_6 ✅, s4_7 ✅, s4_12 ✅, s4_13 ✅, s8_3 ✅           # non-deep desert sietch
 the_great_flat: s4_1 ✅, s4_5 ✅, s4_6 ✅, s4_12 ✅, s3_1 ✅, s3_2 ✅       # deep-desert (SW corner of s4)
 ```
-**s4 cross-sector edges to mirror:** →s1 (seam): s4_3↔s1_1 · s4_11↔s1_3 · s4_16↔s1_3.
+**s4 cross-sector edges to mirror:** →s1 (seam): s4_3↔{s1_1, s1_3} · s4_11↔s1_3 (s4_16 does NOT reach s1).
 →s8: s4_13↔{s8_1, s8_3} · s4_14↔s8_1 · s4_12↔s8_3 · bight↔s8_3 · **s4_15↔shield_wall_2 · s4_16↔{shield_wall_2, arsunt}**.
 →s5: **s4_16↔broken_land**.  →s3: s4_12↔{s3_2,s3_3} · great_flat↔{s3_1,s3_2}.
 **🔴 s4 §4 finding (corrects earlier assumption):** the red impassable line runs **between s4_15 and s4_16**
