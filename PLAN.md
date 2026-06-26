@@ -32,7 +32,7 @@ Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `d
 - [x] Area names + types (colour rule: orange=plateau, grey=mountain, sand=desert, + minor_erg)
 - [x] Settlements (Arrakeen III, Carthag II, 4 Pyon villages I: Arsunt, Hagga Basin, Imperial Basin, North Pole)
 - [x] All 8 sietches named
-- [ ] `deep` (deep-desert) flag per desert/sietch area
+- [x] `deep` (deep-desert) flag per named desert (deep = Sihaya Ridge, Rock Outcroppings, The Great Flat)
 - [ ] §2 Sectors (8: 4 central + 4 outer) — assign each area
 - [ ] §5 Air zones (~8) — which two sectors each straddles
 - [ ] §3 Adjacency finalised (outer ring + minor-erg chain order)

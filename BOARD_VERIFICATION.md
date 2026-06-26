@@ -7,7 +7,18 @@ than the rulebook art. You correct it; then I generate the engine's `board.ts` f
 
 **Board structure (confirmed):** two square sections joined at a central seam; polar map
 with the **North Pole as the central hub**. Sectors radiate from the pole (4 central ring +
-4 outer ring). Supremacy track on the west edge, Prescience track on the east edge.
+4 outer ring).
+
+**Board orientation reference (confirmed — this is how the board is laid out & how we label it):**
+The board sits in landscape, two square halves side by side. Our **N/E/S/W labels are
+BOARD-relative (the physical edges), NOT in-world map directions** — the board is a polar
+projection so in-world "north" is the North Pole at the **centre**, and every edge is really
+"south" (away from the pole). Anchors for the board-relative compass:
+- **West = left edge** → has the **Supremacy track**
+- **East = right edge** → has the **Prescience track**
+- **North = top edge** → beyond the Broken Land / Rimwall West mountain arc
+- **South = bottom edge**
+- **Centre = North Pole** (in-world north / the hub all air zones connect to)
 
 **How to correct:** edit the tables directly. For adjacency, list area IDs sharing a **white
 border**. Put **red/white impassable** pairs in §4 instead, not §3.
@@ -59,27 +70,62 @@ judge from the photos — please eyeball these.
 > run (this is the large pale central region I had mislabeled `central_erg` — now resolved as
 > these 5 minor ergs). I'll order erg_2→erg_5 along the chain once you confirm/refine §3 links.
 
-### Desert (pale sand) — sietch names partial (glare/small labels)
+### Desert (pale sand) — `deep`: only Sihaya Ridge, Rock Outcroppings, The Great Flat
 | id | name | type | deep | feature | conf |
 |----|------|------|------|---------|------|
-| sihaya_ridge | Sihaya Ridge | desert | ? | sietch | ✅ |
-| rock_outcroppings | Rock Outcroppings | desert | ? | sietch | ✅ |
-| bight_of_the_cliff | Bight of the Cliff | desert | ? | sietch | ✅ |
+| sihaya_ridge | Sihaya Ridge | desert | Y | sietch | ✅ |
+| rock_outcroppings | Rock Outcroppings | desert | Y | sietch | ✅ |
 | the_great_flat | The Great Flat | desert | Y | – | ✅ |
-| the_funeral_plain | The Funeral Plain | desert | Y | – | ✅ |
-| windgap | Windgap (next to False Wall West) | desert | ? | sietch | ✅ (name) |
-| habbanya_ridge | Habbanya Ridge | desert | ? | sietch | ✅ (name) |
-| gara_kulon | Gara Kulon | desert | ? | sietch | ✅ (name) |
-| hobars_gap | Hobars Gap | desert | ? | sietch | ✅ (name) |
-| tasmin_sink | Tasmin Sink | desert | Y | sietch | ✅ (name) |
+| bight_of_the_cliff | Bight of the Cliff | desert | N | sietch | ✅ |
+| the_funeral_plain | The Funeral Plain | desert | N | – | ✅ |
+| windgap | Windgap (next to False Wall West) | desert | N | sietch | ✅ (name) |
+| habbanya_ridge | Habbanya Ridge | desert | N | sietch | ✅ (name) |
+| gara_kulon | Gara Kulon | desert | N | sietch | ✅ (name) |
+| hobars_gap | Hobars Gap | desert | N | sietch | ✅ (name) |
+| tasmin_sink | Tasmin Sink | desert | N | sietch | ✅ (name) |
 
 > **All 8 sietches named** ✅: Sihaya Ridge, Rock Outcroppings, Bight of the Cliff, Windgap,
 > Habbanya Ridge, Gara Kulon, Hobars Gap, Tasmin Sink. (Still set `deep` Y/N per sietch.)
 >
-> ❓ **Unnamed outer desert areas:** the outer ring has several open desert polygons split by
-> white borders that I couldn't all name. Please add/rename rows so every area on the board
-> is represented. (I can also do another zoom pass on specific photos to read more labels —
-> just say which corner.)
+### Unnamed deep-desert areas (outer ring) — counting from user
+All `type=desert`, `deep=Y`. **Counting convention:** the 4 **corner** areas are each one area
+shared by two edges, so an edge's count *includes* its corners. Unique areas = corners + middles.
+
+**Corners (4) — each shared by two edges**
+| id | corner | shared by |
+|----|--------|-----------|
+| desert_nw | NW | North + West |
+| desert_ne | NE | North + East |
+| desert_sw | SW | West + South |
+| desert_se | SE | South + East |
+
+**Edge middles (non-corner)**
+| id | edge | conf |
+|----|------|------|
+| desert_n2 | North | ✅ North=6 (= nw + ne + 4 middles) |
+| desert_n3 | North | ✅ |
+| desert_n4 | North | ✅ |
+| desert_n5 | North | ✅ |
+| desert_w2 | West | ✅ West=4 (= nw + sw + 2 middles) |
+| desert_w3 | West | ✅ |
+| desert_s1 | South | ✅ South=8 (= sw + se + 6 middles) |
+| desert_s2 | South | ✅ |
+| desert_s3 | South | ✅ |
+| desert_s4 | South | ✅ |
+| desert_s5 | South | ✅ |
+| desert_s6 | South | ✅ |
+| desert_e1 | East | ✅ East=6 (= ne + se + 4 middles) |
+| desert_e2 | East | ✅ |
+| desert_e3 | East | ✅ |
+| desert_e4 | East | ✅ |
+
+> **All four edges confirmed:** North=6 · West=4 · South=8 · East=6 (each includes its 2 corners).
+> **Unique unnamed deep-desert areas = 20** (4 corners + 4 N + 2 W + 6 S + 4 E middles).
+> Check: edge sum 6+4+8+6 = 24, minus 4 corners counted twice = 20. ✅
+>
+> **Resolve this via §2 instead:** list every area in each of the 8 sectors. Any area you list
+> that isn't already named/placeholdered above = one of these unnamed desert areas. That gives
+> the exact full area set + sector assignment in one pass. We'll delete this draft table then.
 
 ---
 
