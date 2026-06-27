@@ -147,6 +147,11 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       (destroying the target sietch clears the target), the Harkonnen reserve (off-board units/
       deploy-tokens/bashars/named leaders that deployment draws from), and add/remove wormsigns &
       sandworms (which the movement + vehicle-placement engine consume). Resolver + panels react live.
+- [x] **New game preset** (`src/engine/newGame.ts`, 7 tests): `newGameState()` builds a fresh
+      Mahdi-solo starting position (settlements/sietches/testing-stations derived from board.ts; 8
+      Atreides legions = token + Naib per sietch; markers at top; 12 starting deployment tokens +
+      start-in-play named leaders in the reserve pool; Harkonnen settlements empty per the solo
+      pool rule). Wired to a "New game" button in the editor (undoable via `commit`).
 - [ ] Sync the few Atreides-side changes the AI depends on
 
 ### Phase 4 — Persistence  *(✅ DONE 2026-06-27)*

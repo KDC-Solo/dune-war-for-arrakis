@@ -53,12 +53,14 @@ export function StateEditor({
   s,
   onChange,
   onReset,
+  onNewGame,
   onExport,
   onImport,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
   onReset: () => void;
+  onNewGame: () => void;
   onExport: () => void;
   onImport: (next: GameState) => void;
 }) {
@@ -396,7 +398,15 @@ export function StateEditor({
       <div className="add-row">
         <button onClick={() => addLegion('harkonnen')}>+ Harkonnen legion</button>
         <button onClick={() => addLegion('atreides')}>+ Atreides legion</button>
-        <button className="reset save-cluster-start" onClick={onExport}>
+        <button
+          className="reset save-cluster-start"
+          onClick={() => {
+            if (confirm('Start a fresh Mahdi-solo game? This replaces the current board (Undo can revert it).')) onNewGame();
+          }}
+        >
+          New game
+        </button>
+        <button className="reset" onClick={onExport}>
           Export
         </button>
         <label className="reset import-btn">

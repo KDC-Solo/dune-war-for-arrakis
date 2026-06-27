@@ -13,6 +13,7 @@ import { HOUSE_HARKONNEN_CARDS, CORRINO_ALLY_CARDS } from '../engine/planningCar
 import { NAMED_LEADERS } from '../engine/leaders';
 import { describeAction, actionHeadline, areaLabel } from './describeAction';
 import { sampleState } from './sampleState';
+import { newGameState } from '../engine/newGame';
 import { StateEditor } from './StateEditor';
 import { loadState, saveState, clearState, exportState } from './persistence';
 
@@ -391,6 +392,7 @@ export function App() {
     clearState();
     loadGame(sampleState());
   };
+  const startNewGame = () => commit(newGameState()); // snapshot first so Undo can restore the old game
 
   // Download the current game as a JSON file the player can back up or share.
   const exportGame = () => {
@@ -423,7 +425,14 @@ export function App() {
         <CardPanel s={s} onApply={commit} />
         <StormPanel s={s} onApply={commit} />
         <VehiclePanel s={s} />
-        <StateEditor s={s} onChange={setS} onReset={reset} onExport={exportGame} onImport={loadGame} />
+        <StateEditor
+          s={s}
+          onChange={setS}
+          onReset={reset}
+          onNewGame={startNewGame}
+          onExport={exportGame}
+          onImport={loadGame}
+        />
       </main>
       <footer>
         <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>
