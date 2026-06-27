@@ -127,7 +127,9 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
 - [ ] Sync the few Atreides-side changes the AI depends on
 
 ### Phase 4 — Persistence
-- [ ] Save/restore game state (localStorage/IndexedDB), multiple saves
+- [~] Save/restore game state (`src/ui/persistence.ts`, 5 tests): single auto-saved game in
+      localStorage (versioned key, shape-validated, storage-injectable) + Reset. TODO: multiple
+      named saves / export-import.
 
 ### Phase 5 — Polish & mobile
 - [ ] UX polish, then Capacitor wrapper for mobile
