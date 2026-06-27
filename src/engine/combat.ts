@@ -188,6 +188,114 @@ export interface BattleResult {
 const liveUnits = (l: Legion) => l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens;
 const eliminated = (l: Legion) => liveUnits(l) === 0 && l.leaders.length === 0;
 
+// ---------------------------------------------------------------------------
+// Stepwise battle (drives one round at a time — for an interactive UI). The whole-battle
+// `resolveBattle` below is a thin loop over these, so both share one set of combat rules.
+// ---------------------------------------------------------------------------
+
+export type BattleStatus = 'ongoing' | 'attacker_won' | 'defender_survived' | 'attacker_eliminated';
+
+/** A battle paused between rounds. Pure data — every helper returns a new session. */
+export interface BattleSession {
+  ctx: BattleContext;
+  attacker: Legion;
+  defender: Legion;
+  rounds: number;
+  /** Reinforcement cards still available to discard. */
+  reinforcements: number;
+  reinforcementsUsed: number;
+  status: BattleStatus;
+}
+
+/** Dice each side rolls in the upcoming round (plus what the Harkonnen are spending). */
+export interface RoundSetup {
+  attackerDice: number;
+  defenderDice: number;
+  /** Reinforcement cards the Harkonnen discard this round to reach 6 dice. */
+  discards: number;
+  /** First-round surprise bonus is in effect. */
+  surprise: boolean;
+}
+
+/** Outcome once the defender is eliminated: 'attacker_won', etc. (the cease check runs each round). */
+function evalStatus(attacker: Legion, defender: Legion): BattleStatus {
+  if (eliminated(defender)) return 'attacker_won';
+  if (eliminated(attacker)) return 'attacker_eliminated';
+  if (!harkonnenShouldContinueAttack(attacker, defender)) return 'defender_survived';
+  return 'ongoing';
+}
+
+/** Open a battle. The status reflects an immediate decision (e.g. the Harkonnen never engage). */
+export function beginBattle(ctx: BattleContext): BattleSession {
+  return {
+    ctx,
+    attacker: ctx.attacker,
+    defender: ctx.defender,
+    rounds: 0,
+    reinforcements: ctx.reinforcements ?? 0,
+    reinforcementsUsed: 0,
+    status: evalStatus(ctx.attacker, ctx.defender),
+  };
+}
+
+/** How many dice each side rolls in `session`'s next round (and the Harkonnen discard plan). */
+export function battleRoundSetup(session: BattleSession): RoundSetup {
+  const { ctx } = session;
+  const attUnits = liveUnits(session.attacker);
+  const defUnits = liveUnits(session.defender);
+  let discards = 0;
+  if (!ctx.landsraadBan && session.reinforcements > 0) {
+    discards = Math.max(0, Math.min(session.reinforcements, MAX_COMBAT_DICE - attUnits));
+  }
+  const surprise = !!ctx.surprise && session.rounds === 0;
+  let attackerDice = combatDiceCount(attUnits, { discards });
+  if (surprise) attackerDice = Math.min(MAX_COMBAT_DICE, attackerDice + 1);
+  const defenderDice = combatDiceCount(defUnits, { defendingSettlementRank: ctx.defenderSettlementRank });
+  return { attackerDice, defenderDice, discards, surprise };
+}
+
+/**
+ * Apply one round's roll (post-shield-cancellation hits per side) and return the next session.
+ * No-op once the battle is over. Defender casualties default to `applyDefaultHits` (override via
+ * `ctx.chooseDefenderCasualties`); the attacker takes the Harkonnen casualty priority plus the
+ * +1 settlement-assault hit when continuing against a defended settlement.
+ */
+export function resolveBattleRound(session: BattleSession, r: RollOutcome): BattleSession {
+  if (session.status !== 'ongoing') return session;
+  const chooseDef = session.ctx.chooseDefenderCasualties ?? ((d: Legion, h: number) => applyDefaultHits(d, h).legion);
+  const { discards } = battleRoundSetup(session);
+
+  const hitsOnDefender = Math.max(0, r.attacker.hits - r.defender.shields);
+  const hitsOnAttacker = Math.max(0, r.defender.hits - r.attacker.shields);
+
+  let defender = chooseDef(session.defender, hitsOnDefender);
+  let attacker = applyHarkonnenHits(session.attacker, hitsOnAttacker).legion;
+  if (session.ctx.defenderSettlementRank && !eliminated(defender) && !eliminated(attacker)) {
+    attacker = applyHarkonnenHits(attacker, 1).legion;
+  }
+
+  return {
+    ...session,
+    attacker,
+    defender,
+    rounds: session.rounds + 1,
+    reinforcements: session.reinforcements - discards,
+    reinforcementsUsed: session.reinforcementsUsed + discards,
+    status: evalStatus(attacker, defender),
+  };
+}
+
+/** The Harkonnen reserve replenishment for the casualties taken so far in `session`. */
+export function battleReserveDelta(session: BattleSession): ReserveDelta {
+  return reserveDeltaFromCasualties(session.ctx.attacker, session.attacker);
+}
+
+/** Per-round roll once shields/leaders are resolved (see combatRoll.resolveCombatRoll). */
+interface RollOutcome {
+  attacker: RollResult;
+  defender: RollResult;
+}
+
 /**
  * Resolve a full battle of the Harkonnen attacking an Atreides legion. The Harkonnen never
  * retreat and cease only when their fine combat power drops to ≤ half the defender's (checked at
@@ -195,54 +303,18 @@ const eliminated = (l: Legion) => liveUnits(l) === 0 && l.leaders.length === 0;
  * cards are spent to bring the Harkonnen to 6 dice each round (unless the Landsraad ban is active).
  */
 export function resolveBattle(ctx: BattleContext, roll: DiceProvider): BattleResult {
-  let attacker = ctx.attacker;
-  let defender = ctx.defender;
-  const chooseDef = ctx.chooseDefenderCasualties ?? ((d: Legion, h: number) => applyDefaultHits(d, h).legion);
-  let reinforcements = ctx.reinforcements ?? 0;
-  let reinforcementsUsed = 0;
-  let rounds = 0;
-
-  const finish = (outcome: BattleResult['outcome']): BattleResult => ({
-    attacker,
-    defender,
-    rounds,
-    outcome,
-    reinforcementsUsed,
-    harkonnenReserveDelta: reserveDeltaFromCasualties(ctx.attacker, attacker),
-  });
-
-  while (true) {
-    if (eliminated(defender)) return finish('attacker_won');
-    if (eliminated(attacker)) return finish('attacker_eliminated');
-    if (!harkonnenShouldContinueAttack(attacker, defender)) {
-      return finish('defender_survived');
-    }
-
-    const attUnits = liveUnits(attacker);
-    const defUnits = liveUnits(defender);
-    // Harkonnen discard reinforcements to reach 6 dice (unless banned).
-    let discards = 0;
-    if (!ctx.landsraadBan && reinforcements > 0) {
-      discards = Math.max(0, Math.min(reinforcements, MAX_COMBAT_DICE - attUnits));
-    }
-    let attackerDice = combatDiceCount(attUnits, { discards });
-    if (ctx.surprise && rounds === 0) attackerDice = Math.min(MAX_COMBAT_DICE, attackerDice + 1);
-    const defenderDice = combatDiceCount(defUnits, { defendingSettlementRank: ctx.defenderSettlementRank });
-
-    const r = roll(rounds, attackerDice, defenderDice);
-    reinforcements -= discards;
-    reinforcementsUsed += discards;
-
-    const hitsOnDefender = Math.max(0, r.attacker.hits - r.defender.shields);
-    const hitsOnAttacker = Math.max(0, r.defender.hits - r.attacker.shields);
-
-    defender = chooseDef(defender, hitsOnDefender);
-    attacker = applyHarkonnenHits(attacker, hitsOnAttacker).legion;
-
-    // To continue against a defender in a settlement, the attacker takes 1 extra hit.
-    if (ctx.defenderSettlementRank && !eliminated(defender) && !eliminated(attacker)) {
-      attacker = applyHarkonnenHits(attacker, 1).legion;
-    }
-    rounds++;
+  let session = beginBattle(ctx);
+  while (session.status === 'ongoing') {
+    const setup = battleRoundSetup(session);
+    const r = roll(session.rounds, setup.attackerDice, setup.defenderDice);
+    session = resolveBattleRound(session, r);
   }
+  return {
+    attacker: session.attacker,
+    defender: session.defender,
+    rounds: session.rounds,
+    outcome: session.status as BattleResult['outcome'],
+    reinforcementsUsed: session.reinforcementsUsed,
+    harkonnenReserveDelta: battleReserveDelta(session),
+  };
 }

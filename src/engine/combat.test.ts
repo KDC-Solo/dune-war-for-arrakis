@@ -5,6 +5,10 @@ import {
   applyHarkonnenHits,
   applyDefaultHits,
   resolveBattle,
+  beginBattle,
+  battleRoundSetup,
+  resolveBattleRound,
+  battleReserveDelta,
   MAX_COMBAT_DICE,
   type DiceProvider,
 } from './combat';
@@ -173,5 +177,49 @@ describe('resolveBattle', () => {
     expect(seenAttackerDice).toBe(6); // 3 units + 3 reinforcement discards
     resolveBattle({ ...ctx, landsraadBan: true }, provider);
     expect(seenAttackerDice).toBe(3); // banned -> no discards
+  });
+});
+
+describe('stepwise battle (beginBattle / battleRoundSetup / resolveBattleRound)', () => {
+  it('reproduces resolveBattle when driven round by round', () => {
+    const ctx = {
+      attacker: leg({ units: { regular: 5, elite: 1, special_elite: 0 } }),
+      defender: leg({ faction: 'atreides', area: 'sihaya_ridge', units: { regular: 3, elite: 0, special_elite: 0 } }),
+    };
+    const roll: DiceProvider = (r) => (r % 2 === 0
+      ? { attacker: { hits: 1, shields: 0 }, defender: { hits: 1, shields: 0 } }
+      : { attacker: { hits: 2, shields: 0 }, defender: { hits: 0, shields: 0 } });
+
+    const whole = resolveBattle(ctx, roll);
+
+    let session = beginBattle(ctx);
+    while (session.status === 'ongoing') {
+      const setup = battleRoundSetup(session);
+      session = resolveBattleRound(session, roll(session.rounds, setup.attackerDice, setup.defenderDice));
+    }
+    expect(session.status).toBe(whole.outcome);
+    expect(session.rounds).toBe(whole.rounds);
+    expect(session.attacker.units).toEqual(whole.attacker.units);
+    expect(battleReserveDelta(session)).toEqual(whole.harkonnenReserveDelta);
+  });
+
+  it('begins already decided when the Harkonnen are too weak to engage', () => {
+    const session = beginBattle({
+      attacker: leg({ units: { regular: 1, elite: 0, special_elite: 0 } }), // fine 2
+      defender: leg({ faction: 'atreides', area: 'sihaya_ridge', units: { regular: 3, elite: 0, special_elite: 0 } }), // fine 6
+    });
+    expect(session.status).toBe('defender_survived');
+    expect(session.rounds).toBe(0);
+  });
+
+  it('resolveBattleRound is a no-op once the battle is over', () => {
+    let session = beginBattle({
+      attacker: leg({ units: { regular: 5, elite: 0, special_elite: 0 } }),
+      defender: leg({ faction: 'atreides', area: 'sihaya_ridge', units: { regular: 1, elite: 0, special_elite: 0 } }),
+    });
+    session = resolveBattleRound(session, { attacker: { hits: 1, shields: 0 }, defender: { hits: 0, shields: 0 } });
+    expect(session.status).toBe('attacker_won');
+    const same = resolveBattleRound(session, { attacker: { hits: 1, shields: 0 }, defender: { hits: 1, shields: 0 } });
+    expect(same).toBe(session);
   });
 });

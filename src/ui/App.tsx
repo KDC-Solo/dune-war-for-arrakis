@@ -1,9 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ActionResult, GameState } from '../engine/state';
+import type { ActionResult, GameState, Legion, RoundPhase } from '../engine/state';
 import { resolveAction } from '../engine/harkonnenActions';
 import { applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
 import { availability } from '../engine/spiceMustFlow';
-import { startNextRound, SUPREMACY_WIN } from '../engine/round';
+import { startNextRound, SUPREMACY_WIN, PHASE_ORDER, nextPhase } from '../engine/round';
+import {
+  beginBattle,
+  battleRoundSetup,
+  resolveBattleRound,
+  type BattleContext,
+  type BattleSession,
+} from '../engine/combat';
+import { resolveCombatRoll, type RawRoll } from '../engine/combatRoll';
+import { commitBattle } from '../engine/battleApply';
+import { combatDiceDiscardBanned } from '../engine/imperiumBans';
 import { placeVehicles } from '../engine/vehiclePlacement';
 import { resolveCardPlay } from '../engine/cardEffects';
 import { resolveLeaderSpecial } from '../engine/leaderEffects';
@@ -68,11 +78,18 @@ function HelpPanel() {
           <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans. <em>Start next round</em> when done.
         </li>
         <li>
+          <strong>Round walkthrough</strong> — tracks which phase you're in and what to do; step through it as you play.
+        </li>
+        <li>
           <strong>Vehicle placement</strong> — where to drop the Harkonnen harvesters/carryalls/ornithopters.
         </li>
         <li>
           <strong>Resolve Harkonnen turn</strong> — roll the physical action die, tap the matching face; read the
           directive, then <em>Confirm &amp; apply</em> (mechanical actions) or resolve it on the board (attacks).
+        </li>
+        <li>
+          <strong>Battle</strong> — pick an area where a Harkonnen and Atreides legion meet, enter each round's dice,
+          and the app runs the Harkonnen cease/casualty rules, replenishes the reserve, and destroys a taken sietch.
         </li>
         <li>
           <strong>Resolve a card or leader ability</strong> — pick a Harkonnen planning card / leader special to see
@@ -359,6 +376,231 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
   );
 }
 
+// ---------------------------------------------------------------------------
+// Round walkthrough: a phase tracker that explains the current step.
+// ---------------------------------------------------------------------------
+
+const PHASE_LABEL: Record<RoundPhase, string> = {
+  start: 'Setup',
+  vehicle_placement: 'Vehicles',
+  action_resolution: 'Actions',
+  desert_hazards: 'Hazards',
+  spice_harvesting: 'Spice',
+  end: 'End',
+};
+
+const PHASE_GUIDE: Record<RoundPhase, string> = {
+  start: 'Round setup: draw planning + prescience cards and the harvesting-sector & target-sietch tactical cards. "Start next round" does this for you.',
+  vehicle_placement: 'Place the Harkonnen vehicles — see the Vehicle placement panel.',
+  action_resolution: 'Alternate turns. Roll the Harkonnen action die and resolve it (Resolve Harkonnen turn), playing cards/leader abilities as they come up. Resolve any battles in the Battle panel.',
+  desert_hazards: 'Place & resolve wormsigns, then roll Coriolis storms for exposed Harkonnen legions (Coriolis Storms panel).',
+  spice_harvesting: 'Collect spice and advance the Spice Must Flow imperium markers.',
+  end: 'Advance supremacy and reshuffle the tactical deck — use "Start next round" in This round.',
+};
+
+function PhasePanel({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
+  const phase = s.phase;
+  const i = PHASE_ORDER.indexOf(phase);
+  const prev = i > 0 ? PHASE_ORDER[i - 1] : null;
+  const next = nextPhase(phase);
+
+  return (
+    <section className="panel">
+      <h2>Round walkthrough</h2>
+      <p className="hint">Where you are in the round. Advance as you finish each phase.</p>
+      <ol className="phase-steps">
+        {PHASE_ORDER.map((p) => (
+          <li key={p} className={p === phase ? 'phase-step current' : 'phase-step'}>
+            {PHASE_LABEL[p]}
+          </li>
+        ))}
+      </ol>
+      <p className="directive-text">{PHASE_GUIDE[phase]}</p>
+      <div className="directive-actions">
+        <button className="die" disabled={!prev} onClick={() => prev && onChange({ ...s, phase: prev })}>
+          ← {prev ? PHASE_LABEL[prev] : 'Back'}
+        </button>
+        <button className="confirm-btn" disabled={!next} onClick={() => next && onChange({ ...s, phase: next })}>
+          {next ? `Next: ${PHASE_LABEL[next]} →` : 'Round complete'}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Battle: resolve a Harkonnen attack round by round, then commit it to the state.
+// ---------------------------------------------------------------------------
+
+const emptyRaw = (): RawRoll => ({ hits: 0, shields: 0, specials: 0 });
+
+interface BattlePair {
+  area: string;
+  attacker: Legion;
+  defender: Legion;
+}
+
+function legionSummary(l: Legion): string {
+  const parts: string[] = [];
+  if (l.units.regular) parts.push(`${l.units.regular} reg`);
+  if (l.units.elite) parts.push(`${l.units.elite} elite`);
+  if (l.units.special_elite) parts.push(`${l.units.special_elite} special`);
+  if (l.deploymentTokens) parts.push(`${l.deploymentTokens} token${l.deploymentTokens === 1 ? '' : 's'}`);
+  if (l.leaders.length) parts.push(`${l.leaders.length} leader${l.leaders.length === 1 ? '' : 's'}`);
+  return parts.length ? parts.join(', ') : 'empty';
+}
+
+const OUTCOME_LABEL: Record<Exclude<BattleSession['status'], 'ongoing'>, string> = {
+  attacker_won: 'Harkonnen win — defender eliminated.',
+  defender_survived: 'Harkonnen cease the attack — defender survives.',
+  attacker_eliminated: 'Harkonnen attackers wiped out.',
+};
+
+function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+  const pairs = useMemo<BattlePair[]>(() => {
+    const out: BattlePair[] = [];
+    for (const atk of s.legions) {
+      if (atk.faction !== 'harkonnen') continue;
+      const def = s.legions.find((l) => l.faction === 'atreides' && l.area === atk.area);
+      if (def) out.push({ area: atk.area, attacker: atk, defender: def });
+    }
+    return out;
+  }, [s.legions]);
+
+  const [surprise, setSurprise] = useState(false);
+  const [session, setSession] = useState<BattleSession | null>(null);
+  const [att, setAtt] = useState<RawRoll>(emptyRaw);
+  const [def, setDef] = useState<RawRoll>(emptyRaw);
+
+  const start = (pair: BattlePair) => {
+    const sietch = s.sietches.find((si) => si.area === pair.area && !si.destroyed);
+    const ctx: BattleContext = {
+      attacker: pair.attacker,
+      defender: pair.defender,
+      defenderSettlementRank: sietch?.rank ?? undefined,
+      surprise,
+      reinforcements: s.decks.reinforcements,
+      landsraadBan: combatDiceDiscardBanned(s.spice.activeBans),
+    };
+    setSession(beginBattle(ctx));
+    setAtt(emptyRaw());
+    setDef(emptyRaw());
+  };
+
+  const applyRound = () => {
+    if (!session) return;
+    const aRoll = resolveCombatRoll(att, session.attacker.leaders, session.defender.units.special_elite);
+    const dRoll = resolveCombatRoll(def, session.defender.leaders, session.attacker.units.special_elite);
+    setSession(resolveBattleRound(session, { attacker: aRoll, defender: dRoll }));
+    setAtt(emptyRaw());
+    setDef(emptyRaw());
+  };
+
+  const commit = () => {
+    if (!session) return;
+    const { state } = commitBattle(s, session);
+    onApply(state);
+    setSession(null);
+  };
+
+  const rawInputs = (label: string, raw: RawRoll, setRaw: (r: RawRoll) => void) => (
+    <div className="storm-row">
+      <div className="storm-area">
+        <strong>{label}</strong>
+      </div>
+      {(['hits', 'shields', 'specials'] as const).map((k) => (
+        <label key={k} className="mini">
+          {k === 'hits' ? 'Swords' : k === 'shields' ? 'Shields' : 'Specials'}
+          <input
+            type="number"
+            min={0}
+            value={raw[k]}
+            onChange={(e) => setRaw({ ...raw, [k]: Math.max(0, Number(e.target.value)) })}
+          />
+        </label>
+      ))}
+    </div>
+  );
+
+  return (
+    <section className="panel">
+      <h2>Battle</h2>
+      <p className="hint">Resolve a Harkonnen attack on an Atreides legion sharing an area. Enter each round's physical dice; the Harkonnen casualties, reserve, and any destroyed sietch are applied for you.</p>
+
+      {!session && (
+        pairs.length === 0 ? (
+          <p className="hint">No area has a Harkonnen and an Atreides legion together. Move a Harkonnen legion onto a defender first.</p>
+        ) : (
+          <>
+            <label className="check">
+              <input type="checkbox" checked={surprise} onChange={(e) => setSurprise(e.target.checked)} />
+              First-round surprise attack (+1 Harkonnen die)
+            </label>
+            <ul className="legion-list">
+              {pairs.map((p) => (
+                <li key={p.area} className="legion-row">
+                  <span>
+                    <strong>{areaLabel(p.area)}</strong> — Harkonnen ({legionSummary(p.attacker)}) vs Atreides ({legionSummary(p.defender)})
+                  </span>
+                  <button className="confirm-btn" onClick={() => start(p)}>
+                    Fight
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      )}
+
+      {session && (
+        <>
+          <dl className="kv">
+            <dt>Area</dt>
+            <dd>{areaLabel(session.ctx.defender.area)}</dd>
+            <dt>Round</dt>
+            <dd>{session.rounds + (session.status === 'ongoing' ? 1 : 0)}</dd>
+            <dt>Harkonnen</dt>
+            <dd>{legionSummary(session.attacker)}</dd>
+            <dt>Atreides</dt>
+            <dd>{legionSummary(session.defender)}</dd>
+            <dt>Reinforcements left</dt>
+            <dd>{session.reinforcements}</dd>
+          </dl>
+
+          {session.status === 'ongoing' ? (
+            <>
+              {(() => {
+                const setup = battleRoundSetup(session);
+                return (
+                  <p className="directive-text">
+                    Roll <strong>{setup.attackerDice}</strong> Harkonnen dice{setup.discards > 0 ? ` (incl. ${setup.discards} reinforcement discard${setup.discards === 1 ? '' : 's'})` : ''}
+                    {setup.surprise ? ' +surprise' : ''} and <strong>{setup.defenderDice}</strong> Atreides dice, then enter the results:
+                  </p>
+                );
+              })()}
+              {rawInputs('Harkonnen roll', att, setAtt)}
+              {rawInputs('Atreides roll', def, setDef)}
+              <p className="hint">Specials are converted by leaders / cancelled by enemy Sardaukar &amp; Fedaykin automatically. Atreides casualties default to the cheapest figures — adjust in the editor if you removed others.</p>
+              <div className="directive-actions">
+                <button className="confirm-btn" onClick={applyRound}>Apply round</button>
+                <button className="die" onClick={() => setSession(null)}>Cancel</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="win-banner">{OUTCOME_LABEL[session.status]}</div>
+              <div className="directive-actions">
+                <button className="confirm-btn" onClick={commit}>Apply to game state</button>
+                <button className="die" onClick={() => setSession(null)}>Discard</button>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 export function App() {
   // Load the saved game on first render; fall back to the demo state.
   const [s, setS] = useState<GameState>(() => loadState() ?? sampleState());
@@ -429,10 +671,12 @@ export function App() {
           onImport={loadGame}
         />
         <RoundPanel s={s} onChange={commit} />
+        <PhasePanel s={s} onChange={setS} />
+        <VehiclePanel s={s} />
         <ResolvePanel s={s} onApply={commit} />
+        <BattlePanel s={s} onApply={commit} />
         <CardPanel s={s} onApply={commit} />
         <StormPanel s={s} onApply={commit} />
-        <VehiclePanel s={s} />
       </main>
       <footer>
         <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>

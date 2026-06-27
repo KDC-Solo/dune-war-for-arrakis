@@ -628,3 +628,29 @@ label.mini.check input {
   margin: 0;
   font-size: 0.8rem;
 }
+
+/* Round walkthrough phase stepper */
+.phase-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  counter-reset: phase;
+}
+.phase-step {
+  flex: 1 1 auto;
+  text-align: center;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.phase-step.current {
+  background: rgba(120, 170, 255, 0.18);
+  border-color: rgba(120, 170, 255, 0.5);
+  font-weight: 600;
+}
