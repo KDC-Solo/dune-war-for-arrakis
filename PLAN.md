@@ -96,7 +96,9 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       elite/sardaukar→remove regulars, keep last leader, named→regen), `applyDefaultHits` (defender),
       `resolveBattle` multi-round loop with injected `DiceProvider` (reinforcement discards to 6
       unless Landsraad ban, surprise +1, shields cancel hits, settlement continue-surcharge).
-      TODO: leader Special ability hit/shield generation (needs named-leader card data).
+      **Leader-ability/special-elite resolution done** (`src/engine/combatRoll.ts`, 9 tests):
+      `resolveCombatRoll` (generic leader special→1 hit, named→its combat strip, excess specials
+      miss, opponent Sardaukar/Fedaykin cancel specials first) + `netHits` (shields cancel hits).
 - [x] **Deployment** placement priority (`resolveDeployment` in harkonnenActions.ts, 4 tests):
       3 units + 1 leader (priority named Beast Rabban/Feyd-Rautha → any named → Bashar); settlement
       priority highest-CP legion → closest to target; unit substitution to next-higher tier;
@@ -126,7 +128,11 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       per-special terrain hits (deep 2 / desert 1 / erg+plateau 0), `resolveCoriolisStorms` applies
       the standard Harkonnen casualty priority. UI: a "Coriolis Storms" Desert-Hazards panel where
       the player enters each exposed legion's 2-die result and the app applies the casualties.
-- [ ] Tests against worked examples / rulebook edge cases
+- [x] **Tests against worked examples** (`src/engine/rulebookExamples.test.ts`, 4 tests): the
+      rulebook combat-dice-count example (p24: 5 dice/side, 6 after a discard) and the leader-ability
+      example (p25: Bashar special→1 hit, Baron→2 shields, Fedaykin cancels a special, Harkonnen
+      score 3 hits). Noted the p25 example's printed "Atreides 3 Hits" nets to 2 by the written
+      mechanics (a single rolled Harkonnen shield the text seems to drop).
 
 ### Phase 3 — React + TS UI
 - [x] Project scaffold (Vite 6 + React 18 + TS; `npm run dev`/`build`/`preview`). `src/ui/`
