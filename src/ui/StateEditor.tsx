@@ -84,6 +84,18 @@ export function StateEditor({
   const setReserveUnit = (key: UnitType, value: number) =>
     onChange({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: clamp(value, 0, 16) } } });
 
+  // Wormsigns / sandworms: arrays of { area }. First unused area is a sensible default to add.
+  const firstFreeArea = (taken: { area: string }[]) =>
+    SORTED_AREAS.find((id) => !taken.some((t) => t.area === id)) ?? SORTED_AREAS[0];
+  const addWormsign = () => onChange({ ...s, wormsigns: [...s.wormsigns, { area: firstFreeArea(s.wormsigns) }] });
+  const setWormsign = (i: number, area: string) =>
+    onChange({ ...s, wormsigns: s.wormsigns.map((w, idx) => (idx === i ? { area } : w)) });
+  const removeWormsign = (i: number) => onChange({ ...s, wormsigns: s.wormsigns.filter((_, idx) => idx !== i) });
+  const addSandworm = () => onChange({ ...s, sandworms: [...s.sandworms, { area: firstFreeArea(s.sandworms) }] });
+  const setSandworm = (i: number, area: string) =>
+    onChange({ ...s, sandworms: s.sandworms.map((w, idx) => (idx === i ? { area } : w)) });
+  const removeSandworm = (i: number) => onChange({ ...s, sandworms: s.sandworms.filter((_, idx) => idx !== i) });
+
   const liveSietches = s.sietches.filter((si) => !si.destroyed);
 
   return (
@@ -247,6 +259,50 @@ export function StateEditor({
             }
           />
         </label>
+      </div>
+
+      <h3>Wormsigns &amp; sandworms</h3>
+      <div className="ed-grid">
+        <div className="worm-col">
+          <span className="hint">Wormsigns (avoided by Harkonnen moves)</span>
+          {s.wormsigns.map((w, i) => (
+            <div key={i} className="worm-row">
+              <select value={w.area} onChange={(e) => setWormsign(i, e.target.value)}>
+                {SORTED_AREAS.map((id) => (
+                  <option key={id} value={id}>
+                    {areaLabel(id)}
+                  </option>
+                ))}
+              </select>
+              <button className="remove" onClick={() => removeWormsign(i)} title="Remove wormsign">
+                ✕
+              </button>
+            </div>
+          ))}
+          <button className="add-mini" onClick={addWormsign}>
+            + wormsign
+          </button>
+        </div>
+        <div className="worm-col">
+          <span className="hint">Sandworms (block movement &amp; placement)</span>
+          {s.sandworms.map((w, i) => (
+            <div key={i} className="worm-row">
+              <select value={w.area} onChange={(e) => setSandworm(i, e.target.value)}>
+                {SORTED_AREAS.map((id) => (
+                  <option key={id} value={id}>
+                    {areaLabel(id)}
+                  </option>
+                ))}
+              </select>
+              <button className="remove" onClick={() => removeSandworm(i)} title="Remove sandworm">
+                ✕
+              </button>
+            </div>
+          ))}
+          <button className="add-mini" onClick={addSandworm}>
+            + sandworm
+          </button>
+        </div>
       </div>
 
       <h3>Legions</h3>
