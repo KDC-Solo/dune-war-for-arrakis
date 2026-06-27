@@ -53,3 +53,42 @@ export function clearState(storage: Storage | undefined = safeStorage()): void {
     // ignore
   }
 }
+
+// ---------------------------------------------------------------------------
+// Export / import — share or back up a game as a JSON file
+// ---------------------------------------------------------------------------
+
+/** Current export-envelope version (independent of the storage key suffix). */
+export const EXPORT_VERSION = 1;
+
+interface ExportEnvelope {
+  app: 'dwfa';
+  version: number;
+  exportedAt: string;
+  state: GameState;
+}
+
+/** Serialize a game to a pretty JSON string wrapped in a recognizable envelope. */
+export function exportState(s: GameState): string {
+  const env: ExportEnvelope = { app: 'dwfa', version: EXPORT_VERSION, exportedAt: new Date().toISOString(), state: s };
+  return JSON.stringify(env, null, 2);
+}
+
+/**
+ * Parse a previously exported game. Accepts either the envelope produced by `exportState`
+ * or a bare GameState object (so hand-edited / older files still load). Returns null on
+ * anything that doesn't structurally look like a game state.
+ */
+export function importState(text: string): GameState | null {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (looksLikeState(parsed)) return parsed;
+    if (parsed && typeof parsed === 'object' && 'state' in (parsed as object)) {
+      const inner = (parsed as { state: unknown }).state;
+      if (looksLikeState(inner)) return inner;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}

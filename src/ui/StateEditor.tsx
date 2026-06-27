@@ -3,6 +3,7 @@
 // and panels react to the updated state. Sietch/settlement ranks are fixed board data, so only
 // their presence (legions) and the round/marker state are editable here for now.
 
+import type { ChangeEvent } from 'react';
 import { AREA_IDS, type SectorId } from '../engine/board';
 import { activeBans } from '../engine/spiceMustFlow';
 import {
@@ -16,6 +17,7 @@ import {
   type UnitType,
 } from '../engine/state';
 import { areaLabel } from './describeAction';
+import { importState } from './persistence';
 
 const IMPERIUM: { key: 'choam' | 'spacing_guild' | 'landsraad'; label: string }[] = [
   { key: 'choam', label: 'CHOAM' },
@@ -51,11 +53,23 @@ export function StateEditor({
   s,
   onChange,
   onReset,
+  onExport,
+  onImport,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
   onReset: () => void;
+  onExport: () => void;
+  onImport: (next: GameState) => void;
 }) {
+  const pickFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-importing the same filename
+    if (!file) return;
+    const next = importState(await file.text());
+    if (next) onImport(next);
+    else alert('That file is not a valid saved game.');
+  };
   const setMarker = (power: 'choam' | 'spacing_guild' | 'landsraad', value: number) => {
     const markers = { ...s.spice.markers, [power]: clamp(value, 1, 5) };
     onChange({ ...s, spice: { ...s.spice, markers, activeBans: activeBans(markers) } });
@@ -361,6 +375,13 @@ export function StateEditor({
       <div className="add-row">
         <button onClick={() => addLegion('harkonnen')}>+ Harkonnen legion</button>
         <button onClick={() => addLegion('atreides')}>+ Atreides legion</button>
+        <button className="reset save-cluster-start" onClick={onExport}>
+          Export
+        </button>
+        <label className="reset import-btn">
+          Import
+          <input type="file" accept="application/json,.json" onChange={pickFile} />
+        </label>
         <button
           className="reset"
           onClick={() => {

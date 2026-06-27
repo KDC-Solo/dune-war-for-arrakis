@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { saveState, loadState, clearState, STORAGE_KEY } from './persistence';
+import { saveState, loadState, clearState, exportState, importState, STORAGE_KEY } from './persistence';
 import { sampleState } from './sampleState';
 
 /** In-memory Storage stand-in for tests (node has no localStorage). */
@@ -49,5 +49,22 @@ describe('persistence', () => {
     expect(() => saveState(sampleState(), undefined)).not.toThrow();
     expect(loadState(undefined)).toBeNull();
     expect(() => clearState(undefined)).not.toThrow();
+  });
+
+  it('round-trips through export/import (envelope)', () => {
+    const s = sampleState();
+    const loaded = importState(exportState(s));
+    expect(loaded).toEqual(s);
+  });
+
+  it('imports a bare GameState (no envelope)', () => {
+    const s = sampleState();
+    expect(importState(JSON.stringify(s))).toEqual(s);
+  });
+
+  it('returns null for invalid import text', () => {
+    expect(importState('{not json')).toBeNull();
+    expect(importState(JSON.stringify({ app: 'dwfa', version: 1, state: { hello: 1 } }))).toBeNull();
+    expect(importState(JSON.stringify({ nope: true }))).toBeNull();
   });
 });

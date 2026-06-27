@@ -371,7 +371,27 @@ label.mini.check input {
 }
 
 .add-row .reset {
-  margin-left: auto;
   color: #6a583c;
   border-color: var(--line);
+}
+
+/* push the Export / Import / Reset cluster to the right */
+.add-row .save-cluster-start {
+  margin-left: auto;
+}
+
+.add-row .import-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.add-row .import-btn input[type='file'] {
+  display: none;
 }

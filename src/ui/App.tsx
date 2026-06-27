@@ -8,7 +8,7 @@ import { placeVehicles } from '../engine/vehiclePlacement';
 import { describeAction, actionHeadline, areaLabel } from './describeAction';
 import { sampleState } from './sampleState';
 import { StateEditor } from './StateEditor';
-import { loadState, saveState, clearState } from './persistence';
+import { loadState, saveState, clearState, exportState } from './persistence';
 
 const DIE_RESULTS: ActionResult[] = ['leadership', 'strategy', 'mentat', 'deployment', 'house'];
 const DIE_LABEL: Record<ActionResult, string> = {
@@ -157,6 +157,17 @@ export function App() {
     setS(sampleState());
   };
 
+  // Download the current game as a JSON file the player can back up or share.
+  const exportGame = () => {
+    const blob = new Blob([exportState(s)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dwfa-round${s.round}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="app">
       <header>
@@ -167,7 +178,7 @@ export function App() {
         <RoundPanel s={s} onChange={setS} />
         <ResolvePanel s={s} onApply={setS} />
         <VehiclePanel s={s} />
-        <StateEditor s={s} onChange={setS} onReset={reset} />
+        <StateEditor s={s} onChange={setS} onReset={reset} onExport={exportGame} onImport={setS} />
       </main>
       <footer>
         <small>State auto-saves to this browser. Round driver &amp; turn-confirm next.</small>
