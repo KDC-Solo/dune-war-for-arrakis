@@ -90,9 +90,11 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
   areas/types/settlements/sietches/`deep` (§1), 101 areas + sectors + positional ids (§2/§2.1/§2.2),
   full adjacency graph (§3a, area-by-area verified), 11 impassable borders (§4), 8 air zones (§5).
   Visual map + graph well-formedness check in `BOARD_GRAPH.md` (`scripts/gen_map.py`/`gen_graph.py`).
-- **Next action: Phase 1 — generate the typed `board.ts`** (areas, types, adjacency, impassable, air zones,
-  sectors, settlement/sietch slots) from `BOARD_VERIFICATION.md`, plus the graph well-formedness unit test.
-  Drop the §3b legacy draft during the port.
+- **✅ Phase 1 COMPLETE (2026-06-27).** Typed `board.ts` generated from `BOARD_VERIFICATION.md` via
+  `scripts/gen_board.py`; all 101 areas terrain-typed; graph helpers + Vitest suite. Plus: 6 ecological
+  testing stations added (`Area.testingStation`, §1 `STATIONS` line) — 16 tests pass.
+- **Next action: Phase 2 — headless Harkonnen AI engine.** Start with game-state types (see Phase 2 list),
+  built pure-TS + tests against fan-summary p9 (Mahdi solo). No UI yet.
 
 ## 5. Key references
 
