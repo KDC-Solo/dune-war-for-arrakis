@@ -615,9 +615,8 @@ s8_2          <-> s8_1
 ```
 > **Count: 11 impassable pairs.** Per-area incidence (how many red edges touch each):
 > s1_4 (2), s1_5 (2), s8_1 (2), broken_land (3), rimwall_west (2), s5_5 (2), others 1.
-> ⚠️ Open: is this list exhaustive? It came entirely from edges the user flagged "red" during the
-> area-by-area pass, so it should be — but worth a final eyeball of the physical board's red lines
-> (esp. any near False Wall East, and the far ends of the arc) before locking Phase 1.
+> ✅ **EXHAUSTIVE — user-verified against the physical board (2026-06-27).** These 11 are the complete
+> set of red impassable borders; no others (incl. none extra near False Wall East).
 
 ---
 
