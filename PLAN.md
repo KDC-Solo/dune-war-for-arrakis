@@ -70,7 +70,12 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       8 tactical cards generated from board (one per sietch; 2 central = Hobars Gap + Windgap),
       start-of-round draw (harvesting sector + target sietch w/ re-draw constraints),
       mid-round target reselection, end-of-round supremacy/prescience constants. 12 tests. (2026-06-27)
-- [ ] Action-die resolver (Leadership/Strategy → attack sietch / attack legion / move; Mentat; House)
+- [~] Action-die resolver (`src/engine/harkonnenActions.ts`, 10 tests): LEADERSHIP/STRATEGY
+      cascade — `selectSietchAttack` (reach incl. ornithopter "if necessary"; priority rank→CP
+      diff→no-ornithopter→target sietch), `selectLegionAttack` (adjacent only, priority CP→named
+      leader), `selectMove` (basic: nearest legion steps toward target), `resolveLeadershipOrStrategy`.
+      Plus accessors (harkonnen/atreides legions, ornithopter zones, blocked-areas). TODO: MENTAT,
+      DEPLOYMENT, HOUSE; full movement tie-breakers + merge; "activate named-leader special first".
 - [~] **Movement** = shortest-path to target sietch + tie-breakers (the hard part).
       Primitives DONE (`src/engine/movement.ts`, 10 tests): Harkonnen adjacency ignoring impassable
       borders, BFS distance/shortest-path with occupancy (`blocked`/`allowBlockedTarget`),
