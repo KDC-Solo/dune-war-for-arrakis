@@ -420,11 +420,6 @@ export function App() {
       </header>
       <main>
         <HelpPanel />
-        <RoundPanel s={s} onChange={commit} />
-        <ResolvePanel s={s} onApply={commit} />
-        <CardPanel s={s} onApply={commit} />
-        <StormPanel s={s} onApply={commit} />
-        <VehiclePanel s={s} />
         <StateEditor
           s={s}
           onChange={setS}
@@ -433,6 +428,11 @@ export function App() {
           onExport={exportGame}
           onImport={loadGame}
         />
+        <RoundPanel s={s} onChange={commit} />
+        <ResolvePanel s={s} onApply={commit} />
+        <CardPanel s={s} onApply={commit} />
+        <StormPanel s={s} onApply={commit} />
+        <VehiclePanel s={s} />
       </main>
       <footer>
         <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>
