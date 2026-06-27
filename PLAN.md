@@ -27,7 +27,7 @@ solo player (playing Atreides) doesn't have to execute the Harkonnen priority ru
 
 ## 3. Build phases
 
-### Phase 0 — Board data  *(IN PROGRESS — at §3 Adjacency)*
+### Phase 0 — Board data  *(IN PROGRESS — §3 adjacency DONE; only §4 cleanup + §5 air zones left)*
 > **Resume here (next session): trace s1 adjacency** from the numbered photos, then the other
 > sectors; see §2.2/§3a in `BOARD_VERIFICATION.md`. Dense mountain core (s5/s8) may need the
 > user's direct `s8_3`-style neighbour descriptions.
@@ -38,7 +38,12 @@ Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `d
 - [x] `deep` (deep-desert) flag per named desert (deep = Sihaya Ridge, Rock Outcroppings, The Great Flat)
 - [x] §2 Sectors (s1–s8 = 4 outer + 4 inner) — every area assigned; **board has 101 areas** (not ~50: plateau/mountain have many unnamed areas too)
 - [x] §2.1/§2.2 all 101 areas have ids + positions (user physically numbered the board `s#_N`; read off the marked `docs/map/*.jpg` tiles)
-- [ ] **§3 Adjacency — IN PROGRESS, the active task.** Done so far in §3a: earlier edges (shield_wall_1/2, wind_pass, s8_3); **s1 (NE-outer)** traced + user-confirmed (open: Gara-Kulon/s5 junction); **s2 (SE-outer)** traced + user-confirmed & resolved (key finding: outer ring is BROKEN at the SE/SW corner — air zone, no s2↔s3 ground link; s2↔s6 air-zone-only at Pasty Mesa). **s3 (SW-outer)** & **s4 (NW-outer, 20 areas)** traced + user-confirmed. **ALL 4 OUTER SECTORS (s1–s4) now done.** Seam fully resolved (s1_1↔s4_3, s1_3↔s4_11/s4_16). Workflow: I trace clear edges + structural facts from the numbered photos, batch ambiguous-edge questions per sector, cross-check reciprocity + type counts. **Switched to area-by-area verification pass (user reads each area's list, confirms/corrects).** ✅ DONE & VERIFIED: **s1, s2, s3, s4 (all 4 outer sectors, 58 areas)** + their cross-sector/seam/§4 edges. s5 city cluster + North Pole + Hole-in-Rock + Rimwall West + s8 unnamed areas already pinned via earlier rounds. NEXT in the pass: **s5 inner (s5_2..s5_9 + named mtns), then s6, s7, s8** named/unnamed. §4 red edges accumulating (s4_15|s4_16, s8_1|s8_2, s8_1|sw#2, s5_6|sw#1, s1_5|s5_5, s1_7|s5_5, s4_11|broken_land, broken_land|s1_3?, rimwall_west|s1_4/s1_5?).
+- [x] **§3 Adjacency — ✅ COMPLETE (2026-06-27).** All 8 sectors + North Pole (**101 areas**) traced and
+      **user-verified area-by-area**: the user read each area's neighbour list and confirmed/corrected it; every
+      list in `BOARD_VERIFICATION.md` §3a is ✅, cross-sector edges mirrored both ways, one commit per area.
+      Method that worked: seed each area from the marked photos + prior cross-sector mirrors → present list →
+      user corrects → record + commit. (Earlier batched-question rounds got cities/North Pole/outer ring; the
+      area-by-area pass then verified/repaired everything.) §3b is the OLD unreliable draft — delete in Phase 1.
 - [ ] §4 Impassable borders (confirmed so far: Shield Wall #2 west; the red arc along Broken Land→Rimwall West north blocks s1↔s5)
 - [ ] §5 Air zones (~8) — which two sectors each straddles
 

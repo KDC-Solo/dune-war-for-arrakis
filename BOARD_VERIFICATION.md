@@ -454,10 +454,14 @@ splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, s5_2 ✅   # ✅ COMP
 shield_wall_2: arsunt ✅, hagga_basin ✅, s4_14 ✅, s4_15 ✅, s4_16 ✅, s8_2 ✅   # W side (s8_1) = RED impassable §4
 wind_pass:     north_pole ✅, splintered_rock ✅, s8_4 ✅, s8_2 ✅      # NOT false_wall_west
 ```
-**s8 unnamed areas (s8_1..s8_4) RESOLVED.** Remaining (resolve while tracing s5/s6): s8_2↔shield_wall_2
-red-or-white? · splintered_rock's mtn neighbours (hole_in_the_rock, north_pole, false_wall_east/west) ·
-arsunt↔{carthag, broken_land}.
-**s8→s5 cross-sector to mirror:** hagga_basin↔{s5_1, s5_2, carthag}.
+**s8 ✅ area-by-area VERIFIED 2026-06-27 (all 9 areas).** s8_2↔shield_wall_2 = white; splintered_rock
+has only 4 nbrs (no false walls); arsunt↔{carthag, broken_land} confirmed.
+
+> ## 🎉 §3 ADJACENCY COMPLETE — all 8 sectors + North Pole (101 areas) traced & user-verified
+> area-by-area on 2026-06-27. Every area's neighbour list is ✅. Cross-sector edges mirrored both ways.
+> Remaining Phase 0: finalize §4 (impassable — mostly captured inline above) and §5 (air zones).
+> Next build step: Phase 1 — generate typed `board.ts` from §3a + a graph well-formedness unit test
+> (symmetric edges, every id resolves). NOTE: §3b below is the OLD unreliable draft — IGNORE/DELETE it.
 
 ### 3a-s5. Sector s5 (NE-inner, 16 areas) — SKELETON (densest core; needs your direct lists)
 ✅ known · 🟡 photo-guess. Named (7): Carthag, Arrakeen, Imperial Basin, Broken Land, Rimwall West,
