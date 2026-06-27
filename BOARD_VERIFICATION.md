@@ -659,4 +659,10 @@ DEEP s1: s1_1, s1_2, s1_10, s1_13, s1_14, s1_16, sihaya_ridge
 TERRAIN s2: plateau = s2_5, pasty_mesa
 TERRAIN s2: desert = s2_1, s2_2, s2_3, s2_4, s2_6, s2_7, s2_8, tasmin_sink
 DEEP s2: s2_2, s2_4, s2_7, s2_8
+
+TERRAIN s6: plateau = false_wall_south
+TERRAIN s6: mountain = false_wall_east
+TERRAIN s6: minor_erg = s6_2, s6_3, harg_pass
+TERRAIN s6: desert = s6_1, s6_4, s6_5, hobars_gap
+DEEP s6: s6_5
 ```
