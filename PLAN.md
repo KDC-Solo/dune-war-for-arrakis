@@ -62,8 +62,10 @@ Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `d
 
 ### Phase 2 — Headless Harkonnen AI engine  *(the core value)*
 Pure TS + tests, no UI. Model the round and the priority cascades from fan-summary p9:
-- [ ] Game-state types (legions w/ composition→combat power, sietches, settlements,
-      Atreides legions, harvesters/carryalls/ornithopters, tracks, deployment pool, decks)
+- [x] Game-state types (`src/engine/state.ts`): legions (units/deploy tokens/leaders),
+      settlements/sietches/testing-stations state, vehicles, wormsign/sandworm, tactical cards,
+      Spice Must Flow + imperium bans, tracks, decks, action dice, round phases, `GameState`.
+      Combat power (`combatPower.ts`: coarse + fine tie-break + diff) — 7 tests. (2026-06-27)
 - [ ] Round structure (Mahdi sequence: tactical/target-sietch draw → vehicle placement →
       action resolution → desert hazards → spice harvesting → end of round)
 - [ ] Action-die resolver (Leadership/Strategy → attack sietch / attack legion / move; Mentat; House)
