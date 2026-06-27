@@ -25,6 +25,7 @@ import { describeAction, actionHeadline, areaLabel } from './describeAction';
 import { sampleState } from './sampleState';
 import { newGameState } from '../engine/newGame';
 import { StateEditor } from './StateEditor';
+import { GamesPanel } from './GamesPanel';
 import { loadState, saveState, clearState, exportState } from './persistence';
 
 const DIE_RESULTS: ActionResult[] = ['leadership', 'strategy', 'mentat', 'deployment', 'house'];
@@ -67,13 +68,16 @@ function HelpPanel() {
 
       <h4>First time — describe your board</h4>
       <p>
-        Open <em>Edit game state</em> (bottom) and match your table: imperium markers, every Harkonnen &amp;
-        Atreides legion, sietch/settlement ranks, and the Harkonnen reserve. Then <em>Save</em> it under a name.
-        (What loads now is a demo game to experiment with.)
+        In <em>Games</em>, hit <em>New game</em> for a fresh starting position (or keep the demo to experiment).
+        Then open <em>Edit game state</em> and match your table: imperium markers, every Harkonnen &amp;
+        Atreides legion, sietch/settlement ranks, and the Harkonnen reserve. Back in <em>Games</em>, <em>Save</em> it under a name.
       </p>
 
       <h4>Each round, top to bottom</h4>
       <ul className="help-list">
+        <li>
+          <strong>Games</strong> — new game, export/import a backup, reset, and your named saves (load/delete).
+        </li>
         <li>
           <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans. <em>Start next round</em> when done.
         </li>
@@ -662,14 +666,8 @@ export function App() {
       </header>
       <main>
         <HelpPanel />
-        <StateEditor
-          s={s}
-          onChange={setS}
-          onReset={reset}
-          onNewGame={startNewGame}
-          onExport={exportGame}
-          onImport={loadGame}
-        />
+        <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
+        <StateEditor s={s} onChange={setS} />
         <RoundPanel s={s} onChange={commit} />
         <PhasePanel s={s} onChange={setS} />
         <VehiclePanel s={s} />
