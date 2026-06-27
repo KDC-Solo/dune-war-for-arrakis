@@ -471,8 +471,8 @@ between them). s5_1 = the central plateau ringed by all 3 cities + Hagga Basin. 
 bordering FIVE s1 areas** (s1_11/12/14/15/16) + Gara Kulon + Shield Wall #1 — this is the main s1↔s5 ground
 crossing. Mountain web (Rimwall West / Hole in the Rock / North Pole) still 🟡 — next round.
 ```
-s5_1:  carthag ✅, arrakeen ✅, imperial_basin ✅, hagga_basin ✅, hole_in_the_rock ✅   # central PLATEAU (s5_plt4)
-s5_2:  hagga_basin ✅, hole_in_the_rock ✅, s5_3 ✅, splintered_rock 🟡
+s5_1:  carthag ✅, arrakeen ✅, imperial_basin ✅, hagga_basin ✅, hole_in_the_rock ✅, s5_2 ✅   # central PLATEAU (s5_plt4); 6 nbrs
+s5_2:  hagga_basin ✅, hole_in_the_rock ✅, s5_3 ✅, s5_1 ✅, splintered_rock 🟡
 s5_3:  hole_in_the_rock ✅, north_pole ✅, s5_2 ✅, s5_4 ✅, s5_5 ✅   # the s5 area touching the pole
 s5_4:  imperial_basin ✅, hole_in_the_rock ✅, s5_3 ✅, s5_7 🟡
 s5_5:  imperial_basin ✅, rimwall_west ✅, s5_3 ✅, s5_6 ✅, s5_7 🟡
