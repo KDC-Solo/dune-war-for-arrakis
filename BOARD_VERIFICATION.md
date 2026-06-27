@@ -445,13 +445,13 @@ yes but s8_4↔splintered_rock NO; wind_pass↔false_wall_west NO. Hagga Basin: 
 splintered_rock/s8_2/shield_wall_2 — **NOT north_pole, NOT imperial_basin (air zone)**.
 ```
 s8_1:    s8_3 ✅, s4_13 ✅, s4_14 ✅, s8_4 ✅           # white(4); s8_1↔s8_2 & s8_1↔Shield Wall #2 = RED impassable (§4)
-s8_2:    splintered_rock ✅, hagga_basin ✅, wind_pass ✅, s8_4 ✅   # unnamed MTN; +s8_1 RED; +shield_wall_2 🟡(red?)
+s8_2:    splintered_rock ✅, hagga_basin ✅, wind_pass ✅, s8_4 ✅, shield_wall_2 ✅   # unnamed MTN; white(5) + s8_1 RED §4 = 6
 s8_3:    bight_of_the_cliff ✅, s4_12 ✅, s4_13 ✅, s8_1 ✅, s8_4 ✅, s3_3 ✅, s7_1 ✅   # COMPLETE
 s8_4:    s8_3 ✅, s8_2 ✅, wind_pass ✅, s7_1 ✅, s7_2 ✅(s7), s8_1 ✅   # NOT splintered_rock
 arsunt:        shield_wall_2 ✅, s4_16 ✅, hagga_basin ✅, broken_land ✅, carthag 🟡   # city I (carthag → confirm)
 hagga_basin:   arsunt ✅, carthag ✅, s5_1 ✅, s5_2 ✅, splintered_rock ✅, s8_2 ✅, shield_wall_2 ✅   # city I; NOT north_pole / imperial_basin(air zone)
 splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, s5_2 ✅, false_wall_east 🟡, false_wall_west 🟡   # NOT s8_4, NOT north_pole, NOT hole_in_the_rock
-shield_wall_2: arsunt ✅, hagga_basin ✅, s4_14 ✅, s4_15 ✅, s4_16 ✅   # W side (s8_1) = RED impassable §4
+shield_wall_2: arsunt ✅, hagga_basin ✅, s4_14 ✅, s4_15 ✅, s4_16 ✅, s8_2 ✅   # W side (s8_1) = RED impassable §4
 wind_pass:     north_pole ✅, splintered_rock ✅, s8_4 ✅, s8_2 ✅      # NOT false_wall_west
 ```
 **s8 unnamed areas (s8_1..s8_4) RESOLVED.** Remaining (resolve while tracing s5/s6): s8_2↔shield_wall_2
