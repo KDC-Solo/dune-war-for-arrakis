@@ -410,7 +410,7 @@ s4_4:    s4_2 ✅, s4_7 ✅, s4_8 ✅, the_funeral_plain ✅, rock_outcroppings 
 s4_5:    s4_1 ✅, s4_6 ✅, the_great_flat ✅, the_funeral_plain ✅           # W edge
 s4_6:    s4_5 ✅, s4_7 ✅, s4_12 ✅, bight_of_the_cliff ✅, the_great_flat ✅, the_funeral_plain ✅
 s4_7:    s4_4 ✅, s4_6 ✅, s4_8 ✅, s4_13 ✅, bight_of_the_cliff ✅, the_funeral_plain ✅
-s4_8:    s4_4 ✅, s4_7 ✅, s4_9 ✅, s4_13 ✅, s4_14 ✅
+s4_8:    s4_4 ✅, s4_7 ✅, s4_9 ✅, s4_13 ✅, s4_14 ✅, rock_outcroppings ✅   # 6 nbrs
 s4_9:    s4_8 ✅, s4_10 ✅, s4_14 ✅, s4_15 ✅, rock_outcroppings ✅         # (NOT s4_4)
 s4_10:   s4_3 ✅, s4_9 ✅, s4_11 ✅, s4_15 ✅, rock_outcroppings ✅
 s4_11:   s4_3 ✅, s4_10 ✅, s4_15 ✅, s4_16 ✅, s1_3 ✅(seam)                # Broken Land (impassable §4)
@@ -420,7 +420,7 @@ s4_14:   s4_8 ✅, s4_9 ✅, s4_13 ✅, s4_15 ✅, s8_1 ✅                     
 s4_15:   s4_9 ✅, s4_10 ✅, s4_11 ✅, s4_14 ✅, shield_wall_2 ✅             # s4_15↔s4_16 is RED impassable (§4)!
 s4_16:   s4_11 ✅, broken_land ✅, arsunt ✅, shield_wall_2 ✅   # MOUNTAIN area on Shield Wall massif (city side); NOT adj s4_15 (red §4); NOT s1_3
 the_funeral_plain: s4_1 ✅, s4_2 ✅, s4_4 ✅, s4_5 ✅, s4_6 ✅, s4_7 ✅      # ringed by all 6
-rock_outcroppings: s4_2 ✅, s4_3 ✅, s4_4 ✅, s4_9 ✅, s4_10 ✅             # deep-desert sietch
+rock_outcroppings: s4_2 ✅, s4_3 ✅, s4_4 ✅, s4_8 ✅, s4_9 ✅, s4_10 ✅       # deep-desert sietch
 bight_of_the_cliff: s4_6 ✅, s4_7 ✅, s4_12 ✅, s4_13 ✅, s8_3 ✅           # non-deep desert sietch
 the_great_flat: s4_5 ✅, s4_6 ✅, s4_12 ✅, s3_1 ✅, s3_2 ✅       # deep-desert (SW corner of s4); NOT s4_1
 ```
