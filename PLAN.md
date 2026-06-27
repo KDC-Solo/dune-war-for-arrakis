@@ -66,8 +66,10 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       settlements/sietches/testing-stations state, vehicles, wormsign/sandworm, tactical cards,
       Spice Must Flow + imperium bans, tracks, decks, action dice, round phases, `GameState`.
       Combat power (`combatPower.ts`: coarse + fine tie-break + diff) — 7 tests. (2026-06-27)
-- [ ] Round structure (Mahdi sequence: tactical/target-sietch draw → vehicle placement →
-      action resolution → desert hazards → spice harvesting → end of round)
+- [x] Round structure (`src/engine/round.ts`): phase sequence (`PHASE_ORDER`/`nextPhase`),
+      8 tactical cards generated from board (one per sietch; 2 central = Hobars Gap + Windgap),
+      start-of-round draw (harvesting sector + target sietch w/ re-draw constraints),
+      mid-round target reselection, end-of-round supremacy/prescience constants. 12 tests. (2026-06-27)
 - [ ] Action-die resolver (Leadership/Strategy → attack sietch / attack legion / move; Mentat; House)
 - [ ] **Movement** = shortest-path to target sietch + tie-breakers (the hard part)
 - [ ] **Combat** resolver (dice count, casualty removal priority, when to stop, retreat)
