@@ -223,6 +223,68 @@ const CARD_STEPS: Record<string, StepFn[]> = {
   hunter_seeker: [
     () => manual('Choose 1 enemy Named Leader in the same Sector as a Harkonnen Legion and place that Leader in the Regeneration Tank.'),
   ],
+
+  // --- Corrino Ally deck ---
+  rage_overcame_shaddam_iv_a: [
+    () => manual('Emperor Shaddam IV enters play, then play 1 Planning card. (If already in play instead: place Emperor Shaddam IV and 4 Regular Units in a Harkonnen Settlement of your choice.)'),
+  ],
+  rage_overcame_shaddam_iv_b: [
+    () => manual('Emperor Shaddam IV enters play, then play 1 Planning card. (If already in play instead: place Emperor Shaddam IV and 2 Sardaukar Units in any Legion.)'),
+  ],
+  rage_overcame_shaddam_iv_c: [
+    () => manual('Emperor Shaddam IV enters play, then play 1 Planning card. (If already in play instead: place him in a Legion containing a Sardaukar, then move and make a Surprise Attack with it.)'),
+  ],
+  manipulation_of_others: [
+    () => manual('Force your opponent to discard 2 Planning cards of their choice.'),
+    () => draw('corrino_ally', 2),
+  ],
+  breeding_program: [
+    () => manual('Take 1 Bene Gesserit token from the reserve.'),
+    () => manual('Then play 1 Planning card.'),
+  ],
+  troop_carriers: [
+    () => manual('Move a Legion from a Settlement directly to an Area containing one of your Legions.'),
+  ],
+  shigawire: [
+    () => manual('Move a Legion containing a Sardaukar.'),
+    () => manual('Then place an enemy Named Leader adjacent to that Legion in the Regeneration Tank.'),
+  ],
+  hope_clouds_observation: [
+    () => manual('Shuffle 1 revealed Prescience card of your choice back into the deck.'),
+  ],
+  reports_of_traitors: [
+    () => manual("Discard 1 of your opponent's unused Action dice showing a House result."),
+  ],
+  sardaukar_pogrom: [
+    () => manual('Move 3 Legions each containing a Sardaukar.'),
+  ],
+  sardaukars_manner: [
+    () => manual('Move or make a Surprise Attack with a Legion containing a Sardaukar.'),
+  ],
+  spies_all_over_arrakis: [
+    () => manual('Reveal any Sietch and all Deployment tokens in an Area of your choice.'),
+    () => draw('corrino_ally', 2),
+  ],
+  full_control_of_the_air: [
+    () => placeVehicles({ ornithopter: 2 }),
+    () => manual('Then move a Legion of your choice.'),
+  ],
+  moving_the_battle_group: [
+    () => manual('Place 1 Bashar Leader and 2 Elite Units in a free Mountain Area of your choice.'),
+  ],
+  killers_without_mercy: [
+    () => manual('Attack with a Legion containing a Sardaukar. Each battle round, you may continue the battle without taking 1 Hit, even against a Sietch.'),
+  ],
+  sardaukar_disguised: [
+    () => manual('Replace 2 Elite Units on the board with 2 Sardaukar Units.'),
+    () => manual('Then move 2 Legions each containing a Sardaukar.'),
+  ],
+  i_decide_what_best_serves_his_majesty: [
+    () => manual('Place Captain Aramsham in a Legion containing a Sardaukar, then move or make a Surprise Attack with it.'),
+  ],
+  seek_out_the_mahdi: [
+    () => manual("Move a Legion of your choice. Next Action turn, your opponent cannot place/deploy Paul, nor move/attack with a Legion containing him."),
+  ],
 };
 
 // ---------------------------------------------------------------------------

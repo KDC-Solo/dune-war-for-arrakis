@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { resolveCardPlay, applyCardSteps, hasCardEncoding } from './cardEffects';
 import { sampleState } from '../ui/sampleState';
+import { HARKONNEN_PLANNING_CARDS } from './planningCards';
 import type { GameState, Legion } from './state';
 
 function harkAt(s: GameState, area: string): Legion | undefined {
@@ -20,9 +21,16 @@ describe('resolveCardPlay', () => {
     expect(r.steps[1].auto).toBe(false); // leader choice is player's
   });
 
-  it('falls back to a single manual step for an unencoded card', () => {
-    // Use a real card id that has no structured encoding path by checking the flag.
-    expect(hasCardEncoding('carthag_the_former_capital')).toBe(true);
+  it('has a structured encoding for every Harkonnen planning card', () => {
+    const s = sampleState();
+    for (const card of HARKONNEN_PLANNING_CARDS) {
+      expect(hasCardEncoding(card.id)).toBe(true);
+      const r = resolveCardPlay(card.id, s)!;
+      expect(r.steps.length).toBeGreaterThan(0);
+      expect(r.steps.every((st) => st.text.length > 0)).toBe(true);
+      // applying the steps must never throw and must return a valid-looking state.
+      expect(() => applyCardSteps(s, r.steps)).not.toThrow();
+    }
   });
 });
 
