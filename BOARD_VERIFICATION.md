@@ -275,6 +275,10 @@ reference; the real positional `s#_N` ids get assigned as we trace each sector. 
 
 White-border neighbors only. `# impassable` notes go to §4. Use §2.1 IDs.
 
+> 📊 **Visual:** see [`BOARD_GRAPH.md`](BOARD_GRAPH.md) for the auto-generated Mermaid graph of the whole
+> board (101 nodes, 265 passable edges + 11 impassable). Regenerate with `python3 scripts/gen_graph.py`.
+> It also validates the graph (symmetric edges, no isolated nodes) — it already caught one stray edge.
+
 ### 3a. Confirmed adjacency (from user — AUTHORITATIVE; partial neighbor lists OK)
 Each line lists known neighbors so far; we complete each area's full list over time.
 ```
@@ -489,7 +493,7 @@ carthag:        arsunt ✅, arrakeen ✅, hagga_basin ✅, broken_land ✅, s5_1
 arrakeen:       carthag ✅, imperial_basin ✅, broken_land ✅, rimwall_west ✅, s5_1 ✅   # COMPLETE
 imperial_basin: arrakeen ✅, hole_in_the_rock ✅, rimwall_west ✅, s5_1 ✅, s5_4 ✅, s5_5 ✅   # COMPLETE (NOT carthag/hagga_basin)
 hole_in_the_rock: imperial_basin ✅, s5_1 ✅, s5_2 ✅, s5_3 ✅, s5_4 ✅   # ✅ COMPLETE (embedded in s5)
-rimwall_west:   broken_land ✅, arrakeen ✅, imperial_basin ✅, s5_5 ✅, s1_4 ✅, s1_5 ✅   # ✅ COMPLETE; s1_4/s1_5 = RED impassable arc (§4)
+rimwall_west:   broken_land ✅, arrakeen ✅, imperial_basin ✅, s5_5 ✅   # ✅ COMPLETE (4 white); + s1_4, s1_5 = RED impassable arc (§4 only, not nbrs)
 broken_land:    carthag ✅, arrakeen ✅, rimwall_west ✅, s4_16 ✅, arsunt ✅   # ✅ COMPLETE: white(5) + s4_11, s1_3, s1_4 RED §4 = 8
 shield_wall_1:  gara_kulon ✅, s5_9 ✅, s5_8 ✅, s1_11 ✅, s1_7 ✅   # ✅ COMPLETE; s5_8 = the s5 minor_erg; + s5_6 RED §4
 gara_kulon:     s1_11 ✅, s1_12 ✅, s1_14 ✅, s1_15 ✅, s1_16 ✅, shield_wall_1 ✅, s5_9 ✅
