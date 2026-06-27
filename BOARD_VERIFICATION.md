@@ -140,6 +140,14 @@ STATIONS: s5_2, s5_6, s8_4, s1_4, s4_15, false_wall_east
 | s4_15 | (unnamed, s4) | ✅ |
 | false_wall_east | False Wall East | ✅ |
 
+### Board-feature audit (vs rulebook setup, 2026-06-27)
+Cross-checked the rulebook component list + setup steps for any *printed/indicated* board
+features. The board has exactly three kinds of "indicated Area" the engine needs as fixed data,
+all now captured: **8 Sietch areas**, **6 Harkonnen Settlement areas** (ranks public), and the
+**6 Ecological Testing Station areas** (above). Everything else is dynamic/hidden **game state**
+(Phase 2), NOT board data: Wormsign (16) · Sandworms · spice · Harvesters/Vehicles · Deployment
+tokens · and **Sietch rank** (token hidden; only Atreides inspects). ⇒ Board data is complete.
+
 ---
 
 ## 2. Sectors (8 total: 4 central + 4 outer)
