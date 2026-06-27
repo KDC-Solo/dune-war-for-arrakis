@@ -32,7 +32,7 @@ function mergeInto(target: Legion, src: Legion): Legion {
 }
 
 /** Add a legion to the list, merging into an existing same-faction legion in that area. */
-function upsertLegion(legions: Legion[], legion: Legion): Legion[] {
+export function upsertLegion(legions: Legion[], legion: Legion): Legion[] {
   const i = legions.findIndex((l) => l.faction === legion.faction && l.area === legion.area);
   if (i < 0) return [...legions, legion];
   return legions.map((l, idx) => (idx === i ? mergeInto(l, legion) : l));

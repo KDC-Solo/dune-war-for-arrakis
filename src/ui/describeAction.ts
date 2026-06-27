@@ -1,13 +1,11 @@
 // Human-readable rendering of a resolved Harkonnen action (the instruction shown to the player).
 // Pure & testable — no React. Turns a HarkonnenAction into a plain-English directive.
 
-import { AREAS } from '../engine/board';
 import type { HarkonnenAction } from '../engine/harkonnenActions';
+import { areaLabel } from '../engine/describeArea';
 
-/** Display label for an area: its proper name, or the positional id for unnamed areas. */
-export function areaLabel(id: string): string {
-  return AREAS[id]?.name ?? id;
-}
+// Re-export so existing UI imports (`./describeAction`) keep working.
+export { areaLabel };
 
 function unitsPhrase(u: { regular: number; elite: number; special_elite: number }): string {
   const parts: string[] = [];
