@@ -11,9 +11,9 @@ import { combatPower } from './combatPower';
 import { unitCount } from './state';
 import {
   harkonnenAreAdjacent,
+  harkonnenNeighbors,
   withinAttackReach,
   canTroopTransport,
-  harkonnenShortestPath,
   harkonnenDistance,
   nearestByDistance,
 } from './movement';
@@ -193,34 +193,110 @@ export function selectLegionAttack(s: GameState, requireLeader = false): Harkonn
 // ---------------------------------------------------------------------------
 
 /**
- * Basic Harkonnen movement: move the legion nearest the target sietch one step along the shortest
- * (impassable-ignoring) path toward it. Returns null if there is no target or no legion can move.
- * NOTE: the 5 shortest-path tie-breakers and merge rules are not yet applied (follow-up).
+ * The sietch the Harkonnen move toward this turn. Normally the round's target sietch, but if no
+ * Harkonnen legion can beat its defender, a temporary target is chosen (a beatable live sietch
+ * closest to the real target, then highest rank). Null if no sietch is a valid movement goal.
+ */
+export function effectiveTarget(s: GameState): string | null {
+  const t = s.targetSietchId;
+  if (!t) return null;
+  const legs = harkonnenLegions(s);
+  const beatable = (area: string) => legs.some((l) => combatPower(l) > combatPower(sietchDefender(s, area)));
+  if (beatable(t)) return t;
+  const cands = s.sietches
+    .filter((si) => !si.destroyed && si.area !== t && beatable(si.area))
+    .sort(
+      (a, b) =>
+        harkonnenDistance(a.area, t) - harkonnenDistance(b.area, t) ||
+        sietchRank(s, b.area) - sietchRank(s, a.area),
+    );
+  return cands.length > 0 ? cands[0].area : null;
+}
+
+/** Choose the next step from `from` toward `target` along a shortest path, by the 5 tie-breakers. */
+function pickNextStep(s: GameState, from: string, target: string): string | null {
+  const blocked = blockedForHarkonnen(s);
+  const d = harkonnenDistance(from, target, { blocked, allowBlockedTarget: true });
+  if (!isFinite(d) || d <= 0) return null;
+  const worms = new Set(s.wormsigns.map((w) => w.area));
+  const hByArea = new Map(harkonnenLegions(s).map((l) => [l.area, l] as const));
+
+  const cands = harkonnenNeighbors(from).filter(
+    (n) =>
+      n !== target && // entering the target is an attack, not a move
+      !blocked(n) &&
+      harkonnenDistance(n, target, { blocked, allowBlockedTarget: true }) === d - 1,
+  );
+  if (cands.length === 0) return null;
+
+  // Tie-break key: 1. merge w/ a non-full Harkonnen legion · 2. closest to a sietch ·
+  // 3. mountain · 4. plateau/minor_erg · 5. desert without wormsign.
+  const key = (n: string): number[] => {
+    const here = hByArea.get(n);
+    const merge = here && unitCount(here) < STACKING_LIMIT ? 0 : 1;
+    const sietchDist = distanceToNearestSietch(s, n).dist;
+    const terr = AREAS[n].terrain;
+    const terrainRank = terr === 'mountain' ? 0 : terr === 'plateau' || terr === 'minor_erg' ? 1 : 2;
+    const wormPenalty = terr === 'desert' && worms.has(n) ? 1 : 0;
+    return [merge, sietchDist, terrainRank, wormPenalty];
+  };
+  cands.sort((a, b) => {
+    const ka = key(a);
+    const kb = key(b);
+    for (let i = 0; i < ka.length; i++) if (ka[i] !== kb[i]) return ka[i] - kb[i];
+    return a.localeCompare(b);
+  });
+  return cands[0];
+}
+
+/**
+ * Harkonnen movement: move the legion nearest the (effective) target sietch one area along the
+ * shortest impassable-ignoring path, choosing the step by the 5 tie-breakers. A legion adjacent to
+ * the target is not moved unless it is also adjacent to another Harkonnen legion, in which case it
+ * merges into the adjacent legion nearest the target. Returns null if no legion should move.
  */
 export function selectMove(s: GameState): HarkonnenAction | null {
-  if (!s.targetSietchId) return null;
-  const target = s.targetSietchId;
+  const target = effectiveTarget(s);
+  if (!target) return null;
   const blocked = blockedForHarkonnen(s);
-  const legions = harkonnenLegions(s).filter((l) => l.area !== target);
-  if (legions.length === 0) return null;
+  const hAreas = new Set(harkonnenLegions(s).map((l) => l.area));
 
-  const { sources, distance } = nearestByDistance(
-    legions.map((l) => l.area),
-    target,
-    { blocked, allowBlockedTarget: true },
-  );
-  if (sources.length === 0 || distance === Infinity || distance === 0) return null;
+  const movable = harkonnenLegions(s).filter((l) => {
+    if (l.area === target || unitCount(l) === 0) return false;
+    const d = harkonnenDistance(l.area, target, { blocked, allowBlockedTarget: true });
+    if (!isFinite(d) || d === 0) return false;
+    if (harkonnenAreAdjacent(l.area, target)) {
+      // adjacent to target: only move (to merge) if adjacent to another Harkonnen legion
+      return harkonnenNeighbors(l.area).some((n) => hAreas.has(n));
+    }
+    return true;
+  });
+  if (movable.length === 0) return null;
 
-  // Tie-break the nearest legions by combat power (move the strongest first).
+  const { sources } = nearestByDistance(movable.map((l) => l.area), target, {
+    blocked,
+    allowBlockedTarget: true,
+  });
   const chosen = sources
-    .map((area) => legionAt(s, area, 'harkonnen')!)
+    .map((a) => legionAt(s, a, 'harkonnen')!)
     .reduce((m, l) => (combatPower(l) > combatPower(m) ? l : m));
 
-  const path = harkonnenShortestPath(chosen.area, target, { blocked, allowBlockedTarget: true });
-  if (!path || path.length < 2) return null;
-  // Advance 1 area this turn (stop before entering the sietch area itself, which is an attack).
-  const next = path[1] === target ? chosen.area : path[1];
-  if (next === chosen.area) return null;
+  // Merge case: a legion adjacent to the target moves into the adjacent Harkonnen legion
+  // (nearest the target) to combine forces.
+  if (harkonnenAreAdjacent(chosen.area, target)) {
+    const mergeInto = harkonnenNeighbors(chosen.area)
+      .filter((n) => hAreas.has(n) && n !== target)
+      .sort(
+        (a, b) =>
+          harkonnenDistance(a, target, { blocked, allowBlockedTarget: true }) -
+          harkonnenDistance(b, target, { blocked, allowBlockedTarget: true }),
+      );
+    if (mergeInto.length === 0) return null;
+    return { kind: 'move', legion: chosen.area, path: [chosen.area, mergeInto[0]] };
+  }
+
+  const next = pickNextStep(s, chosen.area, target);
+  if (!next) return null;
   return { kind: 'move', legion: chosen.area, path: [chosen.area, next] };
 }
 

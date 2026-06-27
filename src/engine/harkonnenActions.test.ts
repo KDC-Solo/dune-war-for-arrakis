@@ -4,13 +4,14 @@ import {
   selectSietchAttack,
   selectLegionAttack,
   selectMove,
+  effectiveTarget,
   resolveDeployment,
   resolveMentat,
   resolveHouse,
   resolveAction,
 } from './harkonnenActions';
 import { emptyLegion, type GameState, type Legion, type SietchState } from './state';
-import { harkonnenAreAdjacent } from './movement';
+import { harkonnenAreAdjacent, harkonnenDistance } from './movement';
 import { ADJACENCY } from './board';
 
 function state(over: Partial<GameState> = {}): GameState {
@@ -133,6 +134,58 @@ describe('selectMove', () => {
 
   it('returns null without a target sietch', () => {
     expect(selectMove(state({ legions: [hLegion('carthag')] }))).toBeNull();
+  });
+
+  it('steps a distant legion one area closer to the target', () => {
+    // pick a legion start exactly 2 areas from gara_kulon
+    const target = 'gara_kulon';
+    const start = 'carthag';
+    const d0 = harkonnenDistance(start, target);
+    const s = state({ targetSietchId: target, sietches: [sietch(target, 1)], legions: [hLegion(start, { regular: 4 })] });
+    const a = selectMove(s);
+    expect(a?.kind).toBe('move');
+    if (a?.kind !== 'move') return;
+    expect(a.path[0]).toBe(start);
+    // the step must be strictly closer to the target
+    expect(harkonnenDistance(a.path[1], target)).toBe(d0 - 1);
+  });
+
+  it('merges a target-adjacent legion into an adjacent Harkonnen legion', () => {
+    // s1_11 is adjacent to gara_kulon; s1_12 is also adjacent to gara_kulon and to s1_11.
+    const s = state({
+      targetSietchId: 'gara_kulon',
+      sietches: [sietch('gara_kulon', 1)],
+      legions: [hLegion('s1_11', { regular: 2 }), hLegion('s1_12', { regular: 2 })],
+    });
+    const a = selectMove(s);
+    expect(a?.kind).toBe('move');
+    if (a?.kind !== 'move') return;
+    // whichever is chosen merges into the other (both adjacent to target + each other)
+    expect(['s1_11', 's1_12']).toContain(a.path[1]);
+    expect(a.path[0]).not.toBe(a.path[1]);
+  });
+});
+
+describe('effectiveTarget', () => {
+  it('is the target sietch when a legion can beat its defender', () => {
+    const s = state({
+      targetSietchId: 'gara_kulon',
+      sietches: [sietch('gara_kulon', 1)],
+      legions: [hLegion('s1_11', { regular: 3 })],
+    });
+    expect(effectiveTarget(s)).toBe('gara_kulon');
+  });
+
+  it('falls back to a beatable sietch when the target is too strong', () => {
+    const s = state({
+      targetSietchId: 'gara_kulon',
+      sietches: [sietch('gara_kulon', 1), sietch('habbanya_ridge', 1)],
+      legions: [
+        hLegion('s1_11', { regular: 2 }), // can't beat the heavily-defended target
+        aLegion('gara_kulon', { regular: 9 }),
+      ],
+    });
+    expect(effectiveTarget(s)).toBe('habbanya_ridge');
   });
 });
 

@@ -78,12 +78,13 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       (`resolveMentat`), HOUSE (`resolveHouse`: replace 2 regulars→elites by legion priority, else
       place vehicles), DEPLOYMENT, and top-level `resolveAction` dispatch — all done. TODO: full
       movement tie-breakers + merge; "activate named-leader special first"; card-effect resolution.
-- [~] **Movement** = shortest-path to target sietch + tie-breakers (the hard part).
-      Primitives DONE (`src/engine/movement.ts`, 10 tests): Harkonnen adjacency ignoring impassable
-      borders, BFS distance/shortest-path with occupancy (`blocked`/`allowBlockedTarget`),
-      `nearestByDistance`; ornithopter troop-transport (`airZoneSectors`/`airZonesConnectedToSector`/
-      `canTroopTransport`/`withinAttackReach` — air-zone↔sector derived from verified §5 straddles).
-      15 tests. TODO: the 5 shortest-path tie-breakers (belong with the action resolver's movement policy).
+- [x] **Movement** = shortest-path to target sietch + tie-breakers (the hard part).
+      Primitives (`src/engine/movement.ts`, 15 tests): Harkonnen adjacency ignoring impassable
+      borders, BFS distance/shortest-path with occupancy, `nearestByDistance`, ornithopter
+      troop-transport. Policy (`selectMove`/`effectiveTarget`/`pickNextStep` in harkonnenActions.ts):
+      target validation w/ temporary-target fallback (closest-to-target then highest rank), legion
+      selection (nearest, CP tie-break, skip target-adjacent unless mergeable), 5 step tie-breakers
+      (merge → closest-to-sietch → mountain → plateau/erg → desert w/o wormsign), merge rule. +4 tests.
 - [x] **Combat** resolver (`src/engine/combat.ts`, 18 tests): `combatDiceCount` (units+discards
       +settlement rank, cap 6), `harkonnenShouldContinueAttack` (cease at ≤½ fine power; never
       retreat), `applyHarkonnenHits` (solo casualty priority: shed extra leaders→downgrade
