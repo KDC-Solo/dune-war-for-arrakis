@@ -509,7 +509,7 @@ s6_4:  s6_1 ✅, harg_pass ✅, false_wall_south ✅, hobars_gap ✅, s6_5 ✅, 
 s6_5:  s3_9 ✅(s3), s2_8 ✅(s2), s6_4 ✅, s7_6 ✅(s7), hobars_gap ✅   # ✅ 5 nbrs
 false_wall_east: s5_4 ✅, s5_7 ✅, s6_1 ✅, s6_2 ✅, s6_3 ✅, harg_pass ✅   # ✅ 6 nbrs (mtn ridge)
 false_wall_south: s2_5 ✅(s2), s2_8 ✅(s2), s6_3 ✅, s6_4 ✅, harg_pass ✅, hobars_gap ✅   # ✅ 6 nbrs (plt ridge)
-harg_pass: s6_1 ✅, s6_3 ✅, s6_4 ✅, false_wall_east ✅, false_wall_south ✅, ...   # minor erg
+harg_pass: s6_1 ✅, s6_3 ✅, s6_4 ✅, false_wall_east ✅, false_wall_south ✅   # ✅ 5 nbrs (minor erg)
 hobars_gap: s2_8 ✅(s2), s6_4 ✅, s6_5 ✅, false_wall_south ✅, ...   # seeded (sietch)
 # s7 mirrors to apply: s7_4↔s6_1 · s7_5↔{s6_1, s6_4} · s7_6↔{s6_4, s6_5}
 ```
