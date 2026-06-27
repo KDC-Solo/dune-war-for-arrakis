@@ -16,6 +16,36 @@ import {
   type UnitType,
 } from '../engine/state';
 import { areaLabel } from './describeAction';
+import { NAMED_LEADERS } from '../engine/leaders';
+
+const NAMED_LEADER_NAMES: readonly string[] = NAMED_LEADERS.map((l) => l.name);
+
+/** Dropdown of checkboxes for picking named Harkonnen leaders (unique, by name). */
+function LeaderPicker({
+  selected,
+  onChange,
+  placeholder = '— none —',
+}: {
+  selected: readonly string[];
+  onChange: (next: string[]) => void;
+  placeholder?: string;
+}) {
+  const toggle = (name: string, on: boolean) =>
+    onChange(on ? [...selected, name] : selected.filter((n) => n !== name));
+  return (
+    <details className="leader-picker">
+      <summary>{selected.length ? selected.join(', ') : placeholder}</summary>
+      <div className="leader-options">
+        {NAMED_LEADER_NAMES.map((name) => (
+          <label key={name} className="check">
+            <input type="checkbox" checked={selected.includes(name)} onChange={(e) => toggle(name, e.target.checked)} />
+            {name}
+          </label>
+        ))}
+      </div>
+    </details>
+  );
+}
 
 const IMPERIUM: { key: 'choam' | 'spacing_guild' | 'landsraad'; label: string }[] = [
   { key: 'choam', label: 'CHOAM' },
@@ -40,11 +70,29 @@ function countLeaders(l: Legion): { generic: number; named: number } {
     named: l.leaders.filter((x) => x.kind === 'named').length,
   };
 }
+/** Named-leader names present on a legion (placeholder/blank names dropped). */
+function namedLeaderNames(l: Legion): string[] {
+  return l.leaders.filter((x) => x.kind === 'named' && x.name && x.name !== 'Named').map((x) => x.name as string);
+}
 function makeLeaders(faction: Faction, generic: number, named: number): Leader[] {
   const out: Leader[] = [];
   for (let i = 0; i < generic; i++) out.push({ kind: 'generic', faction });
   for (let i = 0; i < named; i++) out.push({ kind: 'named', faction, name: 'Named' });
   return out;
+}
+/** Build a legion's leaders from a generic count plus specific named-leader names. */
+function makeNamedLeaders(faction: Faction, generic: number, names: readonly string[]): Leader[] {
+  const out: Leader[] = [];
+  for (let i = 0; i < generic; i++) out.push({ kind: 'generic', faction });
+  for (const name of names) out.push({ kind: 'named', faction, name });
+  return out;
+}
+/** Set the generic-leader count while preserving the legion's existing named leaders. */
+function setGenericLeaders(l: Legion, generic: number): Leader[] {
+  const named = l.leaders.filter((x) => x.kind === 'named');
+  const gens: Leader[] = [];
+  for (let i = 0; i < generic; i++) gens.push({ kind: 'generic', faction: l.faction });
+  return [...gens, ...named];
 }
 
 export function StateEditor({
@@ -239,41 +287,17 @@ export function StateEditor({
           />
         </label>
         <label className="grow">
-          Named leaders (comma-separated)
-          <input
-            type="text"
-            value={r.namedLeaders.join(', ')}
-            onChange={(e) =>
-              onChange({
-                ...s,
-                harkonnenReserve: {
-                  ...r,
-                  namedLeaders: e.target.value
-                    .split(',')
-                    .map((n) => n.trim())
-                    .filter(Boolean),
-                },
-              })
-            }
+          Named leaders
+          <LeaderPicker
+            selected={r.namedLeaders}
+            onChange={(namedLeaders) => onChange({ ...s, harkonnenReserve: { ...r, namedLeaders } })}
           />
         </label>
         <label className="grow">
           Regeneration tank (killed named leaders)
-          <input
-            type="text"
-            value={(r.regenerationTank ?? []).join(', ')}
-            onChange={(e) =>
-              onChange({
-                ...s,
-                harkonnenReserve: {
-                  ...r,
-                  regenerationTank: e.target.value
-                    .split(',')
-                    .map((n) => n.trim())
-                    .filter(Boolean),
-                },
-              })
-            }
+          <LeaderPicker
+            selected={r.regenerationTank ?? []}
+            onChange={(regenerationTank) => onChange({ ...s, harkonnenReserve: { ...r, regenerationTank } })}
           />
         </label>
       </div>
@@ -355,19 +379,29 @@ export function StateEditor({
                   min={0}
                   max={4}
                   value={lead.generic}
-                  onChange={(e) => updateLegion(i, { ...l, leaders: makeLeaders(l.faction, clamp(Number(e.target.value), 0, 4), lead.named) })}
+                  onChange={(e) => updateLegion(i, { ...l, leaders: setGenericLeaders(l, clamp(Number(e.target.value), 0, 4)) })}
                 />
               </label>
-              <label className="mini">
-                Named
-                <input
-                  type="number"
-                  min={0}
-                  max={4}
-                  value={lead.named}
-                  onChange={(e) => updateLegion(i, { ...l, leaders: makeLeaders(l.faction, lead.generic, clamp(Number(e.target.value), 0, 4)) })}
-                />
-              </label>
+              {l.faction === 'harkonnen' ? (
+                <label className="mini grow">
+                  Named
+                  <LeaderPicker
+                    selected={namedLeaderNames(l)}
+                    onChange={(names) => updateLegion(i, { ...l, leaders: makeNamedLeaders(l.faction, lead.generic, names) })}
+                  />
+                </label>
+              ) : (
+                <label className="mini">
+                  Named
+                  <input
+                    type="number"
+                    min={0}
+                    max={4}
+                    value={lead.named}
+                    onChange={(e) => updateLegion(i, { ...l, leaders: makeLeaders(l.faction, lead.generic, clamp(Number(e.target.value), 0, 4)) })}
+                  />
+                </label>
+              )}
               <button className="remove" onClick={() => removeLegion(i)} title="Remove legion">
                 ✕
               </button>
