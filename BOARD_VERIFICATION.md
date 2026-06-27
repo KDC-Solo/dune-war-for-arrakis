@@ -665,4 +665,8 @@ TERRAIN s6: mountain = false_wall_east
 TERRAIN s6: minor_erg = s6_2, s6_3, harg_pass
 TERRAIN s6: desert = s6_1, s6_4, s6_5, hobars_gap
 DEEP s6: s6_5
+
+TERRAIN s3: plateau = s3_8
+TERRAIN s3: desert = s3_1, s3_2, s3_3, s3_4, s3_5, s3_6, s3_7, s3_9, habbanya_ridge
+DEEP s3: s3_1, s3_4, s3_6, s3_7, s3_9
 ```
