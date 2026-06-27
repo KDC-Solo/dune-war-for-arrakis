@@ -20,30 +20,33 @@ import { NAMED_LEADERS } from '../engine/leaders';
 
 const NAMED_LEADER_NAMES: readonly string[] = NAMED_LEADERS.map((l) => l.name);
 
-/** Dropdown of checkboxes for picking named Harkonnen leaders (unique, by name). */
+/** Toggle chips for picking named Harkonnen leaders (unique, by name) — all visible at once. */
 function LeaderPicker({
   selected,
   onChange,
-  placeholder = '— none —',
 }: {
   selected: readonly string[];
   onChange: (next: string[]) => void;
-  placeholder?: string;
 }) {
   const toggle = (name: string, on: boolean) =>
     onChange(on ? [...selected, name] : selected.filter((n) => n !== name));
   return (
-    <details className="leader-picker">
-      <summary>{selected.length ? selected.join(', ') : placeholder}</summary>
-      <div className="leader-options">
-        {NAMED_LEADER_NAMES.map((name) => (
-          <label key={name} className="check">
-            <input type="checkbox" checked={selected.includes(name)} onChange={(e) => toggle(name, e.target.checked)} />
+    <div className="leader-chips">
+      {NAMED_LEADER_NAMES.map((name) => {
+        const on = selected.includes(name);
+        return (
+          <button
+            type="button"
+            key={name}
+            className={on ? 'leader-chip on' : 'leader-chip'}
+            aria-pressed={on}
+            onClick={() => toggle(name, !on)}
+          >
             {name}
-          </label>
-        ))}
-      </div>
-    </details>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
