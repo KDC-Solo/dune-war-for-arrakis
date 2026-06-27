@@ -556,7 +556,7 @@ s4_15 <-> s4_16   # ✅ CONFIRMED (user): red line runs along the Shield Wall cr
 broken_land  <-> s4_11           # ✅ CONFIRMED (user): red impassable
 broken_land  <-> s1_3            # ✅ CONFIRMED (user): red impassable
 broken_land  <-> s1_4            # ✅ CONFIRMED (user): red impassable
-rimwall_west <-> s1_4, s1_5      # user lists these as rimwall_west neighbours; treated as RED arc (⚠️ confirm)
+rimwall_west <-> s1_4, s1_5      # ✅ CONFIRMED (user): red impassable (s1_4 also red to broken_land; s1_5 also red to s5_5)
 s1_5 <-> s5_5                    # ✅ CONFIRMED (user): red impassable
 s1_7 <-> s5_5                    # ✅ CONFIRMED (user): red impassable (the s1-facing mtn here is s5_5, not rimwall_west)
 # REVISED MODEL: the red impassable arc is NOT simply "all mountain edges." It threads specific
