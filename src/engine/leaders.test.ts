@@ -23,7 +23,8 @@ describe('named leaders', () => {
   });
 
   it('records entry conditions', () => {
-    expect(leaderByName('Feyd-Rautha')?.entry).toEqual({ kind: 'track_step', step: 6, alsoRemove: 'Beast Rabban' });
+    expect(leaderByName('Feyd-Rautha')?.entry).toEqual({ kind: 'supremacy_step', step: 6, alsoRemove: 'Beast Rabban' });
+    expect(leaderByName('Thufir Hawat')?.entry).toEqual({ kind: 'supremacy_step', step: 1 });
     expect(leaderByName('Beast Rabban')?.entry).toEqual({ kind: 'start' });
     expect(leaderByName('Gaius Helen Mohiam')?.entry).toEqual({ kind: 'leader_removed', leader: 'Thufir Hawat' });
   });

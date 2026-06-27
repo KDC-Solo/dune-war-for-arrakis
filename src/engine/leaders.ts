@@ -13,7 +13,7 @@ export type LeaderFaction = 'house_harkonnen' | 'corrino_ally';
 /** When a named leader enters play. */
 export type LeaderEntry =
   | { kind: 'start' } // in play at the start of the game
-  | { kind: 'track_step'; step: number; alsoRemove?: string } // a track marker reaches a step
+  | { kind: 'supremacy_step'; step: number; alsoRemove?: string } // supremacy track reaches a step
   | { kind: 'leader_removed'; leader: string } // another named leader is removed from the game
   | { kind: 'planning_card'; card: string }; // a specific planning card is played
 
@@ -29,15 +29,14 @@ export interface NamedLeaderDef {
   combatAbility: { hits: number; shields: number };
 }
 
-// ⚠ The "track_step" entry conditions (Feyd-Rautha step 6, Thufir Hawat step 1) reference a track
-// marker on the card; most likely the SUPREMACY track (0-10, advances 1/round in solo). Confirm
-// against the physical card / a close-up if leader timing matters.
+// Entry conditions are user-confirmed: Feyd-Rautha enters at supremacy step 6 (removing Beast
+// Rabban), Thufir Hawat at supremacy step 1. The supremacy track advances 1/round in solo.
 export const NAMED_LEADERS: readonly NamedLeaderDef[] = [
   {
     name: 'Feyd-Rautha',
     faction: 'house_harkonnen',
     slot: 'leadership',
-    entry: { kind: 'track_step', step: 6, alsoRemove: 'Beast Rabban' },
+    entry: { kind: 'supremacy_step', step: 6, alsoRemove: 'Beast Rabban' },
     special: 'Move and attack with the Legion containing Feyd-Rautha.',
     combatAbility: { hits: 2, shields: 1 },
   },
@@ -45,7 +44,7 @@ export const NAMED_LEADERS: readonly NamedLeaderDef[] = [
     name: 'Thufir Hawat',
     faction: 'house_harkonnen',
     slot: 'mentat',
-    entry: { kind: 'track_step', step: 1 },
+    entry: { kind: 'supremacy_step', step: 1 },
     special: 'Draw 3 House Harkonnen Planning cards.',
     combatAbility: { hits: 1, shields: 2 },
   },

@@ -113,7 +113,7 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
 - [ ] Remaining engine TODOs (need interaction model / a little data): planning-card +
       named-leader-special effect resolution; round driver (state mutation + player confirmation —
       overlaps Phase 3); coriolis storms (need the 5 storm-exempt central plateaus); confirm
-      SMF per-row dice [8,7,6,5,4] and Feyd/Thufir supremacy-step entries in play.
+      SMF per-row dice [8,7,6,5,4] in play (Feyd/Thufir supremacy-step entries now confirmed).
 
 ### Phase 3 — React + TS UI
 - [ ] Project scaffold (Vite + React + TS + test runner)
