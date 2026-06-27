@@ -416,7 +416,7 @@ s4_10:   s4_3 ✅, s4_9 ✅, s4_11 ✅, s4_15 ✅, rock_outcroppings ✅
 s4_11:   s4_3 ✅, s4_10 ✅, s4_15 ✅, s4_16 ✅, s1_3 ✅(seam)                # Broken Land (impassable §4)
 s4_12:   s4_6 ✅, bight_of_the_cliff ✅, the_great_flat ✅, s8_3 ✅, s3_2 ✅, s3_3 ✅
 s4_13:   s4_7 ✅, s4_8 ✅, s4_14 ✅, s8_1 ✅, s8_3 ✅, bight_of_the_cliff ✅   # air zone
-s4_14:   s4_8 ✅, s4_9 ✅, s4_13 ✅, s4_15 ✅, s8_1 ✅                       # air zone
+s4_14:   s4_8 ✅, s4_9 ✅, s4_13 ✅, s4_15 ✅, s8_1 ✅, shield_wall_2 ✅       # air zone; shield_wall_2 = white (6 nbrs)
 s4_15:   s4_9 ✅, s4_10 ✅, s4_11 ✅, s4_14 ✅, shield_wall_2 ✅             # s4_15↔s4_16 is RED impassable (§4)!
 s4_16:   s4_11 ✅, broken_land ✅, arsunt ✅, shield_wall_2 ✅   # MOUNTAIN area on Shield Wall massif (city side); NOT adj s4_15 (red §4); NOT s1_3
 the_funeral_plain: s4_1 ✅, s4_2 ✅, s4_4 ✅, s4_5 ✅, s4_6 ✅, s4_7 ✅      # ringed by all 6
@@ -451,7 +451,7 @@ s8_4:    s8_3 ✅, s8_2 ✅, wind_pass ✅                 # NOT splintered_rock
 arsunt:        shield_wall_2 ✅, s4_16 ✅, hagga_basin ✅, carthag 🟡, broken_land 🟡   # city I (carthag/broken_land → confirm in s5)
 hagga_basin:   arsunt ✅, carthag ✅, s5_1 ✅, s5_2 ✅, splintered_rock ✅, s8_2 ✅, shield_wall_2 ✅   # city I; NOT north_pole / imperial_basin(air zone)
 splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, s5_2 🟡, false_wall_east 🟡, false_wall_west 🟡   # NOT s8_4, NOT north_pole, NOT hole_in_the_rock (per s5 rd2)
-shield_wall_2: arsunt ✅, hagga_basin ✅, s4_15 ✅, s4_16 ✅            # W side (s8_1, s4_13, s8_2?) = RED impassable §4
+shield_wall_2: arsunt ✅, hagga_basin ✅, s4_14 ✅, s4_15 ✅, s4_16 ✅   # W side (s8_1) = RED impassable §4
 wind_pass:     north_pole ✅, splintered_rock ✅, s8_4 ✅, s8_2 ✅      # NOT false_wall_west
 ```
 **s8 unnamed areas (s8_1..s8_4) RESOLVED.** Remaining (resolve while tracing s5/s6): s8_2↔shield_wall_2
