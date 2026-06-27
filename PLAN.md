@@ -71,7 +71,11 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       start-of-round draw (harvesting sector + target sietch w/ re-draw constraints),
       mid-round target reselection, end-of-round supremacy/prescience constants. 12 tests. (2026-06-27)
 - [ ] Action-die resolver (Leadership/Strategy → attack sietch / attack legion / move; Mentat; House)
-- [ ] **Movement** = shortest-path to target sietch + tie-breakers (the hard part)
+- [~] **Movement** = shortest-path to target sietch + tie-breakers (the hard part).
+      Primitives DONE (`src/engine/movement.ts`, 10 tests): Harkonnen adjacency ignoring impassable
+      borders, BFS distance/shortest-path with occupancy (`blocked`/`allowBlockedTarget`),
+      `nearestByDistance`. TODO: ornithopter troop-transport (+1 reach; air-zone↔sector question)
+      and the 5 shortest-path tie-breakers (belong with the action resolver's movement policy).
 - [ ] **Combat** resolver (dice count, casualty removal priority, when to stop, retreat)
 - [ ] **Deployment** placement priority
 - [ ] Tests against worked examples / rulebook edge cases
