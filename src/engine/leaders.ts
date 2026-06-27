@@ -1,0 +1,101 @@
+// Named-leader data (Harkonnen + Corrino Ally), captured from the physical leader cards.
+// Each named leader occupies one action-die slot on the dashboard and enters play under a
+// specific condition. The Harkonnen AI prefers activating a named leader's special action over
+// the regular action when possible (see harkonnenActions).
+//
+// NOTE: the combat-ability strip on each card (die symbol → hits/shields the leader generates in
+// battle) is NOT yet captured — the photos are below the legible resolution there. Tracked as
+// `combatAbility?` (undefined) pending close-up photos.
+
+import type { ActionResult } from './state';
+
+export type LeaderFaction = 'house_harkonnen' | 'corrino_ally';
+
+/** When a named leader enters play. */
+export type LeaderEntry =
+  | { kind: 'start' } // in play at the start of the game
+  | { kind: 'track_step'; step: number; alsoRemove?: string } // a track marker reaches a step
+  | { kind: 'leader_removed'; leader: string } // another named leader is removed from the game
+  | { kind: 'planning_card'; card: string }; // a specific planning card is played
+
+export interface NamedLeaderDef {
+  name: string;
+  faction: LeaderFaction;
+  /** The action-die result this leader activates on. */
+  slot: ActionResult;
+  entry: LeaderEntry;
+  /** Plain-text summary of the special (red) action from the card. */
+  special: string;
+  /** Combat Special ability (hits/shields) — not yet captured; see module note. */
+  combatAbility?: { hits?: number; shields?: number };
+}
+
+// ⚠ The "track_step" entry conditions (Feyd-Rautha step 6, Thufir Hawat step 1) reference a track
+// marker on the card; most likely the SUPREMACY track (0-10, advances 1/round in solo). Confirm
+// against the physical card / a close-up if leader timing matters.
+export const NAMED_LEADERS: readonly NamedLeaderDef[] = [
+  {
+    name: 'Feyd-Rautha',
+    faction: 'house_harkonnen',
+    slot: 'leadership',
+    entry: { kind: 'track_step', step: 6, alsoRemove: 'Beast Rabban' },
+    special: 'Move and attack with the Legion containing Feyd-Rautha.',
+  },
+  {
+    name: 'Thufir Hawat',
+    faction: 'house_harkonnen',
+    slot: 'mentat',
+    entry: { kind: 'track_step', step: 1 },
+    special: 'Draw 3 House Harkonnen Planning cards.',
+  },
+  {
+    name: 'Beast Rabban',
+    faction: 'house_harkonnen',
+    slot: 'leadership',
+    entry: { kind: 'start' },
+    special: 'Move the Legion containing Beast Rabban, then move this Legion to an adjacent Area.',
+  },
+  {
+    name: 'Baron Harkonnen',
+    faction: 'house_harkonnen',
+    slot: 'house',
+    entry: { kind: 'start' },
+    special: 'Replace 3 Regular Units on the board with 3 Elite Units.',
+  },
+  {
+    name: 'Gaius Helen Mohiam',
+    faction: 'corrino_ally',
+    slot: 'mentat',
+    entry: { kind: 'leader_removed', leader: 'Thufir Hawat' },
+    special: 'Draw 2 Corrino Ally Planning cards. Then, play 1 Planning card.',
+  },
+  {
+    name: 'Captain Aramsham',
+    faction: 'corrino_ally',
+    slot: 'deployment',
+    entry: { kind: 'start' },
+    special: 'Deploy 2 Regular Units, 1 Sardaukar Unit, and 1 Leader (Bashar or Named) in one or more Settlements.',
+  },
+  {
+    name: 'Emperor Shaddam IV',
+    faction: 'corrino_ally',
+    slot: 'strategy',
+    entry: { kind: 'planning_card', card: 'Rage Overcame Shaddam IV' },
+    special: 'Replace 3 Elite Units on the board with 3 Sardaukar Units.',
+  },
+];
+
+/** Named leaders that must be deployed before any other named leader (deployment priority). */
+export const PRIORITY_NAMED_LEADERS = ['Beast Rabban', 'Feyd-Rautha'] as const;
+
+/** The generic Harkonnen leader (Bashar) has no special action and no action-die slot. */
+export const GENERIC_LEADER = 'Bashar';
+
+export function leaderByName(name: string): NamedLeaderDef | undefined {
+  return NAMED_LEADERS.find((l) => l.name === name);
+}
+
+/** Named leaders that occupy a given action-die slot. */
+export function leadersForSlot(slot: ActionResult): NamedLeaderDef[] {
+  return NAMED_LEADERS.filter((l) => l.slot === slot);
+}

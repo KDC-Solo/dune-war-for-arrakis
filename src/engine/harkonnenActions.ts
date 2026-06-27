@@ -18,6 +18,7 @@ import {
   nearestByDistance,
 } from './movement';
 import { AREAS } from './board';
+import { stackingLimit } from './imperiumBans';
 
 // ---------------------------------------------------------------------------
 // State accessors
@@ -231,9 +232,10 @@ function pickNextStep(s: GameState, from: string, target: string): string | null
 
   // Tie-break key: 1. merge w/ a non-full Harkonnen legion · 2. closest to a sietch ·
   // 3. mountain · 4. plateau/minor_erg · 5. desert without wormsign.
+  const limit = stackingLimit(s.spice.activeBans);
   const key = (n: string): number[] => {
     const here = hByArea.get(n);
-    const merge = here && unitCount(here) < STACKING_LIMIT ? 0 : 1;
+    const merge = here && unitCount(here) < limit ? 0 : 1;
     const sietchDist = distanceToNearestSietch(s, n).dist;
     const terr = AREAS[n].terrain;
     const terrainRank = terr === 'mountain' ? 0 : terr === 'plateau' || terr === 'minor_erg' ? 1 : 2;
@@ -306,7 +308,7 @@ export function selectMove(s: GameState): HarkonnenAction | null {
 
 /** A standard Harkonnen deployment places 3 units + 1 leader. */
 export const DEPLOY_UNITS = 3;
-/** Max units per area. */
+/** Base max units per area (CHOAM ban reduces this to 5 — see imperiumBans.stackingLimit). */
 export const STACKING_LIMIT = 6;
 
 /** Named leaders that must be deployed before any other named leader. */
@@ -366,10 +368,11 @@ export function resolveDeployment(s: GameState): HarkonnenAction {
   const placements: DeployPlacement[] = [];
   let toPlace = Math.min(DEPLOY_UNITS, totalAvail);
   let leaderPlaced = false;
+  const limit = stackingLimit(s.spice.activeBans);
 
   for (const st of settlements) {
     if (toPlace <= 0 && (leaderPlaced || !leader)) break;
-    const capacity = STACKING_LIMIT - st.used;
+    const capacity = limit - st.used;
     if (capacity <= 0) continue;
     const units = pickUnits(reserve, Math.min(toPlace, capacity));
     const n = units.regular + units.elite + units.special_elite;
