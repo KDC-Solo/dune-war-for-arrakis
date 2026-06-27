@@ -5,8 +5,12 @@ import {
   harkonnenDistance,
   harkonnenShortestPath,
   nearestByDistance,
+  airZoneSectors,
+  airZonesConnectedToSector,
+  canTroopTransport,
+  withinAttackReach,
 } from './movement';
-import { ADJACENCY, IMPASSABLE } from './board';
+import { ADJACENCY, IMPASSABLE, AIR_ZONES } from './board';
 
 describe('harkonnen adjacency (ignores impassable borders)', () => {
   it('includes every white-border neighbour', () => {
@@ -91,5 +95,49 @@ describe('nearestByDistance', () => {
     const r = nearestByDistance([...nbrs], to);
     expect(r.distance).toBe(1);
     expect(r.sources.sort()).toEqual([...nbrs].sort());
+  });
+});
+
+describe('air zones & troop-transport', () => {
+  it('derives each air zone sectors matching the verified straddles', () => {
+    // az1 straddles s1<->s5 (board §5)
+    expect(airZoneSectors('az1').sort()).toEqual(['s1', 's5']);
+    expect(airZoneSectors('az4').sort()).toEqual(['s5', 's6']);
+  });
+
+  it('every air zone connects exactly the 2 sectors of its member areas', () => {
+    for (const z of AIR_ZONES) {
+      const secs = airZoneSectors(z.id);
+      expect(secs.length).toBe(2);
+      for (const s of secs) expect(airZonesConnectedToSector(s)).toContain(z.id);
+    }
+  });
+
+  it('canTroopTransport requires an ornithopter zone connected to the start sector', () => {
+    // az1 connects s1 & s5.
+    expect(canTroopTransport('s1', ['az1'])).toBe(true);
+    expect(canTroopTransport('s5', ['az1'])).toBe(true);
+    expect(canTroopTransport('s2', ['az1'])).toBe(false);
+    expect(canTroopTransport('s1', [])).toBe(false);
+  });
+});
+
+describe('withinAttackReach', () => {
+  it('adjacent targets are always reachable', () => {
+    const from = 'carthag';
+    const adj = harkonnenNeighbors(from)[0];
+    expect(withinAttackReach(from, adj, false)).toBe(true);
+  });
+
+  it('distance-2 targets need troop-transport', () => {
+    const from = 'carthag';
+    const one = harkonnenNeighbors(from)[0];
+    // a neighbour of `one` that is not adjacent to `from` and isn't `from`
+    const two = harkonnenNeighbors(one).find(
+      (a) => a !== from && !harkonnenAreAdjacent(from, a),
+    )!;
+    expect(two).toBeDefined();
+    expect(withinAttackReach(from, two, false)).toBe(false);
+    expect(withinAttackReach(from, two, true)).toBe(true);
   });
 });

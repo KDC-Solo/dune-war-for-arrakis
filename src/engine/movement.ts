@@ -12,7 +12,7 @@
 // Distance = "the least number of free areas to cross" (path length in edges). Ornithopter
 // troop-transport (+1 reach, jumping one area) is handled in a separate pass.
 
-import { ADJACENCY, IMPASSABLE, AREAS } from './board';
+import { ADJACENCY, IMPASSABLE, AREAS, AIR_ZONES, type SectorId } from './board';
 
 // Harkonnen adjacency = white-border neighbours ∪ impassable-border neighbours.
 const harkonnenAdj: Record<string, string[]> = (() => {
@@ -91,6 +91,53 @@ export function harkonnenShortestPath(
     }
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Air zones & ornithopter troop-transport
+//
+// An air zone is "connected to" the sectors it straddles (derived from the sectors of its
+// member areas — matches the §5 "straddles" column in BOARD_VERIFICATION.md). Troop-transport:
+// a Harkonnen legion can use 1 ornithopter in an air zone connected to its STARTING sector to
+// move/attack 1 additional area away, jumping over the intervening area (impassable border,
+// enemy legion, or sandworm). Max 1 troop-transport per turn.
+// ---------------------------------------------------------------------------
+
+/** The sectors an air zone connects (the sectors of its member areas). */
+export function airZoneSectors(zoneId: string): SectorId[] {
+  const zone = AIR_ZONES.find((z) => z.id === zoneId);
+  if (!zone) return [];
+  const secs = new Set<SectorId>();
+  for (const a of zone.areas) if (AREAS[a]) secs.add(AREAS[a].sector);
+  return [...secs];
+}
+
+/** Air zones connected to a given sector. */
+export function airZonesConnectedToSector(sector: SectorId): string[] {
+  return AIR_ZONES.filter((z) => airZoneSectors(z.id).includes(sector)).map((z) => z.id);
+}
+
+/**
+ * Whether a Harkonnen legion starting in `fromSector` can troop-transport, given the set of
+ * air-zone ids currently holding an ornithopter. True if any of those zones connects to the
+ * legion's starting sector.
+ */
+export function canTroopTransport(fromSector: SectorId, ornithopterZoneIds: Iterable<string>): boolean {
+  const sectors = new Set<string>();
+  for (const z of ornithopterZoneIds) for (const s of airZoneSectors(z)) sectors.add(s);
+  return sectors.has(fromSector);
+}
+
+/**
+ * Whether a Harkonnen legion at `from` can attack a target area this turn.
+ * Adjacent (ground distance 1) always works. With troop-transport it can also reach a target
+ * exactly 2 areas away, jumping over the (possibly blocked) intervening area.
+ */
+export function withinAttackReach(from: string, target: string, troopTransport: boolean): boolean {
+  if (harkonnenAreAdjacent(from, target)) return true;
+  if (!troopTransport) return false;
+  // Two-hop reach: some neighbour m of `from` is adjacent to the target (intervening area jumped).
+  return harkonnenNeighbors(from).some((m) => harkonnenAreAdjacent(m, target));
 }
 
 /**
