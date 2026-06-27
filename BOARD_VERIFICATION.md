@@ -582,26 +582,38 @@ windgap: false_wall_west, minor_erg_2          # Windgap, next to False Wall Wes
 
 ---
 
-## 4. Impassable borders (red/white lines)
+## 4. Impassable borders (red lines)
+
+**✅ CONSOLIDATED & user-confirmed (2026-06-27), collected from the area-by-area §3 pass.** These 11
+unordered pairs each **block ground movement both ways** (they are NOT in the §3a neighbour lists).
+**Model:** the red line is one continuous arc threading the N + W face of the central mountain/city
+mass, separating it from the surrounding desert. It is NOT "every mountain edge" — most mountain
+borders (e.g. s4_16↔arsunt/broken_land, Shield Wall #2↔cities) are passable; only these specific
+seams are red.
 
 ```
-s5_6  <-> shield_wall_1 # ✅ CONFIRMED (user): red impassable
-s8_1  <-> s8_2          # ✅ CONFIRMED (user): red impassable
-s8_1  <-> shield_wall_2 # ✅ CONFIRMED (user): red impassable = Shield Wall #2 west border
-s4_15 <-> s4_16   # ✅ CONFIRMED (user): red line runs along the Shield Wall crest BETWEEN these two.
-                  #   s4_16 is a MOUNTAIN area on the city side; it IS passable to arsunt/shield_wall_2/
-                  #   broken_land. So the red arc is the s4_15|s4_16 seam here, NOT desert|mountain.
-broken_land  <-> s4_11           # ✅ CONFIRMED (user): red impassable
-broken_land  <-> s1_3            # ✅ CONFIRMED (user): red impassable
-broken_land  <-> s1_4            # ✅ CONFIRMED (user): red impassable
-rimwall_west <-> s1_4, s1_5      # ✅ CONFIRMED (user): red impassable (s1_4 also red to broken_land; s1_5 also red to s5_5)
-s1_5 <-> s5_5                    # ✅ CONFIRMED (user): red impassable
-s1_7 <-> s5_5                    # ✅ CONFIRMED (user): red impassable (the s1-facing mtn here is s5_5, not rimwall_west)
-# REVISED MODEL: the red impassable arc is NOT simply "all mountain edges." It threads specific
-# borders: s4_15|s4_16, and along the N face of Broken Land/Rimwall West facing the s1 desert.
-# s4_16/shield_wall/broken_land are mutually passable on the city side. Re-derive full extent with
-# the user while tracing s5/s8 (where Shield Wall #1 / Rimwall West / Broken Land live).
+# --- N face: Broken Land / Rimwall West / s5_5 vs the s1 (NE-outer) desert ---
+broken_land  <-> s1_3
+broken_land  <-> s1_4
+rimwall_west <-> s1_4
+rimwall_west <-> s1_5
+s5_5         <-> s1_5
+s5_5         <-> s1_7
+# --- Broken Land vs s4 (NW-outer) ---
+broken_land  <-> s4_11
+# --- Shield Wall crest, internal to s4 (NW-outer): desert s4_15 | mountain s4_16 ---
+s4_15        <-> s4_16
+# --- Shield Wall #1 (s5) vs s5_6 ---
+shield_wall_1 <-> s5_6
+# --- Shield Wall #2 (s8) west border ---
+shield_wall_2 <-> s8_1
+s8_2          <-> s8_1
 ```
+> **Count: 11 impassable pairs.** Per-area incidence (how many red edges touch each):
+> s1_4 (2), s1_5 (2), s8_1 (2), broken_land (3), rimwall_west (2), s5_5 (2), others 1.
+> ⚠️ Open: is this list exhaustive? It came entirely from edges the user flagged "red" during the
+> area-by-area pass, so it should be — but worth a final eyeball of the physical board's red lines
+> (esp. any near False Wall East, and the far ends of the arc) before locking Phase 1.
 
 ---
 

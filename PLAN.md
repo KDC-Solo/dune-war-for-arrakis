@@ -44,7 +44,7 @@ Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `d
       Method that worked: seed each area from the marked photos + prior cross-sector mirrors → present list →
       user corrects → record + commit. (Earlier batched-question rounds got cities/North Pole/outer ring; the
       area-by-area pass then verified/repaired everything.) §3b is the OLD unreliable draft — delete in Phase 1.
-- [ ] §4 Impassable borders (confirmed so far: Shield Wall #2 west; the red arc along Broken Land→Rimwall West north blocks s1↔s5)
+- [x] §4 Impassable borders — **CONSOLIDATED (2026-06-27): 11 confirmed red pairs** in `BOARD_VERIFICATION.md` §4 (one continuous arc on the N+W face of the central mass). Collected from the area-by-area pass. Pending only a final eyeball that the list is exhaustive.
 - [ ] §5 Air zones (~8) — which two sectors each straddles
 
 ### Phase 1 — `board.ts`
