@@ -669,4 +669,8 @@ DEEP s6: s6_5
 TERRAIN s3: plateau = s3_8
 TERRAIN s3: desert = s3_1, s3_2, s3_3, s3_4, s3_5, s3_6, s3_7, s3_9, habbanya_ridge
 DEEP s3: s3_1, s3_4, s3_6, s3_7, s3_9
+
+TERRAIN s7: plateau = s7_2, false_wall_west
+TERRAIN s7: desert = s7_1, s7_3, s7_4, s7_5, s7_6, windgap
+DEEP s7: (none)
 ```
