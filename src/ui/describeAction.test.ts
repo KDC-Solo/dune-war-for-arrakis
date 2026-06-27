@@ -4,9 +4,16 @@ import { resolveAction } from '../engine/harkonnenActions';
 import { sampleState } from './sampleState';
 
 describe('areaLabel', () => {
-  it('uses the proper name for named areas, the id for unnamed', () => {
+  it('uses the proper name for named areas', () => {
     expect(areaLabel('carthag')).toBe('Carthag');
-    expect(areaLabel('s1_11')).toBe('s1_11');
+  });
+  it('describes an unnamed area by terrain and its named landmarks', () => {
+    const label = areaLabel('s1_11');
+    expect(label).not.toBe('s1_11'); // no longer the bare id
+    expect(label).toMatch(/Gara Kulon/); // anchored to a board landmark
+  });
+  it('falls back to the raw id for an unknown area', () => {
+    expect(areaLabel('not_an_area')).toBe('not_an_area');
   });
 });
 
@@ -19,7 +26,7 @@ describe('describeAction', () => {
       useOrnithopter: false,
     });
     expect(text).toContain('Attack the sietch at Gara Kulon');
-    expect(text).toContain('s1_11');
+    expect(text).toContain(areaLabel('s1_11'));
   });
 
   it('notes ornithopter use', () => {

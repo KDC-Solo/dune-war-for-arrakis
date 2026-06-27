@@ -289,20 +289,20 @@ export function StateEditor({
             onChange={(e) => onChange({ ...s, harkonnenReserve: { ...r, bashars: clamp(Number(e.target.value), 0, 6) } })}
           />
         </label>
-        <label className="grow">
-          Named leaders
-          <LeaderPicker
-            selected={r.namedLeaders}
-            onChange={(namedLeaders) => onChange({ ...s, harkonnenReserve: { ...r, namedLeaders } })}
-          />
-        </label>
-        <label className="grow">
-          Regeneration tank (killed named leaders)
-          <LeaderPicker
-            selected={r.regenerationTank ?? []}
-            onChange={(regenerationTank) => onChange({ ...s, harkonnenReserve: { ...r, regenerationTank } })}
-          />
-        </label>
+      </div>
+      <div className="reserve-leaders">
+        <span className="reserve-leaders-label">Named leaders</span>
+        <LeaderPicker
+          selected={r.namedLeaders}
+          onChange={(namedLeaders) => onChange({ ...s, harkonnenReserve: { ...r, namedLeaders } })}
+        />
+      </div>
+      <div className="reserve-leaders">
+        <span className="reserve-leaders-label">Regeneration tank <span className="hint">(killed named leaders)</span></span>
+        <LeaderPicker
+          selected={r.regenerationTank ?? []}
+          onChange={(regenerationTank) => onChange({ ...s, harkonnenReserve: { ...r, regenerationTank } })}
+        />
       </div>
 
       <h3>Wormsigns &amp; sandworms</h3>

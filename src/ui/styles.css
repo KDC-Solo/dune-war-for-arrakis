@@ -687,3 +687,16 @@ label.mini.check input {
 .leader-chip.on::before {
   content: '✓ ';
 }
+
+/* Harkonnen reserve: leaders on their own full-width rows (not columned with the number fields) */
+.reserve-leaders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+.reserve-leaders-label {
+  font-size: 0.78rem;
+  color: #6a583c;
+  font-weight: 600;
+}
