@@ -313,7 +313,7 @@ s1_10:   sihaya_ridge ✅, s1_9 ✅, s1_13 ✅   # NE corner (desert_ne); E-edge
 s1_11:   s1_7 ✅, s1_8 ✅, s1_12 ✅, gara_kulon ✅, shield_wall_1 ✅   # NOT s5_9, NOT s1_15
 s1_12:   s1_8 ✅, s1_9 ✅, s1_11 ✅, s1_13 ✅, s1_14 ✅, gara_kulon ✅   # NOT s5_9
 s1_13:   s1_9 ✅, s1_10 ✅, s1_12 ✅, s1_14 ✅   # E-edge
-s1_14:   s1_12 ✅, s1_13 ✅, s1_16 ✅, gara_kulon ✅, s5_9 ✅, s1_15 🟡   # E-edge
+s1_14:   s1_12 ✅, s1_13 ✅, s1_16 ✅, gara_kulon ✅   # E-edge; exactly 4 nbrs (NOT s5_9, NOT s1_15)
 sihaya_ridge: s1_2 ✅, s1_6 ✅, s1_9 ✅, s1_10 ✅   # deep-desert sietch (+ rimwall_west? — s5 rd2)
 gara_kulon:   s1_11 ✅, s1_14 ✅, s1_15 ✅, shield_wall_1/s5_mtn4 ✅(§3a), s5_9 ✅
 s1_15:   gara_kulon ✅, s1_16 ✅, s5_9 ✅, s1_11 🟡, s1_14 🟡
@@ -479,7 +479,7 @@ s5_5:  imperial_basin ✅, rimwall_west ✅, s5_3 ✅, s5_6 ✅, s5_7 🟡
 s5_6:  s5_5 ✅, s5_8 ✅, s1_7 ✅   # + shield_wall_1 = RED impassable (§4); NOT rimwall_west / s5_9
 s5_7:  s5_8 ✅, s5_4 🟡, s5_5 🟡   # air zone (NOT north_pole)
 s5_8:  s5_7 ✅, s5_9 ✅, s5_6 ✅, s5_5 🟡
-s5_9:  gara_kulon ✅, shield_wall_1 ✅, s1_14 ✅, s1_15 ✅, s1_16 ✅, s5_8 ✅   # NOT s5_6, NOT s1_11, NOT s1_12 (re-verify s1_14/15/16 in pass)
+s5_9:  gara_kulon ✅, shield_wall_1 ✅, s1_15 ✅, s1_16 ✅, s5_8 ✅   # NOT s5_6, NOT s1_11/12/14 (re-verify s1_15/16 in pass)
 # Named hubs:
 carthag:        arsunt ✅, arrakeen ✅, hagga_basin ✅, broken_land ✅, s5_1 ✅   # COMPLETE (NOT imperial_basin)
 arrakeen:       carthag ✅, imperial_basin ✅, broken_land ✅, rimwall_west ✅, s5_1 ✅   # COMPLETE
