@@ -1,0 +1,132 @@
+:root {
+  --sand: #c9a66b;
+  --ink: #2b2117;
+  --panel: #fbf6ec;
+  --accent: #8a2c1f;
+  --line: #d8c9aa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(160deg, #e8d9b8, #d3b483);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.subtitle {
+  margin: 0.1rem 0 1rem;
+  color: #5a4a32;
+  font-size: 0.95rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.panel h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.35rem;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.kv dt {
+  font-weight: 600;
+  color: #6a583c;
+}
+
+.kv dd {
+  margin: 0;
+}
+
+.hint {
+  margin: 0 0 0.6rem;
+  color: #6a583c;
+  font-size: 0.9rem;
+}
+
+.die-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.die {
+  flex: 1 1 auto;
+  min-width: 5.5rem;
+  padding: 0.6rem 0.5rem;
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.die:hover {
+  background: #f3e7d6;
+}
+
+.die.selected {
+  background: var(--accent);
+  color: #fff;
+}
+
+.directive {
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.9rem;
+  background: #fff;
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+}
+
+.directive-head {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.directive-text {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+footer {
+  margin-top: 1rem;
+  text-align: center;
+  color: #6a583c;
+}
