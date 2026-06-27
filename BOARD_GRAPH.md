@@ -1,16 +1,31 @@
-# Board adjacency graph
+# Board adjacency map
 
-**Auto-generated** from `BOARD_VERIFICATION.md` §3a (white-border adjacency) and §4 (impassable),
-via `scripts/gen_graph.py`. Regenerate after editing the board data. This view doubles as a
-well-formedness check.
+**Auto-generated** from `BOARD_VERIFICATION.md` §3a (adjacency) + §4 (impassable) by
+`scripts/gen_map.py`. It lays the **101 areas out as a map** (force-directed, so areas that
+border each other sit next to each other) — North Pole at the centre, the inner sectors around
+it, the outer desert ring outside.
 
-- **Nodes:** 101 areas, grouped into the 9 subgraphs (8 sectors + North Pole).
-- **Solid line** = passable white border (ground movement allowed): **265 edges**.
-- **Red dashed line** (`-.->|red|`) = impassable border (§4): **11 edges** — NOT traversable.
-- **Validation:** the graph is symmetric (every A–B edge appears from both sides), has no isolated
-  nodes, and every id resolves. Highest-degree areas: `s6_1` & `wind_pass` (8) — the North-Pole ring.
+![Board adjacency map](board_map.png)
 
-> Tip: GitHub renders the Mermaid block below as an interactive node-and-edge diagram.
+**Legend**
+- Each **box** = one area. **Box colour = sector:**
+  s1 NE-outer (red) · s2 SE-outer (orange) · s3 SW-outer (yellow) · s4 NW-outer (green) ·
+  s5 NE-inner (blue) · s6 SE-inner (purple) · s7 SW-inner (pink) · s8 NW-inner (teal) · North Pole (grey).
+- **Grey line** = passable white border (ground movement OK) — 265 edges.
+- **Red dashed line** = impassable border (§4) — 11 edges, not traversable.
+
+**Regenerate** after editing the board data:
+```
+python3 scripts/gen_map.py | neato -Tpng -Gdpi=150 -o board_map.png
+python3 scripts/gen_map.py | neato -Tsvg -o board_map.svg     # crisp/zoomable
+```
+A high-resolution **[board_map.svg](board_map.svg)** is also committed (zoom in without blur).
+
+> The map doubles as a well-formedness check (symmetric edges, no isolated nodes, every id resolves).
+> It already caught one stray edge (`rimwall_west`→`s1_4/s1_5`, which belonged in §4 only).
+
+<details>
+<summary>Text/Mermaid version (sector subgraphs — harder to read, but diff-friendly)</summary>
 
 ```mermaid
 graph TD
@@ -411,3 +426,5 @@ graph TD
   s8_1 -.->|red| shield_wall_2
   linkStyle 265,266,267,268,269,270,271,272,273,274,275 stroke:#e23,stroke-width:2px,stroke-dasharray:4
 ```
+
+</details>
