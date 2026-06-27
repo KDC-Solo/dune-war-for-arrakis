@@ -91,6 +91,10 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       3 units + 1 leader (priority named Beast Rabban/Feyd-Rautha → any named → Bashar); settlement
       priority highest-CP legion → closest to target; unit substitution to next-higher tier;
       stacking-limit (6) overflow. Added `HarkonnenReserve` to GameState.
+- [x] **Vehicle placement** (`src/engine/vehiclePlacement.ts`, 15 tests): `placeHarvesters`
+      (4-tier priority + adjacency demotion + adjacent-sector overflow), `placeCarryalls` (zones
+      protecting most harvesters), `placeOrnithopters` (threaten 2-away sietches → cover target
+      sector → adjacent sectors central-first), `placeVehicles` orchestrator.
 - [ ] Tests against worked examples / rulebook edge cases
 
 ### Phase 3 — React + TS UI

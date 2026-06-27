@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { placeHarvesters, areasInSector, sectorsAdjacentTo } from './vehiclePlacement';
+import {
+  placeHarvesters,
+  areasInSector,
+  sectorsAdjacentTo,
+  placeCarryalls,
+  placeOrnithopters,
+  placeVehicles,
+} from './vehiclePlacement';
 import { AREAS } from './board';
+import { airZoneSectors } from './movement';
 import { emptyLegion, type GameState, type Legion, type SietchState } from './state';
 
 function state(over: Partial<GameState> = {}): GameState {
@@ -101,5 +109,49 @@ describe('placeHarvesters', () => {
     expect(got.length).toBeGreaterThan(8);
     const outside = got.filter((a) => AREAS[a].sector !== 's3');
     expect(outside.length).toBeGreaterThan(0);
+  });
+});
+
+describe('placeCarryalls', () => {
+  it('picks the unoccupied zones protecting the most harvesters', () => {
+    // az5 members: false_wall_south, hobars_gap, s2_8 ; az6: s6_4, s7_5, s7_6
+    const harvesters = ['hobars_gap', 's2_8', 's7_6']; // az5 protects 2, az6 protects 1
+    const got = placeCarryalls(state(), 1, harvesters);
+    expect(got).toEqual(['az5']);
+  });
+
+  it('skips zones protecting no harvesters and respects count', () => {
+    const got = placeCarryalls(state(), 5, ['hobars_gap']); // only az5 protects any
+    expect(got).toEqual(['az5']);
+  });
+
+  it('does not reuse an already-occupied zone', () => {
+    const s = state({ vehicles: [{ type: 'carryall', location: 'az5' }] });
+    const got = placeCarryalls(s, 1, ['hobars_gap', 's2_8']);
+    expect(got).not.toContain('az5');
+  });
+});
+
+describe('placeOrnithopters', () => {
+  it('covers the target sietch sector when no 2-away threats exist', () => {
+    const s = state({ harvestingSector: 's3', targetSietchId: 'gara_kulon' }); // gara_kulon in s1
+    const got = placeOrnithopters(s, 1);
+    expect(got.length).toBe(1);
+    // chosen zone must connect to s1 (the target's sector)
+    expect(airZoneSectors(got[0])).toContain('s1');
+  });
+
+  it('returns nothing for count 0', () => {
+    expect(placeOrnithopters(state(), 0)).toEqual([]);
+  });
+});
+
+describe('placeVehicles orchestrator', () => {
+  it('places harvesters, then carryalls over them, then ornithopters', () => {
+    const s = state({ harvestingSector: 's3', targetSietchId: 'gara_kulon' });
+    const out = placeVehicles(s, { harvesters: 5, carryalls: 1, ornithopters: 1 });
+    expect(out.harvesters).toHaveLength(5);
+    // carryall (if any) and ornithopter must not collide on the same zone
+    for (const c of out.carryalls) expect(out.ornithopters).not.toContain(c);
   });
 });

@@ -5,8 +5,10 @@
 // cover the target sector. This module covers HARVESTERS first (the intricate part); carryalls
 // and ornithopters follow.
 
-import { AREAS, ADJACENCY, type SectorId } from './board';
+import { AREAS, ADJACENCY, AIR_ZONES, type SectorId } from './board';
 import type { GameState, TacticalSector } from './state';
+import { combatPower } from './combatPower';
+import { harkonnenDistance, airZonesConnectedToSector, airZoneSectors } from './movement';
 
 const CENTRAL: SectorId[] = ['s5', 's6', 's7', 's8'];
 
@@ -122,4 +124,120 @@ export function placeHarvesters(s: GameState, count: number): string[] {
     fillFrom(overflow);
   }
   return placed;
+}
+
+// --- carryall placement ----------------------------------------------------
+
+/** Air-zone ids already holding a vehicle (carryall/ornithopter). */
+function occupiedZones(s: GameState): Set<string> {
+  return new Set(
+    s.vehicles.filter((v) => v.type !== 'harvester').map((v) => v.location),
+  );
+}
+
+/** How many of the given harvester areas an air zone protects (member areas it covers). */
+function harvestersProtected(zoneId: string, harvesterAreas: Set<string>): number {
+  const zone = AIR_ZONES.find((z) => z.id === zoneId);
+  if (!zone) return 0;
+  return zone.areas.filter((a) => harvesterAreas.has(a)).length;
+}
+
+/**
+ * Place `count` carryalls in the unoccupied air zones that protect the most harvesters (1 per
+ * zone). `harvesterAreas` are the harvesters on the board this round. Zones protecting 0
+ * harvesters are skipped (a carryall there protects nothing).
+ */
+export function placeCarryalls(s: GameState, count: number, harvesterAreas: string[]): string[] {
+  if (count <= 0) return [];
+  const hset = new Set(harvesterAreas);
+  const taken = occupiedZones(s);
+  const ranked = AIR_ZONES.map((z) => z.id)
+    .filter((id) => !taken.has(id))
+    .map((id) => ({ id, n: harvestersProtected(id, hset) }))
+    .filter((z) => z.n > 0)
+    .sort((a, b) => (b.n !== a.n ? b.n - a.n : a.id.localeCompare(b.id)));
+  return ranked.slice(0, count).map((z) => z.id);
+}
+
+// --- ornithopter placement -------------------------------------------------
+
+/** Combat power of the Atreides legion defending a sietch area (0 if none). */
+function sietchDefenderCP(s: GameState, area: string): number {
+  const def = s.legions.find((l) => l.faction === 'atreides' && l.area === area);
+  return def ? combatPower(def) : 0;
+}
+
+/**
+ * Place `count` ornithopters, per priority:
+ *   1. For each Harkonnen legion exactly 2 areas from a sietch it could attack (combat power >
+ *      defender), place 1 ornithopter in each unoccupied air zone connected to that legion's
+ *      sector, until exhausted.
+ *   2. Remaining ornithopters go to unoccupied air zones connected to the target sietch's sector,
+ *      then to zones connecting sectors adjacent to the target (central↔central first).
+ * Returns the chosen air-zone ids in placement order.
+ */
+export function placeOrnithopters(s: GameState, count: number): string[] {
+  if (count <= 0) return [];
+  const taken = occupiedZones(s);
+  const chosen: string[] = [];
+  const take = (zoneId: string) => {
+    if (chosen.length >= count) return;
+    if (taken.has(zoneId) || chosen.includes(zoneId)) return;
+    chosen.push(zoneId);
+  };
+
+  // 1. Threaten sietches a legion is exactly 2 areas from and could beat.
+  const liveSietches = s.sietches.filter((si) => !si.destroyed);
+  const threatSectors: SectorId[] = [];
+  for (const l of s.legions.filter((x) => x.faction === 'harkonnen')) {
+    const canThreaten = liveSietches.some(
+      (si) => harkonnenDistance(l.area, si.area) === 2 && combatPower(l) > sietchDefenderCP(s, si.area),
+    );
+    if (canThreaten) threatSectors.push(AREAS[l.area].sector);
+  }
+  for (const sec of threatSectors) for (const z of airZonesConnectedToSector(sec)) take(z);
+
+  // 2. Cover the target sietch's sector, then adjacent sectors (central↔central first).
+  if (chosen.length < count && s.targetSietchId) {
+    const targetSector = AREAS[s.targetSietchId].sector;
+    for (const z of airZonesConnectedToSector(targetSector)) take(z);
+    if (chosen.length < count) {
+      const adj = sectorsAdjacentTo(targetSector);
+      const zonesByCentrality = AIR_ZONES.map((z) => z.id)
+        .filter((id) => airZoneSectors(id).some((sec) => adj.includes(sec)))
+        .sort((a, b) => centralLinks(b) - centralLinks(a) || a.localeCompare(b));
+      for (const z of zonesByCentrality) take(z);
+    }
+  }
+  return chosen;
+}
+
+const CENTRAL_SET = new Set<SectorId>(['s5', 's6', 's7', 's8']);
+/** How many of an air zone's sectors are central (2 = a central↔central link). */
+function centralLinks(zoneId: string): number {
+  return airZoneSectors(zoneId).filter((s) => CENTRAL_SET.has(s)).length;
+}
+
+// --- orchestrator ----------------------------------------------------------
+
+export interface VehiclePlacement {
+  harvesters: string[]; // area ids
+  carryalls: string[]; // air-zone ids
+  ornithopters: string[]; // air-zone ids
+}
+
+/** Place all available vehicles for the round in the proper order: harvesters → carryalls → ornithopters. */
+export function placeVehicles(
+  s: GameState,
+  available: { harvesters: number; carryalls: number; ornithopters: number },
+): VehiclePlacement {
+  const harvesters = placeHarvesters(s, available.harvesters);
+  const carryalls = placeCarryalls(s, available.carryalls, harvesters);
+  // Reflect carryalls as occupying zones before ornithopters choose.
+  const withCarryalls: GameState = {
+    ...s,
+    vehicles: [...s.vehicles, ...carryalls.map((location) => ({ type: 'carryall' as const, location }))],
+  };
+  const ornithopters = placeOrnithopters(withCarryalls, available.ornithopters);
+  return { harvesters, carryalls, ornithopters };
 }
