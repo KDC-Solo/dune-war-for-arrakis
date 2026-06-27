@@ -486,7 +486,7 @@ arrakeen:       carthag ✅, imperial_basin ✅, broken_land ✅, rimwall_west �
 imperial_basin: arrakeen ✅, hole_in_the_rock ✅, rimwall_west ✅, s5_1 ✅, s5_4 ✅, s5_5 ✅   # COMPLETE (NOT carthag/hagga_basin)
 hole_in_the_rock: imperial_basin ✅, s5_1 ✅, s5_2 ✅, s5_3 ✅, s5_4 ✅   # ✅ COMPLETE (embedded in s5)
 rimwall_west:   broken_land ✅, arrakeen ✅, imperial_basin ✅, s5_5 ✅, s1_4 ✅, s1_5 ✅   # ✅ COMPLETE; s1_4/s1_5 = RED impassable arc (§4)
-broken_land:    carthag ✅, arrakeen ✅, rimwall_west ✅, s4_16 ✅, arsunt ✅   # white(5) + s4_11, s1_3 RED §4 = 7; user says 8 total — 8th TBD
+broken_land:    carthag ✅, arrakeen ✅, rimwall_west ✅, s4_16 ✅, arsunt ✅   # ✅ COMPLETE: white(5) + s4_11, s1_3, s1_4 RED §4 = 8
 shield_wall_1:  gara_kulon ✅, s5_9 ✅, s5_8 ✅, s1_11 ✅, <an s5 minor erg> ✅   # + s5_6 = RED impassable (§4)
 gara_kulon:     s1_11 ✅, s1_12 ✅, s1_14 ✅, s1_15 ✅, s1_16 ✅, shield_wall_1 ✅, s5_9 ✅
 ```
@@ -554,7 +554,8 @@ s4_15 <-> s4_16   # ✅ CONFIRMED (user): red line runs along the Shield Wall cr
                   #   s4_16 is a MOUNTAIN area on the city side; it IS passable to arsunt/shield_wall_2/
                   #   broken_land. So the red arc is the s4_15|s4_16 seam here, NOT desert|mountain.
 broken_land  <-> s4_11           # ✅ CONFIRMED (user): red impassable
-broken_land  <-> s1_3            # red arc along the N edge of Broken Land (⚠️ confirm passable vs red)
+broken_land  <-> s1_3            # ✅ CONFIRMED (user): red impassable
+broken_land  <-> s1_4            # ✅ CONFIRMED (user): red impassable
 rimwall_west <-> s1_4, s1_5      # user lists these as rimwall_west neighbours; treated as RED arc (⚠️ confirm)
 s1_5 <-> s5_5                    # ✅ CONFIRMED (user): red impassable
 s1_7 <-> s5_5                    # ✅ CONFIRMED (user): red impassable (the s1-facing mtn here is s5_5, not rimwall_west)
