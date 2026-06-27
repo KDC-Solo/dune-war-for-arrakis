@@ -497,6 +497,22 @@ minor_erg + the 1 nd among s5_2..s5_9 still TBD (cosmetic; doesn't affect the gr
 **s5→inner reciprocals to mirror:** north_pole↔{s6_1, s7_4} · rimwall_west↔{s1_4, s1_5} (impassable §4) ·
 s5_3↔s6_1 (pole-ring) · s5_4↔{s6_1, false_wall_east} · s5_7↔{false_wall_east, s6_2} · s5_8↔s6_2 · s5_9↔s6_2.
 
+### 3a-s6. Sector s6 (SE-inner, 9 areas) — area-by-area pass (seeded from cross-sector mirrors)
+Areas: s6_1..s6_5, False Wall East, False Wall South, Harg Pass, Hobars Gap. Layout (south-east.jpg):
+s6_1 top-left (by North Pole) · s6_2 top (N of False Wall East) · s6_3 center-right · s6_4 center-bottom
+(S of False Wall South) · s6_5 bottom-left. Seeded edges (from s2/s5/s3 mirrors — to verify in pass):
+```
+s6_1:  north_pole ✅, s5_3 ✅, s5_4 ✅, ...                 # seeded; verify full list
+s6_2:  s5_4 ✅, s5_7 ✅, s5_8 ✅, s5_9 ✅, pasty_mesa ✅(s2), ...  # seeded; big hub?
+s6_3:  s2_5 ✅(s2), pasty_mesa ✅(s2), ...                  # seeded
+s6_4:  ...                                                 # unknown
+s6_5:  s3_9 ✅(s3), s2_8 ✅(s2), ...                        # seeded
+false_wall_east: s5_4 ✅, s5_7 ✅, ...                      # seeded (mtn ridge)
+false_wall_south: s2_5 ✅(s2), s2_8 ✅(s2), ...            # seeded (plt ridge)
+harg_pass: ...                                             # minor erg
+hobars_gap: s2_8 ✅(s2), ...                               # seeded (sietch)
+```
+
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
 ```
