@@ -316,7 +316,7 @@ s1_13:   s1_9 ✅, s1_10 ✅, s1_12 ✅, s1_14 ✅   # E-edge
 s1_14:   s1_12 ✅, s1_13 ✅, s1_16 ✅, gara_kulon ✅   # E-edge; exactly 4 nbrs (NOT s5_9, NOT s1_15)
 sihaya_ridge: s1_2 ✅, s1_6 ✅, s1_9 ✅, s1_10 ✅   # deep-desert sietch (+ rimwall_west? — s5 rd2)
 gara_kulon:   s1_11 ✅, s1_14 ✅, s1_15 ✅, shield_wall_1/s5_mtn4 ✅(§3a), s5_9 ✅
-s1_15:   gara_kulon ✅, s1_16 ✅, s5_9 ✅, s1_11 🟡, s1_14 🟡
+s1_15:   gara_kulon ✅, s1_16 ✅, s5_9 ✅, pasty_mesa ✅(s2), s2_1 ✅   # NOT s1_11/s1_14; s1↔s2 boundary
 s1_16:   s1_15 ✅, s1_14 ✅, s2_2 ✅(E-edge x-sector), s5_9 ✅   # s1↔s5 ground crossing = s5_9
 ```
 **s1↔s5 crossing RESOLVED:** s5_9 ↔ {s1_11, s1_12, s1_14, s1_15, s1_16}. Only s1-internal s1_11↔s1_15 /
@@ -337,7 +337,7 @@ NO (not adjacent) · Pasty Mesa has NO ground crossing into s6 (air zone only) �
 (s2_2 ↔ s1_16, exact s1 id to pin) · **s2↔s3 do NOT connect at the S-edge SW corner (air zone there)
 — outer ring is broken at the SE/SW seam.**
 ```
-s2_1:    s2_2 ✅, s2_3 ✅, s2_5 ✅, tasmin_sink ✅           # N border = s6/air-zone band
+s2_1:    s2_2 ✅, s2_3 ✅, s2_5 ✅, tasmin_sink ✅, s1_15 ✅(s1)   # N border = s6/air-zone band
 s2_2:    s2_1 ✅, s2_3 ✅, s2_4 ✅, s1_16 ✅(E-edge x-sector; exact s1 id 🟡)
 s2_3:    s2_1 ✅, s2_2 ✅, s2_4 ✅, s2_6 ✅, s2_7 ✅, tasmin_sink ✅
 s2_4:    s2_2 ✅, s2_3 ✅, s2_7 ✅                          # E edge, lower
@@ -345,7 +345,7 @@ s2_5:    s2_1 ✅, s2_6 ✅, pasty_mesa ✅, tasmin_sink ✅
 s2_6:    s2_3 ✅, s2_5 ✅, s2_7 ✅, s2_8 ✅, tasmin_sink ✅
 s2_7:    s2_3 ✅, s2_4 ✅, s2_6 ✅, s2_8 ✅                  # S edge
 s2_8:    s2_6 ✅, s2_7 ✅                                   # SW air zone; S edge; NO s3 crossing
-pasty_mesa:  s2_5 ✅, tasmin_sink ✅                        # plateau; NO ground link into s6 (air zone)
+pasty_mesa:  s2_5 ✅, tasmin_sink ✅, s1_15 ✅(s1)            # plateau; NO ground link into s6 (air zone)
 tasmin_sink: s2_1 ✅, s2_3 ✅, s2_5 ✅, s2_6 ✅, pasty_mesa ✅   # non-deep desert sietch
 ```
 **s2 resolved.** Open only: pin which exact s1 E-edge area is s2_2's neighbour (s1_16 vs s1_14) —
