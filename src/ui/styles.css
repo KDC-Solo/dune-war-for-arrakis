@@ -242,3 +242,9 @@ footer {
 .add-row button:hover {
   background: #f3e7d6;
 }
+
+.add-row .reset {
+  margin-left: auto;
+  color: #6a583c;
+  border-color: var(--line);
+}

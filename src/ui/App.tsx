@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ActionResult, GameState } from '../engine/state';
 import { resolveAction } from '../engine/harkonnenActions';
 import { availability } from '../engine/spiceMustFlow';
@@ -6,6 +6,7 @@ import { placeVehicles } from '../engine/vehiclePlacement';
 import { describeAction, actionHeadline, areaLabel } from './describeAction';
 import { sampleState } from './sampleState';
 import { StateEditor } from './StateEditor';
+import { loadState, saveState, clearState } from './persistence';
 
 const DIE_RESULTS: ActionResult[] = ['leadership', 'strategy', 'mentat', 'deployment', 'house'];
 const DIE_LABEL: Record<ActionResult, string> = {
@@ -99,7 +100,19 @@ function ResolvePanel({ s }: { s: GameState }) {
 }
 
 export function App() {
-  const [s, setS] = useState<GameState>(() => sampleState());
+  // Load the saved game on first render; fall back to the demo state.
+  const [s, setS] = useState<GameState>(() => loadState() ?? sampleState());
+
+  // Persist on every change.
+  useEffect(() => {
+    saveState(s);
+  }, [s]);
+
+  const reset = () => {
+    clearState();
+    setS(sampleState());
+  };
+
   return (
     <div className="app">
       <header>
@@ -110,10 +123,10 @@ export function App() {
         <RoundPanel s={s} />
         <ResolvePanel s={s} />
         <VehiclePanel s={s} />
-        <StateEditor s={s} onChange={setS} />
+        <StateEditor s={s} onChange={setS} onReset={reset} />
       </main>
       <footer>
-        <small>Round driver &amp; turn-confirm next.</small>
+        <small>State auto-saves to this browser. Round driver &amp; turn-confirm next.</small>
       </footer>
     </div>
   );

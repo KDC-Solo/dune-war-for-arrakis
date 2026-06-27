@@ -38,7 +38,15 @@ function makeLeaders(faction: Faction, generic: number, named: number): Leader[]
   return out;
 }
 
-export function StateEditor({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
+export function StateEditor({
+  s,
+  onChange,
+  onReset,
+}: {
+  s: GameState;
+  onChange: (next: GameState) => void;
+  onReset: () => void;
+}) {
   const setMarker = (power: 'choam' | 'spacing_guild' | 'landsraad', value: number) => {
     const markers = { ...s.spice.markers, [power]: clamp(value, 1, 5) };
     onChange({ ...s, spice: { ...s.spice, markers, activeBans: activeBans(markers) } });
@@ -165,6 +173,14 @@ export function StateEditor({ s, onChange }: { s: GameState; onChange: (next: Ga
       <div className="add-row">
         <button onClick={() => addLegion('harkonnen')}>+ Harkonnen legion</button>
         <button onClick={() => addLegion('atreides')}>+ Atreides legion</button>
+        <button
+          className="reset"
+          onClick={() => {
+            if (confirm('Reset to the demo state and clear the saved game?')) onReset();
+          }}
+        >
+          Reset
+        </button>
       </div>
     </details>
   );
