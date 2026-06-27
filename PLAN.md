@@ -74,8 +74,10 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       cascade — `selectSietchAttack` (reach incl. ornithopter "if necessary"; priority rank→CP
       diff→no-ornithopter→target sietch), `selectLegionAttack` (adjacent only, priority CP→named
       leader), `selectMove` (basic: nearest legion steps toward target), `resolveLeadershipOrStrategy`.
-      Plus accessors (harkonnen/atreides legions, ornithopter zones, blocked-areas). TODO: MENTAT,
-      DEPLOYMENT, HOUSE; full movement tie-breakers + merge; "activate named-leader special first".
+      Plus accessors (harkonnen/atreides legions, ornithopter zones, blocked-areas). MENTAT
+      (`resolveMentat`), HOUSE (`resolveHouse`: replace 2 regulars→elites by legion priority, else
+      place vehicles), DEPLOYMENT, and top-level `resolveAction` dispatch — all done. TODO: full
+      movement tie-breakers + merge; "activate named-leader special first"; card-effect resolution.
 - [~] **Movement** = shortest-path to target sietch + tie-breakers (the hard part).
       Primitives DONE (`src/engine/movement.ts`, 10 tests): Harkonnen adjacency ignoring impassable
       borders, BFS distance/shortest-path with occupancy (`blocked`/`allowBlockedTarget`),

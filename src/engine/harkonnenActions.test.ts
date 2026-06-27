@@ -5,6 +5,9 @@ import {
   selectLegionAttack,
   selectMove,
   resolveDeployment,
+  resolveMentat,
+  resolveHouse,
+  resolveAction,
 } from './harkonnenActions';
 import { emptyLegion, type GameState, type Legion, type SietchState } from './state';
 import { harkonnenAreAdjacent } from './movement';
@@ -195,6 +198,55 @@ describe('resolveDeployment', () => {
       harkonnenReserve: { units: { regular: 0, elite: 0, special_elite: 0 }, deploymentTokens: 0, bashars: 0, namedLeaders: [] },
     });
     expect(resolveDeployment(s)).toEqual({ kind: 'none', reason: 'nothing to deploy' });
+  });
+});
+
+describe('resolveMentat', () => {
+  it('is a draw-and-play action', () => {
+    expect(resolveMentat(state())).toEqual({ kind: 'mentat' });
+  });
+});
+
+describe('resolveHouse', () => {
+  it('replaces regulars with elites in the legion nearest a sietch', () => {
+    const s = state({
+      sietches: [sietch('gara_kulon', 1)],
+      legions: [hLegion('s1_11', { regular: 2 }), hLegion('carthag', { regular: 2 })], // s1_11 adjacent to gara_kulon
+      harkonnenReserve: { units: { regular: 0, elite: 4, special_elite: 0 }, deploymentTokens: 0, bashars: 0, namedLeaders: [] },
+    });
+    const a = resolveHouse(s);
+    expect(a).toEqual({ kind: 'house_replace', legion: 's1_11', count: 2 });
+  });
+
+  it('places vehicles when no elites are available', () => {
+    const s = state({
+      legions: [hLegion('carthag', { regular: 2 })],
+      harkonnenReserve: { units: { regular: 0, elite: 0, special_elite: 0 }, deploymentTokens: 0, bashars: 0, namedLeaders: [] },
+    });
+    expect(resolveHouse(s)).toEqual({ kind: 'house_place_vehicles' });
+  });
+
+  it('caps the replacement at 2 / available elites / available regulars', () => {
+    const s = state({
+      sietches: [sietch('gara_kulon', 1)],
+      legions: [hLegion('s1_11', { regular: 1 })],
+      harkonnenReserve: { units: { regular: 0, elite: 4, special_elite: 0 }, deploymentTokens: 0, bashars: 0, namedLeaders: [] },
+    });
+    const a = resolveHouse(s);
+    expect(a).toEqual({ kind: 'house_replace', legion: 's1_11', count: 1 });
+  });
+});
+
+describe('resolveAction dispatch', () => {
+  it('routes each die result to its resolver', () => {
+    const s = state({
+      legions: [hLegion('carthag')],
+      settlements: [{ area: 'carthag', rank: 2, destroyed: false }],
+    });
+    expect(resolveAction(s, 'mentat').kind).toBe('mentat');
+    expect(['house_replace', 'house_place_vehicles']).toContain(resolveAction(s, 'house').kind);
+    expect(resolveAction(s, 'deployment').kind).toBe('deploy');
+    expect(['attack_sietch', 'attack_legion', 'move', 'none']).toContain(resolveAction(s, 'strategy').kind);
   });
 });
 

@@ -6,7 +6,7 @@
 // and its supporting state accessors. MENTAT/DEPLOYMENT/HOUSE and the full movement tie-breakers
 // build on these primitives in later passes.
 
-import type { GameState, Legion, UnitType } from './state';
+import type { GameState, Legion, UnitType, ActionResult } from './state';
 import { combatPower } from './combatPower';
 import { unitCount } from './state';
 import {
@@ -87,6 +87,9 @@ export type HarkonnenAction =
   | { kind: 'attack_legion'; attacker: string; defender: string }
   | { kind: 'move'; legion: string; path: string[] }
   | { kind: 'deploy'; placements: DeployPlacement[] }
+  | { kind: 'mentat' } // draw 2 planning cards (alternating Harkonnen/Corrino) and play immediately
+  | { kind: 'house_replace'; legion: string; count: number } // replace `count` regulars with elites
+  | { kind: 'house_place_vehicles' } // place 1 harvester + 1 ornithopter (per vehicle rules)
   | { kind: 'none'; reason: string };
 
 // ---------------------------------------------------------------------------
@@ -323,4 +326,80 @@ export function resolveLeadershipOrStrategy(
     selectLegionAttack(s, requireLeader) ??
     selectMove(s) ?? { kind: 'none', reason: 'no sietch/legion attack and no move available' }
   );
+}
+
+// ---------------------------------------------------------------------------
+// MENTAT action
+// ---------------------------------------------------------------------------
+
+/** Resolve MENTAT: draw 2 planning cards (alternating Harkonnen/Corrino) and play them at once. */
+export function resolveMentat(_s: GameState): HarkonnenAction {
+  return { kind: 'mentat' };
+}
+
+// ---------------------------------------------------------------------------
+// HOUSE action
+// ---------------------------------------------------------------------------
+
+/** Distance from an area to the nearest live sietch (Infinity if none reachable). */
+function distanceToNearestSietch(s: GameState, area: string): { dist: number; sietch: string | null } {
+  let best = Infinity;
+  let which: string | null = null;
+  for (const si of s.sietches) {
+    if (si.destroyed) continue;
+    const d = harkonnenDistance(area, si.area);
+    if (d < best) {
+      best = d;
+      which = si.area;
+    }
+  }
+  return { dist: best, sietch: which };
+}
+
+/**
+ * Resolve HOUSE: prefer "replace 2 regular units with 2 elite units", choosing the legion by
+ * priority — closest to a sietch, then highest combat power relative to that sietch's defender,
+ * then closest to the target sietch. If no replacement is possible, place vehicles instead
+ * (1 harvester + 1 ornithopter, per the vehicle rules).
+ */
+export function resolveHouse(s: GameState): HarkonnenAction {
+  const elitesAvail = s.harkonnenReserve.units.elite;
+  const candidates = harkonnenLegions(s).filter((l) => l.units.regular > 0);
+
+  if (elitesAvail > 0 && candidates.length > 0) {
+    const ranked = candidates
+      .map((l) => {
+        const near = distanceToNearestSietch(s, l.area);
+        const defCp = near.sietch ? combatPower(sietchDefender(s, near.sietch)) : 0;
+        const targetDist = s.targetSietchId ? harkonnenDistance(l.area, s.targetSietchId) : Infinity;
+        return { legion: l, nearDist: near.dist, cpDiff: combatPower(l) - defCp, targetDist };
+      })
+      .sort(
+        (a, b) =>
+          a.nearDist - b.nearDist || b.cpDiff - a.cpDiff || a.targetDist - b.targetDist,
+      );
+    const best = ranked[0];
+    const count = Math.min(2, best.legion.units.regular, elitesAvail);
+    return { kind: 'house_replace', legion: best.legion.area, count };
+  }
+  return { kind: 'house_place_vehicles' };
+}
+
+// ---------------------------------------------------------------------------
+// Top-level dispatch
+// ---------------------------------------------------------------------------
+
+/** Resolve a rolled Harkonnen action-die result into a concrete decision. */
+export function resolveAction(s: GameState, result: ActionResult): HarkonnenAction {
+  switch (result) {
+    case 'leadership':
+    case 'strategy':
+      return resolveLeadershipOrStrategy(s, result);
+    case 'deployment':
+      return resolveDeployment(s);
+    case 'mentat':
+      return resolveMentat(s);
+    case 'house':
+      return resolveHouse(s);
+  }
 }
