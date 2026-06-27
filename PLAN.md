@@ -106,14 +106,14 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       protecting most harvesters), `placeOrnithopters` (threaten 2-away sietches → cover target
       sector → adjacent sectors central-first), `placeVehicles` orchestrator.
 - [x] **Card data modules** (from `docs/images/` card photos): `leaders.ts` (7 named leaders +
-      Bashar: action slot, entry condition, special; combat-ability strips TODO — need close-ups),
+      Bashar: action slot, entry condition, special, combat-ability hits/shields — all captured),
       `imperiumBans.ts` (3 bans; CHOAM→stacking 5 wired into deploy/move), `planningCards.ts`
       (36-card catalog: 18 House Harkonnen + 18 Corrino). Effect *resolution* deferred.
 - [ ] Tests against worked examples / rulebook edge cases
-- [ ] Remaining engine TODOs (need data/interaction model): leader combat-ability hit/shield values
-      (close-up photos); planning-card + named-leader-special effect resolution; round driver
-      (state mutation + player confirmation — overlaps Phase 3); coriolis storms (need the 5
-      storm-exempt central plateaus).
+- [ ] Remaining engine TODOs (need interaction model / a little data): planning-card +
+      named-leader-special effect resolution; round driver (state mutation + player confirmation —
+      overlaps Phase 3); coriolis storms (need the 5 storm-exempt central plateaus); confirm
+      SMF per-row dice [8,7,6,5,4] and Feyd/Thufir supremacy-step entries in play.
 
 ### Phase 3 — React + TS UI
 - [ ] Project scaffold (Vite + React + TS + test runner)
