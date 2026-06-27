@@ -226,6 +226,43 @@ footer {
   width: 3.4rem;
 }
 
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.feature-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.feature-row.destroyed {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.feature-name {
+  font-weight: 600;
+  min-width: 9rem;
+}
+
+label.mini.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+label.mini.check input {
+  width: auto;
+}
+
 .legion-list {
   display: flex;
   flex-direction: column;

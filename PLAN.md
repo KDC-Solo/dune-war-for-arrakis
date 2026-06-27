@@ -122,9 +122,10 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       mutates state via `applyHarkonnenAction` (`src/engine/applyAction.ts`, 8 tests: move/deploy/
       house/vehicles; attacks+mentat stay player-resolved). vehicle-placement panel. State persists.
 - [~] Board-state editor (`src/ui/StateEditor.tsx`): state lifted into App; edit imperium markers
-      (auto-derives bans), harvesting sector, target sietch, and add/edit/remove legions (area, unit
-      counts, generic/named leaders). Resolver + panels react live. TODO: sietch/settlement
-      destroyed toggles, wormsign/sandworm + on-board vehicle (ornithopter) placement, reserve.
+      (auto-derives bans), harvesting sector, target sietch, add/edit/remove legions (area, unit
+      counts, generic/named leaders), and **sietch rank/revealed/destroyed + settlement destroyed
+      toggles** (destroying the target sietch clears the target). Resolver + panels react live.
+      TODO: wormsign/sandworm + on-board vehicle (ornithopter) placement, reserve.
 - [ ] Sync the few Atreides-side changes the AI depends on
 
 ### Phase 4 — Persistence

@@ -5,7 +5,16 @@
 
 import { AREA_IDS, type SectorId } from '../engine/board';
 import { activeBans } from '../engine/spiceMustFlow';
-import { emptyLegion, type Faction, type GameState, type Leader, type Legion, type UnitType } from '../engine/state';
+import {
+  emptyLegion,
+  type Faction,
+  type GameState,
+  type Leader,
+  type Legion,
+  type SietchState,
+  type SettlementState,
+  type UnitType,
+} from '../engine/state';
 import { areaLabel } from './describeAction';
 
 const IMPERIUM: { key: 'choam' | 'spacing_guild' | 'landsraad'; label: string }[] = [
@@ -62,6 +71,15 @@ export function StateEditor({
       legions: [...s.legions, { ...emptyLegion(faction, 'carthag'), units: { regular: 1, elite: 0, special_elite: 0 } }],
     });
 
+  const updateSietch = (i: number, patch: Partial<SietchState>) => {
+    const sietches = s.sietches.map((si, idx) => (idx === i ? { ...si, ...patch } : si));
+    // A destroyed sietch can't be the target — drop it so the resolver doesn't aim at a dead one.
+    const target = patch.destroyed && s.sietches[i].area === s.targetSietchId ? null : s.targetSietchId;
+    onChange({ ...s, sietches, targetSietchId: target });
+  };
+  const updateSettlement = (i: number, patch: Partial<SettlementState>) =>
+    onChange({ ...s, settlements: s.settlements.map((st, idx) => (idx === i ? { ...st, ...patch } : st)) });
+
   const liveSietches = s.sietches.filter((si) => !si.destroyed);
 
   return (
@@ -116,6 +134,67 @@ export function StateEditor({
         ))}
       </div>
       <p className="hint">Active bans: {s.spice.activeBans.length ? s.spice.activeBans.join(', ') : 'none'}</p>
+
+      <h3>Sietches</h3>
+      <div className="feature-list">
+        {s.sietches.map((si, i) => (
+          <div key={si.area} className={`feature-row ${si.destroyed ? 'destroyed' : ''}`}>
+            <span className="feature-name">{areaLabel(si.area)}</span>
+            <label className="mini">
+              Rank
+              <select
+                value={si.rank ?? 'hidden'}
+                onChange={(e) =>
+                  updateSietch(i, {
+                    rank: e.target.value === 'hidden' ? null : (Number(e.target.value) as 1 | 2 | 3),
+                    revealed: e.target.value !== 'hidden' ? true : si.revealed,
+                  })
+                }
+              >
+                <option value="hidden">?</option>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+              </select>
+            </label>
+            <label className="mini check">
+              <input
+                type="checkbox"
+                checked={si.revealed}
+                onChange={(e) => updateSietch(i, { revealed: e.target.checked })}
+              />
+              Revealed
+            </label>
+            <label className="mini check">
+              <input
+                type="checkbox"
+                checked={si.destroyed}
+                onChange={(e) => updateSietch(i, { destroyed: e.target.checked })}
+              />
+              Destroyed
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <h3>Settlements</h3>
+      <div className="feature-list">
+        {s.settlements.map((st, i) => (
+          <div key={st.area} className={`feature-row ${st.destroyed ? 'destroyed' : ''}`}>
+            <span className="feature-name">
+              {areaLabel(st.area)} <span className="hint">(rank {st.rank})</span>
+            </span>
+            <label className="mini check">
+              <input
+                type="checkbox"
+                checked={st.destroyed}
+                onChange={(e) => updateSettlement(i, { destroyed: e.target.checked })}
+              />
+              Destroyed
+            </label>
+          </div>
+        ))}
+      </div>
 
       <h3>Legions</h3>
       <div className="legion-list">
