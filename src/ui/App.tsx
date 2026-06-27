@@ -223,18 +223,40 @@ function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =>
   );
 }
 
+const UNDO_LIMIT = 20;
+
 export function App() {
   // Load the saved game on first render; fall back to the demo state.
   const [s, setS] = useState<GameState>(() => loadState() ?? sampleState());
+  // Snapshots taken before each applied Harkonnen action, for Undo (bounded).
+  const [past, setPast] = useState<GameState[]>([]);
 
   // Persist on every change.
   useEffect(() => {
     saveState(s);
   }, [s]);
 
+  // Apply an AI action: snapshot the current state first so it can be undone.
+  const commit = (next: GameState) => {
+    setPast((p) => [...p.slice(-(UNDO_LIMIT - 1)), s]);
+    setS(next);
+  };
+  const undo = () => {
+    setPast((p) => {
+      if (p.length === 0) return p;
+      setS(p[p.length - 1]);
+      return p.slice(0, -1);
+    });
+  };
+
+  // Switching to a different game (import / load / reset) starts a fresh undo history.
+  const loadGame = (next: GameState) => {
+    setPast([]);
+    setS(next);
+  };
   const reset = () => {
     clearState();
-    setS(sampleState());
+    loadGame(sampleState());
   };
 
   // Download the current game as a JSON file the player can back up or share.
@@ -251,18 +273,25 @@ export function App() {
   return (
     <div className="app">
       <header>
-        <h1>Dune: War for Arrakis</h1>
-        <p className="subtitle">Mahdi solo companion — Harkonnen AI</p>
+        <div className="header-row">
+          <div>
+            <h1>Dune: War for Arrakis</h1>
+            <p className="subtitle">Mahdi solo companion — Harkonnen AI</p>
+          </div>
+          <button className="undo-btn" onClick={undo} disabled={past.length === 0} title="Undo the last applied Harkonnen action">
+            ↶ Undo
+          </button>
+        </div>
       </header>
       <main>
-        <RoundPanel s={s} onChange={setS} />
-        <ResolvePanel s={s} onApply={setS} />
-        <CardPanel s={s} onApply={setS} />
+        <RoundPanel s={s} onChange={commit} />
+        <ResolvePanel s={s} onApply={commit} />
+        <CardPanel s={s} onApply={commit} />
         <VehiclePanel s={s} />
-        <StateEditor s={s} onChange={setS} onReset={reset} onExport={exportGame} onImport={setS} />
+        <StateEditor s={s} onChange={setS} onReset={reset} onExport={exportGame} onImport={loadGame} />
       </main>
       <footer>
-        <small>State auto-saves to this browser. Round driver &amp; turn-confirm next.</small>
+        <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>
       </footer>
     </div>
   );

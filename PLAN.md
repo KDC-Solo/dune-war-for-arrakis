@@ -147,7 +147,9 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       "Saved games" panel in the editor (name + Save, per-row Load/Delete).
 
 ### Phase 5 — Polish & mobile
-- [ ] UX polish, then Capacitor wrapper for mobile
+- [~] UX polish: **Undo** (header button, bounded 20-deep history) reverts the last applied
+      Harkonnen action — resolve/card/leader/next-round apply through `commit` (snapshots first);
+      import/named-load/reset start a fresh history via `loadGame`. TODO: more polish, then Capacitor.
 
 ## 4. Current status (update me each session)
 
