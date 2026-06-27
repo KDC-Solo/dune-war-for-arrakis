@@ -1,9 +1,11 @@
 # Board adjacency map
 
 **Auto-generated** from `BOARD_VERIFICATION.md` §3a (adjacency) + §4 (impassable) by
-`scripts/gen_map.py`. It lays the **101 areas out as a map** (force-directed, so areas that
-border each other sit next to each other) — North Pole at the centre, the inner sectors around
-it, the outer desert ring outside.
+`scripts/gen_map.py`. It lays the **101 areas out as a map** oriented to the real board
+(board-relative **N = top, E = right, W = left, North Pole = centre**): a 9-point skeleton is pinned
+to fix the orientation, the rest are force-laid so bordering areas sit next to each other. Quadrants
+match the board — **s4 NW = top-left · s1 NE = top-right · s2 SE = bottom-right · s3 SW = bottom-left**,
+with the four inner sectors (s5/s6/s7/s8) ringing the pole and the outer desert sectors on the edges.
 
 ![Board adjacency map](board_map.png)
 

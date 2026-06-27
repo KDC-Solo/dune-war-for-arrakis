@@ -58,6 +58,16 @@ for line in text[i4:i5]:
 fill={'s1':'#ffd9d9','s2':'#ffe9cc','s3':'#fff7cc','s4':'#dcf5d0','s5':'#d9ecff',
       's6':'#e6dcff','s7':'#ffdcf0','s8':'#d6fff2','np':'#bbbbbb'}
 
+# --- physical-board orientation (board-relative: N=top, E=right, W=left, pole=centre) ---
+# Minimal 9-point skeleton pinned to fix orientation; everything else force-laid freely.
+ANCHORS={
+ 'north_pole':(0,0),
+ # inner ring: each inner sector's pole-touching node, in its quadrant
+ 's5_3':(2.2,1.6),'wind_pass':(-2.2,1.6),'s6_1':(2.2,-1.6),'s7_4':(-2.2,-1.6),
+ # outer ring: a far corner of each outer sector
+ 's1_10':(8.0,5.0),'s2_4':(8.0,-5.0),'s3_4':(-8.0,-5.0),'s4_1':(-8.0,5.0),
+}
+
 def short(v):  # compact labels for the long named areas
     abbr={'the_funeral_plain':'Funeral Plain','rock_outcroppings':'Rock Outcrop','bight_of_the_cliff':'Bight of Cliff',
           'the_great_flat':'Great Flat','hole_in_the_rock':'Hole in Rock','false_wall_west':'FW West',
@@ -71,12 +81,15 @@ def short(v):  # compact labels for the long named areas
 
 out=[]
 out.append('graph board {')
-out.append('  layout=neato; overlap=false; sep="+8"; splines=true; bgcolor=white;')
+out.append('  layout=neato; overlap=false; sep="+9"; splines=true; bgcolor=white;')
 out.append('  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10, '
            'margin="0.06,0.03", penwidth=0.6];')
-out.append('  edge [color="#888888", penwidth=0.8];')
+out.append('  edge [color="#aaaaaa", penwidth=0.7];')
 for v in sorted(valid):
-    out.append(f'  "{v}" [label="{short(v)}", fillcolor="{fill[sector_of[v]]}"];')
+    posattr=''
+    if v in ANCHORS:
+        x,y=ANCHORS[v]; posattr=f', pos="{x},{y}!"'
+    out.append(f'  "{v}" [label="{short(v)}", fillcolor="{fill[sector_of[v]]}"{posattr}];')
 for a,b in sorted(edges):
     out.append(f'  "{a}" -- "{b}";')
 for a,b in sorted(imp):
