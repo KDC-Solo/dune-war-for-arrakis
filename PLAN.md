@@ -120,7 +120,10 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
 - [~] "Resolve Harkonnen turn" flow: `App.tsx` — this-round panel (dice/vehicles/bans from SMF),
       tap a die result → `resolveAction` → `describeAction` plain-English directive (tested);
       vehicle-placement panel. Runs on a demo `sampleState`. TODO: confirm/advance turns.
-- [ ] Board-state editor (set/track positions the engine needs) — replaces the demo state.
+- [~] Board-state editor (`src/ui/StateEditor.tsx`): state lifted into App; edit imperium markers
+      (auto-derives bans), harvesting sector, target sietch, and add/edit/remove legions (area, unit
+      counts, generic/named leaders). Resolver + panels react live. TODO: sietch/settlement
+      destroyed toggles, wormsign/sandworm + on-board vehicle (ornithopter) placement, reserve.
 - [ ] Sync the few Atreides-side changes the AI depends on
 
 ### Phase 4 — Persistence
