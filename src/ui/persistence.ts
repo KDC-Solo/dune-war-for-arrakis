@@ -55,6 +55,63 @@ export function clearState(storage: Storage | undefined = safeStorage()): void {
 }
 
 // ---------------------------------------------------------------------------
+// Named saves — keep several games side by side (separate from the auto-save)
+// ---------------------------------------------------------------------------
+
+/** localStorage key holding the map of named saves. */
+export const SAVES_KEY = 'dwfa.saves.v1';
+
+export interface NamedSave {
+  name: string;
+  savedAt: string;
+  state: GameState;
+}
+
+function readSaves(storage: Storage | undefined): Record<string, NamedSave> {
+  try {
+    const raw = storage?.getItem(SAVES_KEY);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, NamedSave>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeSaves(saves: Record<string, NamedSave>, storage: Storage | undefined): void {
+  try {
+    storage?.setItem(SAVES_KEY, JSON.stringify(saves));
+  } catch {
+    // ignore quota errors
+  }
+}
+
+/** Named saves sorted most-recently-saved first. */
+export function listSaves(storage: Storage | undefined = safeStorage()): NamedSave[] {
+  return Object.values(readSaves(storage)).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+
+/** Save (or overwrite) a game under `name`. A blank name is ignored. */
+export function saveNamedGame(name: string, s: GameState, storage: Storage | undefined = safeStorage()): void {
+  const key = name.trim();
+  if (!key) return;
+  const saves = readSaves(storage);
+  saves[key] = { name: key, savedAt: new Date(Date.now()).toISOString(), state: s };
+  writeSaves(saves, storage);
+}
+
+export function loadNamedGame(name: string, storage: Storage | undefined = safeStorage()): GameState | null {
+  const save = readSaves(storage)[name.trim()];
+  return save && looksLikeState(save.state) ? save.state : null;
+}
+
+export function deleteNamedGame(name: string, storage: Storage | undefined = safeStorage()): void {
+  const saves = readSaves(storage);
+  delete saves[name.trim()];
+  writeSaves(saves, storage);
+}
+
+// ---------------------------------------------------------------------------
 // Export / import — share or back up a game as a JSON file
 // ---------------------------------------------------------------------------
 

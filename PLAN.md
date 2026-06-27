@@ -129,11 +129,13 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       sandworms (which the movement + vehicle-placement engine consume). Resolver + panels react live.
 - [ ] Sync the few Atreides-side changes the AI depends on
 
-### Phase 4 — Persistence
-- [~] Save/restore game state (`src/ui/persistence.ts`, 8 tests): single auto-saved game in
-      localStorage (versioned key, shape-validated, storage-injectable) + Reset. **Export/Import**
-      done: `exportState` (versioned envelope) downloads a JSON file; `importState` (accepts the
-      envelope or a bare GameState) loads it via a file picker in the editor. TODO: multiple named saves.
+### Phase 4 — Persistence  *(✅ DONE 2026-06-27)*
+- [x] Save/restore game state (`src/ui/persistence.ts`, 12 tests): single auto-saved game in
+      localStorage (versioned key, shape-validated, storage-injectable) + Reset. Export/Import:
+      `exportState` (versioned envelope) downloads a JSON file; `importState` (accepts the envelope
+      or a bare GameState) loads it via a file picker. **Multiple named saves** (`SAVES_KEY` map:
+      `listSaves`/`saveNamedGame`/`loadNamedGame`/`deleteNamedGame`, most-recent-first) with a
+      "Saved games" panel in the editor (name + Save, per-row Load/Delete).
 
 ### Phase 5 — Polish & mobile
 - [ ] UX polish, then Capacitor wrapper for mobile

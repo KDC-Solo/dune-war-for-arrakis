@@ -3,7 +3,7 @@
 // and panels react to the updated state. Sietch/settlement ranks are fixed board data, so only
 // their presence (legions) and the round/marker state are editable here for now.
 
-import type { ChangeEvent } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { AREA_IDS, type SectorId } from '../engine/board';
 import { activeBans } from '../engine/spiceMustFlow';
 import {
@@ -17,7 +17,7 @@ import {
   type UnitType,
 } from '../engine/state';
 import { areaLabel } from './describeAction';
-import { importState } from './persistence';
+import { importState, listSaves, saveNamedGame, loadNamedGame, deleteNamedGame, type NamedSave } from './persistence';
 
 const IMPERIUM: { key: 'choam' | 'spacing_guild' | 'landsraad'; label: string }[] = [
   { key: 'choam', label: 'CHOAM' },
@@ -69,6 +69,27 @@ export function StateEditor({
     const next = importState(await file.text());
     if (next) onImport(next);
     else alert('That file is not a valid saved game.');
+  };
+
+  // Named saves (separate from the auto-save). Keep a local list synced to localStorage.
+  const [saves, setSaves] = useState<NamedSave[]>(() => listSaves());
+  const [saveName, setSaveName] = useState('');
+  const refreshSaves = () => setSaves(listSaves());
+  const doSave = () => {
+    if (!saveName.trim()) return;
+    saveNamedGame(saveName, s);
+    setSaveName('');
+    refreshSaves();
+  };
+  const doLoad = (name: string) => {
+    const st = loadNamedGame(name);
+    if (st) onImport(st);
+  };
+  const doDelete = (name: string) => {
+    if (confirm(`Delete saved game "${name}"?`)) {
+      deleteNamedGame(name);
+      refreshSaves();
+    }
   };
   const setMarker = (power: 'choam' | 'spacing_guild' | 'landsraad', value: number) => {
     const markers = { ...s.spice.markers, [power]: clamp(value, 1, 5) };
@@ -391,6 +412,42 @@ export function StateEditor({
           Reset
         </button>
       </div>
+
+      <h3>Saved games</h3>
+      <div className="save-row">
+        <input
+          type="text"
+          placeholder="Name this game…"
+          value={saveName}
+          onChange={(e) => setSaveName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && doSave()}
+        />
+        <button className="add-mini" onClick={doSave} disabled={!saveName.trim()}>
+          Save
+        </button>
+      </div>
+      {saves.length === 0 ? (
+        <p className="hint">No saved games yet.</p>
+      ) : (
+        <div className="save-list">
+          {saves.map((sv) => (
+            <div key={sv.name} className="save-item">
+              <span className="save-meta">
+                <strong>{sv.name}</strong>
+                <span className="hint">
+                  round {sv.state.round} · {new Date(sv.savedAt).toLocaleString()}
+                </span>
+              </span>
+              <button className="add-mini" onClick={() => doLoad(sv.name)}>
+                Load
+              </button>
+              <button className="remove" onClick={() => doDelete(sv.name)} title="Delete save">
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </details>
   );
 }
