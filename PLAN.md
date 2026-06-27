@@ -84,11 +84,13 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       `nearestByDistance`; ornithopter troop-transport (`airZoneSectors`/`airZonesConnectedToSector`/
       `canTroopTransport`/`withinAttackReach` — air-zone↔sector derived from verified §5 straddles).
       15 tests. TODO: the 5 shortest-path tie-breakers (belong with the action resolver's movement policy).
-- [~] **Combat** resolver (`src/engine/combat.ts`, 9 tests): `combatDiceCount` (units+discards
+- [x] **Combat** resolver (`src/engine/combat.ts`, 18 tests): `combatDiceCount` (units+discards
       +settlement rank, cap 6), `harkonnenShouldContinueAttack` (cease at ≤½ fine power; never
       retreat), `applyHarkonnenHits` (solo casualty priority: shed extra leaders→downgrade
-      elite/sardaukar→remove regulars, keep last leader, named→regen). TODO: dice-roll/hit
-      tally (inject RNG; Hit/Shield/Special faces + leader Special abilities), full battle loop.
+      elite/sardaukar→remove regulars, keep last leader, named→regen), `applyDefaultHits` (defender),
+      `resolveBattle` multi-round loop with injected `DiceProvider` (reinforcement discards to 6
+      unless Landsraad ban, surprise +1, shields cancel hits, settlement continue-surcharge).
+      TODO: leader Special ability hit/shield generation (needs named-leader card data).
 - [x] **Deployment** placement priority (`resolveDeployment` in harkonnenActions.ts, 4 tests):
       3 units + 1 leader (priority named Beast Rabban/Feyd-Rautha → any named → Bashar); settlement
       priority highest-CP legion → closest to target; unit substitution to next-higher tier;
