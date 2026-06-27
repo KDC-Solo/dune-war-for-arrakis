@@ -450,7 +450,7 @@ s8_3:    bight_of_the_cliff ✅, s4_12 ✅, s4_13 ✅, s8_1 ✅, s8_4 ✅, s3_3 
 s8_4:    s8_3 ✅, s8_2 ✅, wind_pass ✅                 # NOT splintered_rock
 arsunt:        shield_wall_2 ✅, s4_16 ✅, hagga_basin ✅, carthag 🟡, broken_land 🟡   # city I (carthag/broken_land → confirm in s5)
 hagga_basin:   arsunt ✅, carthag ✅, s5_1 ✅, s5_2 ✅, splintered_rock ✅, s8_2 ✅, shield_wall_2 ✅   # city I; NOT north_pole / imperial_basin(air zone)
-splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, s5_2 🟡, false_wall_east 🟡, false_wall_west 🟡   # NOT s8_4, NOT north_pole, NOT hole_in_the_rock (per s5 rd2)
+splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, s5_2 ✅, false_wall_east 🟡, false_wall_west 🟡   # NOT s8_4, NOT north_pole, NOT hole_in_the_rock
 shield_wall_2: arsunt ✅, hagga_basin ✅, s4_14 ✅, s4_15 ✅, s4_16 ✅   # W side (s8_1) = RED impassable §4
 wind_pass:     north_pole ✅, splintered_rock ✅, s8_4 ✅, s8_2 ✅      # NOT false_wall_west
 ```
@@ -472,7 +472,7 @@ bordering FIVE s1 areas** (s1_11/12/14/15/16) + Gara Kulon + Shield Wall #1 — 
 crossing. Mountain web (Rimwall West / Hole in the Rock / North Pole) still 🟡 — next round.
 ```
 s5_1:  carthag ✅, arrakeen ✅, imperial_basin ✅, hagga_basin ✅, hole_in_the_rock ✅, s5_2 ✅   # central PLATEAU (s5_plt4); 6 nbrs
-s5_2:  hagga_basin ✅, hole_in_the_rock ✅, s5_3 ✅, s5_1 ✅, splintered_rock 🟡
+s5_2:  hagga_basin ✅, hole_in_the_rock ✅, s5_3 ✅, s5_1 ✅, splintered_rock ✅   # 5 nbrs
 s5_3:  hole_in_the_rock ✅, north_pole ✅, s5_2 ✅, s5_4 ✅, s5_5 ✅   # the s5 area touching the pole
 s5_4:  imperial_basin ✅, hole_in_the_rock ✅, s5_3 ✅, s5_7 🟡
 s5_5:  imperial_basin ✅, rimwall_west ✅, s5_3 ✅, s5_6 ✅, s5_7 🟡
