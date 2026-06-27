@@ -121,6 +121,9 @@ describe('resolveBattle', () => {
     const res = resolveBattle(ctx, roll);
     expect(res.outcome).toBe('defender_survived');
     expect(res.attacker.units.regular).toBeLessThan(2); // took some casualties before ceasing
+    // the eliminated attacker regulars are reported for reserve replenishment.
+    const lost = 2 - res.attacker.units.regular;
+    expect(res.harkonnenReserveDelta.units.regular).toBe(lost);
   });
 
   it('shields cancel hits', () => {

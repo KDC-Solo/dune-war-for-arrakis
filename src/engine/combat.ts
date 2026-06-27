@@ -7,6 +7,7 @@
 
 import type { Legion, Leader, UnitType } from './state';
 import { fineCombatPower } from './combatPower';
+import { reserveDeltaFromCasualties, type ReserveDelta } from './reserve';
 
 /** Max combat dice a legion can ever roll. */
 export const MAX_COMBAT_DICE = 6;
@@ -180,6 +181,8 @@ export interface BattleResult {
   /** 'attacker_won' (defender eliminated), 'defender_survived' (Harkonnen ceased), or 'attacker_eliminated'. */
   outcome: 'attacker_won' | 'defender_survived' | 'attacker_eliminated';
   reinforcementsUsed: number;
+  /** Harkonnen casualties to fold back into the reserve (units/bashars returned, named → tank). */
+  harkonnenReserveDelta: ReserveDelta;
 }
 
 const liveUnits = (l: Legion) => l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens;
@@ -199,11 +202,20 @@ export function resolveBattle(ctx: BattleContext, roll: DiceProvider): BattleRes
   let reinforcementsUsed = 0;
   let rounds = 0;
 
+  const finish = (outcome: BattleResult['outcome']): BattleResult => ({
+    attacker,
+    defender,
+    rounds,
+    outcome,
+    reinforcementsUsed,
+    harkonnenReserveDelta: reserveDeltaFromCasualties(ctx.attacker, attacker),
+  });
+
   while (true) {
-    if (eliminated(defender)) return { attacker, defender, rounds, outcome: 'attacker_won', reinforcementsUsed };
-    if (eliminated(attacker)) return { attacker, defender, rounds, outcome: 'attacker_eliminated', reinforcementsUsed };
+    if (eliminated(defender)) return finish('attacker_won');
+    if (eliminated(attacker)) return finish('attacker_eliminated');
     if (!harkonnenShouldContinueAttack(attacker, defender)) {
-      return { attacker, defender, rounds, outcome: 'defender_survived', reinforcementsUsed };
+      return finish('defender_survived');
     }
 
     const attUnits = liveUnits(attacker);

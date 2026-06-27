@@ -216,6 +216,11 @@ export interface HarkonnenReserve {
   bashars: number;
   /** Named leaders available to deploy (by name). Beast Rabban / Feyd-Rautha deploy first. */
   namedLeaders: string[];
+  /**
+   * Named leaders killed in battle/storms. They sit in the regeneration tank (not the deploy
+   * pool) until regenerated back into play. Optional for back-compat with older saves.
+   */
+  regenerationTank?: string[];
 }
 
 // ---------------------------------------------------------------------------

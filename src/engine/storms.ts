@@ -11,6 +11,7 @@ import { AREAS, AREA_IDS } from './board';
 import { neighbors } from './graph';
 import type { GameState, Legion } from './state';
 import { applyHarkonnenHits, type Casualties } from './combat';
+import { addReserveDelta, applyReserveDelta, emptyReserveDelta, reserveDeltaFromCasualties } from './reserve';
 import { areaLabel } from './describeArea';
 
 // ---------------------------------------------------------------------------
@@ -111,7 +112,8 @@ const isEmpty = (l: Legion) =>
 /**
  * Resolve Coriolis Storms for every exposed Harkonnen legion. `diceFor` supplies each legion's
  * 2-die result (player input in the app; injected for tests). Returns the updated state (hits
- * applied, wiped-out legions removed) and a per-legion outcome summary. Pure — no mutation of `s`.
+ * applied, wiped-out legions removed, casualties replenished into the reserve) and a per-legion
+ * outcome summary. Pure — no mutation of `s`.
  */
 export function resolveCoriolisStorms(
   s: GameState,
@@ -122,12 +124,15 @@ export function resolveCoriolisStorms(
 
   const outcomes: StormOutcome[] = [];
   const legions = [...s.legions];
+  let reserveDelta = emptyReserveDelta();
 
   for (const t of targets) {
     const dice = diceFor(t);
     const hits = stormHits(t.area, dice);
-    const { legion, casualties } = applyHarkonnenHits(legions[t.legionIndex], hits);
+    const before = legions[t.legionIndex];
+    const { legion, casualties } = applyHarkonnenHits(before, hits);
     legions[t.legionIndex] = legion;
+    reserveDelta = addReserveDelta(reserveDelta, reserveDeltaFromCasualties(before, legion));
     outcomes.push({
       ...t,
       swords: dice.swords,
@@ -138,5 +143,12 @@ export function resolveCoriolisStorms(
     });
   }
 
-  return { state: { ...s, legions: legions.filter((l) => !isEmpty(l)) }, outcomes };
+  return {
+    state: {
+      ...s,
+      legions: legions.filter((l) => !isEmpty(l)),
+      harkonnenReserve: applyReserveDelta(s.harkonnenReserve, reserveDelta),
+    },
+    outcomes,
+  };
 }

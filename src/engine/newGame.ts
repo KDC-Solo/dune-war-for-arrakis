@@ -73,6 +73,7 @@ export function newGameState(): GameState {
       deploymentTokens: 12, // the two sets of Harkonnen Starting Deployment tokens (the solo pool)
       bashars: 2,
       namedLeaders: startLeaders,
+      regenerationTank: [],
     },
 
     beneGesserit: { atreides: 0, reserve: 5 },

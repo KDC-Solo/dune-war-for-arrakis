@@ -96,6 +96,19 @@ describe('resolveCoriolisStorms', () => {
     expect(after.units.regular).toBe(3); // 3 -> 4 (downgrade) -> 3 (one removed)
     expect(outcomes[0].casualties.units).toBe(1);
     expect(outcomes[0].eliminated).toBe(false);
+    // reserve replenishment: the demoted elite returns (+1); the regular swap nets 0.
+    expect(state.harkonnenReserve.units.elite).toBe(s.harkonnenReserve.units.elite + 1);
+    expect(state.harkonnenReserve.units.regular).toBe(s.harkonnenReserve.units.regular);
+  });
+
+  it('returns a wiped-out legion entirely to the reserve', () => {
+    const deep = AREA_IDS.find((id) => AREAS[id].terrain === 'desert' && AREAS[id].deep)!;
+    const s = stateWith([legion(deep, { regular: 1, elite: 1 })]);
+    const { state } = resolveCoriolisStorms(s, () => ({ swords: 0, specials: 2 })); // 4 hits, wipes legion
+    expect(state.legions).toHaveLength(0);
+    // both figures end up back in the pool (elite returned, regular returned)
+    expect(state.harkonnenReserve.units.elite).toBe(s.harkonnenReserve.units.elite + 1);
+    expect(state.harkonnenReserve.units.regular).toBe(s.harkonnenReserve.units.regular + 1);
   });
 
   it('drops a wiped-out legion from state and flags it eliminated', () => {

@@ -296,6 +296,25 @@ export function StateEditor({
             }
           />
         </label>
+        <label className="grow">
+          Regeneration tank (killed named leaders)
+          <input
+            type="text"
+            value={(r.regenerationTank ?? []).join(', ')}
+            onChange={(e) =>
+              onChange({
+                ...s,
+                harkonnenReserve: {
+                  ...r,
+                  regenerationTank: e.target.value
+                    .split(',')
+                    .map((n) => n.trim())
+                    .filter(Boolean),
+                },
+              })
+            }
+          />
+        </label>
       </div>
 
       <h3>Wormsigns &amp; sandworms</h3>
