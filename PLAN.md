@@ -115,9 +115,12 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       overlaps Phase 3); coriolis storms (need the 5 storm-exempt central plateaus).
 
 ### Phase 3 — React + TS UI
-- [ ] Project scaffold (Vite + React + TS + test runner)
-- [ ] Board-state editor (set/track positions the engine needs)
-- [ ] "Resolve Harkonnen turn" flow: tap die result → show the dictated action → confirm
+- [x] Project scaffold (Vite 6 + React 18 + TS; `npm run dev`/`build`/`preview`). `src/ui/`
+      decoupled from the pure `src/engine/`. Build + dev server verified; 136 tests pass.
+- [~] "Resolve Harkonnen turn" flow: `App.tsx` — this-round panel (dice/vehicles/bans from SMF),
+      tap a die result → `resolveAction` → `describeAction` plain-English directive (tested);
+      vehicle-placement panel. Runs on a demo `sampleState`. TODO: confirm/advance turns.
+- [ ] Board-state editor (set/track positions the engine needs) — replaces the demo state.
 - [ ] Sync the few Atreides-side changes the AI depends on
 
 ### Phase 4 — Persistence
