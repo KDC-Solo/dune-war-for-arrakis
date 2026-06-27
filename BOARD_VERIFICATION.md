@@ -620,13 +620,24 @@ s8_2          <-> s8_1
 
 ---
 
-## 5. Air zones (≈8 blue circles with ornithopter icon) — many seen, pairings unconfirmed
+## 5. Air zones (8 blue ornithopter circles) — ✅ user-confirmed 2026-06-27
 
-Each air zone sits on a sector boundary and connects to all areas in both sectors (and the pole).
-Seen at: between Hagga Basin / Imperial Basin · west of Shield Wall (×2) · around the pole (several) ·
-east desert (×2–3) · SE. Please list each with the two sectors it straddles once §2 is set.
+**Model:** each air zone is a node that connects a **specific small set of areas** (the 2–3 listed) —
+NOT all areas of a sector, and NOT the North Pole. An air zone lets vehicles cross between its areas
+(notably az1 crosses where the **ground** border is impassable: s1_5/s1_7 ↔ s5_5). Whether air zones
+also link zone-to-zone (an ornithopter flight network) is a movement-rule detail for Phase 2.
 
-| air zone | sector A | sector B |
-| -------- | -------- | -------- |
-| az1      | ?        | ?        |
-| ...      |          |          |
+| air zone | connects these areas | straddles |
+| -------- | -------------------- | --------- |
+| az1 | s1_5, s1_7, s5_5 | s1 ↔ s5 |
+| az2 | hagga_basin, s5_1, s5_2 | s5 ↔ s8 |
+| az3 | s4_13, s4_14, s8_1 | s4 ↔ s8 |
+| az4 | s5_7, s6_2 | s5 ↔ s6  *(sits in the minor-erg areas)* |
+| az5 | false_wall_south, hobars_gap, s2_8 | s2 ↔ s6 |
+| az6 | s6_4, s7_5, s7_6 | s6 ↔ s7 |
+| az7 | s7_1, s7_2, s8_4 | s7 ↔ s8 |
+| az8 | s3_8, windgap, false_wall_west | s3 ↔ s7 |
+
+> **Structure (8 zones):** 4 link the **inner ring** (s5–s8: az2 s5–s8, az4 s5–s6, az6 s6–s7, az7 s7–s8)
+> and 4 are **spokes** from each outer sector to its inner neighbour (az1 s1–s5, az3 s4–s8, az5 s2–s6,
+> az8 s3–s7). az1's areas are exactly the impassable-ground crossing (§4), so air is the only link there.

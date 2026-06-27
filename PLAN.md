@@ -27,10 +27,11 @@ solo player (playing Atreides) doesn't have to execute the Harkonnen priority ru
 
 ## 3. Build phases
 
-### Phase 0 — Board data  *(IN PROGRESS — §3 adjacency DONE; only §4 cleanup + §5 air zones left)*
-> **Resume here (next session): trace s1 adjacency** from the numbered photos, then the other
-> sectors; see §2.2/§3a in `BOARD_VERIFICATION.md`. Dense mountain core (s5/s8) may need the
-> user's direct `s8_3`-style neighbour descriptions.
+### Phase 0 — Board data  *(✅ COMPLETE 2026-06-27 — all of §1–§5 done & user-verified)*
+> **Resume here (next session): Phase 1 — generate `board.ts`** from `BOARD_VERIFICATION.md` §3a (adjacency),
+> §4 (impassable), §5 (air zones), plus §1/§2 (areas, types, sectors, settlements/sietches). Delete §3b
+> (old unreliable draft) when porting. A well-formedness test already passed via `scripts/gen_map.py`
+> (symmetric edges, no isolated nodes, every id resolves). See also `BOARD_GRAPH.md` for the visual map.
 Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `docs/map/`.
 - [x] Area names + types (colour rule: orange=plateau, grey=mountain, sand=desert, + minor_erg)
 - [x] Settlements (Arrakeen III, Carthag II, 4 Pyon villages I: Arsunt, Hagga Basin, Imperial Basin, North Pole)
@@ -45,7 +46,7 @@ Living file: `BOARD_VERIFICATION.md`. Extracted from physical-board photos in `d
       user corrects → record + commit. (Earlier batched-question rounds got cities/North Pole/outer ring; the
       area-by-area pass then verified/repaired everything.) §3b is the OLD unreliable draft — delete in Phase 1.
 - [x] §4 Impassable borders — **DONE & user-verified exhaustive (2026-06-27): 11 red pairs** in `BOARD_VERIFICATION.md` §4 (one continuous arc on the N+W face of the central mass).
-- [ ] §5 Air zones (~8) — which two sectors each straddles
+- [x] §5 Air zones — **DONE & user-confirmed (2026-06-27): 8 zones** in `BOARD_VERIFICATION.md` §5 (4 inner-ring links + 4 outer→inner spokes; each connects a specific 2–3 areas, not whole sectors/pole).
 
 ### Phase 1 — `board.ts`
 - [ ] Generate typed board module from the verified `BOARD_VERIFICATION.md`
@@ -79,10 +80,13 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
 
 ## 4. Current status (update me each session)
 
-- **Phase 0 in progress.** Area list, types, settlements, and all 8 sietch names done.
-  Remaining Phase 0: `deep` flags, sectors (§2), air zones (§5), adjacency/impassable cleanup.
-- **Next action:** finish §2 sectors + §5 air zones + `deep` flags in `BOARD_VERIFICATION.md`,
-  then move to Phase 1 (`board.ts`).
+- **✅ Phase 0 COMPLETE (2026-06-27).** All board data captured & user-verified in `BOARD_VERIFICATION.md`:
+  areas/types/settlements/sietches/`deep` (§1), 101 areas + sectors + positional ids (§2/§2.1/§2.2),
+  full adjacency graph (§3a, area-by-area verified), 11 impassable borders (§4), 8 air zones (§5).
+  Visual map + graph well-formedness check in `BOARD_GRAPH.md` (`scripts/gen_map.py`/`gen_graph.py`).
+- **Next action: Phase 1 — generate the typed `board.ts`** (areas, types, adjacency, impassable, air zones,
+  sectors, settlement/sietch slots) from `BOARD_VERIFICATION.md`, plus the graph well-formedness unit test.
+  Drop the §3b legacy draft during the port.
 
 ## 5. Key references
 
