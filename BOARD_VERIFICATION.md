@@ -126,6 +126,20 @@ shared by two edges, so an edge's count *includes* its corners. Unique areas = c
 >
 > These 20 unnamed areas + the named ones get assigned to sectors in §2 below.
 
+### Ecological testing stations (6) — user-confirmed
+Areas bearing an ecological testing station icon. Parsed by the generator from the line below.
+
+STATIONS: s5_2, s5_6, s8_4, s1_4, s4_15, false_wall_east
+
+| id | area | conf |
+|----|------|------|
+| s5_2 | (unnamed, s5) | ✅ |
+| s5_6 | (unnamed, s5) | ✅ |
+| s8_4 | (unnamed, s8) | ✅ |
+| s1_4 | (unnamed, s1) | ✅ |
+| s4_15 | (unnamed, s4) | ✅ |
+| false_wall_east | False Wall East | ✅ |
+
 ---
 
 ## 2. Sectors (8 total: 4 central + 4 outer)

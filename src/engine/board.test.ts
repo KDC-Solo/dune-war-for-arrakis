@@ -33,6 +33,13 @@ describe('areas', () => {
     expect(Object.values(AREAS).filter((a) => a.sietch).length).toBe(8);
   });
 
+  it('has the 6 ecological testing stations', () => {
+    const stations = Object.values(AREAS).filter((a) => a.testingStation);
+    expect(stations.map((a) => a.id).sort()).toEqual(
+      ['false_wall_east', 's1_4', 's4_15', 's5_2', 's5_6', 's8_4'].sort(),
+    );
+  });
+
   it('deep flag implies desert terrain, and the 3 named deep areas are flagged', () => {
     for (const a of Object.values(AREAS)) {
       if (a.deep === true) expect(a.terrain, `${a.id} deep but not desert`).toBe('desert');
