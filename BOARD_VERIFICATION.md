@@ -380,7 +380,7 @@ habbanya_ridge: s3_1 ✅, s3_2 ✅, s3_3 ✅, s3_4 ✅, s3_5 ✅, s3_6 ✅      
 **s3 cross-sector edges to mirror later:** →s4: s3_1↔the_great_flat · s3_2↔{the_great_flat, s4_12} ·
 s3_3↔s4_12.  →s7: s3_3↔s7_1 · s3_5↔{s7_1, false_wall_west} · s3_8↔{false_wall_west, windgap} ·
 s3_9↔{windgap, s7_6}.  →s8: s3_3↔s8_3 (already in §3a).  →s6: s3_9↔s6_5.
-**s3 resolved — no open questions.**
+**s3 resolved — no open questions. ✅ area-by-area VERIFIED 2026-06-27 (all 10 unchanged).**
 
 ### 3a-s4. Sector s4 (NW-outer, 20 areas) — PHOTO-TRACED DRAFT (north-west.jpg + center-west.jpg)
 ✅ clear · 🟡 likely. W edge (left) = Supremacy track; N edge = top; pole = lower-right (Shield Wall/cities).
