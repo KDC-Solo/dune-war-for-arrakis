@@ -280,7 +280,7 @@ Each line lists known neighbors so far; we complete each area's full list over t
 ```
 shield_wall_1 (s5_mtn4):  gara_kulon (s1_nd1), <a minor erg in s5 = s5_erg4 or s5_erg5>
 shield_wall_2 (s8_mtn2):  arsunt (s8_plt1), hagga_basin (s8_plt2)
-wind_pass     (s8_nd1):   north_pole (np), splintered_rock (s8_mtn1), s8_4, s8_2, s5_3   # NOT false_wall_west
+wind_pass     (s8_nd1):   north_pole (np), splintered_rock (s8_mtn1), s8_4, s8_2, s5_3, s7_2   # NOT false_wall_west
 s8_3:                     bight_of_the_cliff, s4_12, s4_13, s8_1, s8_4, s3_3, s7_1   # COMPLETE (7 nbrs); 4-sector junction
 north_pole    (np):       wind_pass (s8), s5_3, s6_1, s7_4   # ✅ COMPLETE — exactly one area per inner sector
 ```
@@ -447,7 +447,7 @@ splintered_rock/s8_2/shield_wall_2 — **NOT north_pole, NOT imperial_basin (air
 s8_1:    s8_3 ✅, s4_13 ✅, s4_14 ✅                   # s8_1↔s8_2 & s8_1↔Shield Wall #2 = RED impassable (§4)
 s8_2:    splintered_rock ✅, hagga_basin ✅, wind_pass ✅, s8_4 ✅   # unnamed MTN; +s8_1 RED; +shield_wall_2 🟡(red?)
 s8_3:    bight_of_the_cliff ✅, s4_12 ✅, s4_13 ✅, s8_1 ✅, s8_4 ✅, s3_3 ✅, s7_1 ✅   # COMPLETE
-s8_4:    s8_3 ✅, s8_2 ✅, wind_pass ✅, s7_1 ✅(s7)     # NOT splintered_rock
+s8_4:    s8_3 ✅, s8_2 ✅, wind_pass ✅, s7_1 ✅, s7_2 ✅(s7)   # NOT splintered_rock
 arsunt:        shield_wall_2 ✅, s4_16 ✅, hagga_basin ✅, broken_land ✅, carthag 🟡   # city I (carthag → confirm)
 hagga_basin:   arsunt ✅, carthag ✅, s5_1 ✅, s5_2 ✅, splintered_rock ✅, s8_2 ✅, shield_wall_2 ✅   # city I; NOT north_pole / imperial_basin(air zone)
 splintered_rock: wind_pass ✅, s8_2 ✅, hagga_basin ✅, s5_2 ✅, false_wall_east 🟡, false_wall_west 🟡   # NOT s8_4, NOT north_pole, NOT hole_in_the_rock
@@ -521,13 +521,13 @@ False Wall West) · s7_2 on the FWW ridge · s7_3 center · s7_4 right (by North
 s7_6 bottom. Seeded edges (verify in pass):
 ```
 s7_1:  s3_3 ✅(s3), s8_3 ✅(s8), s3_5 ✅(s3), false_wall_west ✅, s7_2 ✅, s8_4 ✅(s8)   # ✅ 6 nbrs
-s7_2:  s7_1 ✅, ...                                         # seeded (on FWW ridge)
-s7_3:  ...                                                 # unknown
+s7_2:  s7_1 ✅, s8_4 ✅(s8), wind_pass ✅(s8), s7_3 ✅, windgap ✅, false_wall_west ✅   # ✅ 6 nbrs
+s7_3:  s7_2 ✅, ...                                         # seeded
 s7_4:  north_pole ✅, s6_1 ✅(s6), ...                      # seeded (pole-ring)
 s7_5:  s6_1 ✅(s6), s6_4 ✅(s6), ...                        # seeded
 s7_6:  s3_9 ✅(s3), s6_4 ✅(s6), s6_5 ✅(s6), ...            # seeded
-false_wall_west: s3_5 ✅(s3), s3_8 ✅(s3), s7_1 ✅, ...     # seeded (plt ridge)
-windgap: s3_8 ✅(s3), s3_9 ✅(s3), ...                     # seeded (sietch)
+false_wall_west: s3_5 ✅(s3), s3_8 ✅(s3), s7_1 ✅, s7_2 ✅, ...   # seeded (plt ridge)
+windgap: s3_8 ✅(s3), s3_9 ✅(s3), s7_2 ✅, ...             # seeded (sietch)
 ```
 
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
