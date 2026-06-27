@@ -515,6 +515,21 @@ hobars_gap: s2_8 ✅(s2), s6_4 ✅, s6_5 ✅, false_wall_south ✅   # ✅ 4 nbr
 ```
 **s6 ✅ area-by-area VERIFIED 2026-06-27 (all 9 areas).**
 
+### 3a-s7. Sector s7 (SW-inner, 8 areas) — area-by-area pass (seeded from mirrors)
+Areas: s7_1..s7_6, False Wall West, Windgap. Layout (south-west.jpg): s7_1 top-right (near North Pole/
+False Wall West) · s7_2 on the FWW ridge · s7_3 center · s7_4 right (by North Pole) · s7_5 center-right ·
+s7_6 bottom. Seeded edges (verify in pass):
+```
+s7_1:  s3_3 ✅(s3), s8_3 ✅(s8), s3_5 ✅(s3), ...           # seeded (s3/s4/s7/s8 junction area)
+s7_2:  ...                                                 # unknown (on FWW ridge)
+s7_3:  ...                                                 # unknown
+s7_4:  north_pole ✅, s6_1 ✅(s6), ...                      # seeded (pole-ring)
+s7_5:  s6_1 ✅(s6), s6_4 ✅(s6), ...                        # seeded
+s7_6:  s3_9 ✅(s3), s6_4 ✅(s6), s6_5 ✅(s6), ...            # seeded
+false_wall_west: s3_5 ✅(s3), s3_8 ✅(s3), ...             # seeded (plt ridge)
+windgap: s3_8 ✅(s3), s3_9 ✅(s3), ...                     # seeded (sietch)
+```
+
 ### 3b. Earlier photo-based DRAFT (UNVERIFIED — my geography proved unreliable; supersede with 3a)
 
 ```
