@@ -1,7 +1,7 @@
 {
   "name": "dune-war-for-arrakis",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "Solo companion for Dune: War for Arrakis — headless Mahdi Harkonnen AI engine (Phase 1: board data).",
   "scripts": {
