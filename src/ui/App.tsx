@@ -84,8 +84,9 @@ function HelpPanel() {
           <strong>Games</strong> — new game, export/import a backup, reset, and your named saves (load/delete).
         </li>
         <li>
-          <strong>Board map</strong> — every area colored by terrain with your pieces overlaid. Hover a dot for its name,
-          or use <em>Find an area</em> to locate one. The 📍 button on a legion lets you set its area by clicking the map.
+          <strong>Board map</strong> — every area colored by terrain with your pieces overlaid. Tap/hover a dot for full
+          details, or use <em>Find an area</em>. Pinch or use +/− to zoom (one-finger drag to pan) — handy on a phone.
+          The 📍 button on a legion lets you set its area by tapping the map.
         </li>
         <li>
           <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans. <em>Start next round</em> when done.
