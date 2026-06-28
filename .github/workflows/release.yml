@@ -42,12 +42,32 @@ jobs:
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           (cd dist && zip -r "../dune-war-for-arrakis-${TAG}.zip" .)
 
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          VER="${TAG#v}"
+          # Pull the section under "## [VER]" up to the next "## " heading (drop link-ref lines).
+          awk -v ver="$VER" '
+            /^## \[/ { if (inblk) exit; if (index($0, "## [" ver "]") == 1) { inblk=1; next } }
+            inblk && /^\[[^]]+\]:/ { next }
+            inblk { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if [ -s RELEASE_NOTES.md ]; then
+            echo "have_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have_notes=false" >> "$GITHUB_OUTPUT"
+            echo "No CHANGELOG.md section for $VER; falling back to auto-generated notes."
+          fi
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --generate-notes \
-            "dune-war-for-arrakis-${TAG}.zip"
+          ZIP="dune-war-for-arrakis-${TAG}.zip"
+          if [ "${{ steps.notes.outputs.have_notes }}" = "true" ]; then
+            gh release create "$TAG" --title "$TAG" --notes-file RELEASE_NOTES.md "$ZIP"
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes "$ZIP"
+          fi

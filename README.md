@@ -107,6 +107,11 @@ npm run typecheck  # tsc --noEmit
   tests, and publishes a GitHub Release with auto‑generated notes and a zipped `dist/`. See
   [RELEASING.md](RELEASING.md) for the one‑command flow, and [CHANGELOG.md](CHANGELOG.md) for history.
 
+## Contributing
+
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout, dev setup,
+and conventions (game rules live in the tested pure‑TS engine; the UI stays rules‑free).
+
 ## Status
 
 The Mahdi‑solo engine and UI are feature‑complete and shipped. See `PLAN.md` for the roadmap.
