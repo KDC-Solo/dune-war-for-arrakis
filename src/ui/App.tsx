@@ -518,8 +518,6 @@ function BoardMapPanel({
         </select>
       </label>
 
-      <AreaInfoCard id={active} s={s} />
-
       <BoardMap
         state={s}
         highlight={pick && pickedLegion ? pickedLegion.area : picked}
@@ -527,6 +525,8 @@ function BoardMapPanel({
         onHover={setHovered}
         picking={!!pick}
       />
+
+      <AreaInfoCard id={active} s={s} />
 
       <div className="map-legend">
         <span><i className="lg-h" /> Harkonnen</span>
