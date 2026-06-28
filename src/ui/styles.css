@@ -903,5 +903,12 @@ label.mini.check input {
   gap: 0.75rem;
 }
 .phase-nav button {
-  flex: 0 0 auto; /* size to content; .die would otherwise grow to fill */
+  /* Match both buttons' box so only the emphasis (filled Next vs outline Back) differs,
+     not the size. Overrides .die's grow + min-width and aligns padding/radius. */
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
 }
