@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionResult, GameState, Legion, RoundPhase } from '../engine/state';
 import { resolveAction } from '../engine/harkonnenActions';
 import { applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
@@ -81,6 +81,10 @@ function HelpPanel() {
       <ul className="help-list">
         <li>
           <strong>Games</strong> — new game, export/import a backup, reset, and your named saves (load/delete).
+        </li>
+        <li>
+          <strong>Board map</strong> — every area colored by terrain with your pieces overlaid. Hover a dot for its name,
+          or use <em>Find an area</em> to locate one. The 📍 button on a legion lets you set its area by clicking the map.
         </li>
         <li>
           <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans. <em>Start next round</em> when done.
@@ -388,12 +392,57 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
 // Board map: a schematic reference of every area, overlaid with the game state.
 // ---------------------------------------------------------------------------
 
-function BoardMapPanel({ s }: { s: GameState }) {
+/** A request from the editor to set some field's area by clicking the map. */
+export type PickTarget = { kind: 'legion'; index: number };
+
+function BoardMapPanel({
+  s,
+  onChange,
+  pick,
+  clearPick,
+  panelRef,
+}: {
+  s: GameState;
+  onChange: (next: GameState) => void;
+  pick: PickTarget | null;
+  clearPick: () => void;
+  panelRef: React.RefObject<HTMLDetailsElement>;
+}) {
   const [picked, setPicked] = useState<string | null>(null);
+
+  // When the editor requests a pick, open the map and scroll it into view.
+  useEffect(() => {
+    if (pick && panelRef.current) {
+      panelRef.current.open = true;
+      panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [pick, panelRef]);
+
+  const pickedLegion = pick ? s.legions[pick.index] : null;
+
+  const onMapSelect = (id: string) => {
+    if (pick && pickedLegion) {
+      onChange({ ...s, legions: s.legions.map((l, i) => (i === pick.index ? { ...l, area: id } : l)) });
+      setPicked(id);
+      clearPick();
+    } else {
+      setPicked(id);
+    }
+  };
+
   return (
-    <details className="panel">
+    <details className="panel" ref={panelRef}>
       <summary className="map-summary">Board map</summary>
-      <p className="hint">Every area, colored by terrain, with your pieces overlaid. Click a dot (or pick below) to identify an area and where it sits.</p>
+      <p className="hint">Every area, colored by terrain, with your pieces overlaid. Hover a dot for its name; click (or pick below) to locate an area.</p>
+
+      {pick && pickedLegion && (
+        <div className="map-pick-banner">
+          Click an area to move the {pickedLegion.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion now at{' '}
+          <strong>{areaLabel(pickedLegion.area)}</strong>.
+          <button className="die" onClick={clearPick}>Cancel</button>
+        </div>
+      )}
+
       <label className="map-pick">
         Find an area
         <select value={picked ?? ''} onChange={(e) => setPicked(e.target.value || null)}>
@@ -406,7 +455,9 @@ function BoardMapPanel({ s }: { s: GameState }) {
         </select>
       </label>
       {picked && <p className="map-caption">{areaLabel(picked)}</p>}
-      <BoardMap state={s} highlight={picked} onSelect={setPicked} />
+
+      <BoardMap state={s} highlight={pick && pickedLegion ? pickedLegion.area : picked} onSelect={onMapSelect} picking={!!pick} />
+
       <div className="map-legend">
         <span><i className="lg-h" /> Harkonnen</span>
         <span><i className="lg-a" /> Atreides</span>
@@ -648,6 +699,9 @@ export function App() {
   const [s, setS] = useState<GameState>(() => loadState() ?? sampleState());
   // Snapshots taken before each applied Harkonnen action, for Undo (bounded).
   const [past, setPast] = useState<GameState[]>([]);
+  // Active "click the map to set this area" request from the editor.
+  const [pick, setPick] = useState<PickTarget | null>(null);
+  const mapRef = useRef<HTMLDetailsElement>(null);
 
   // Persist on every change.
   useEffect(() => {
@@ -705,8 +759,8 @@ export function App() {
       <main>
         <HelpPanel />
         <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
-        <BoardMapPanel s={s} />
-        <StateEditor s={s} onChange={setS} />
+        <BoardMapPanel s={s} onChange={setS} pick={pick} clearPick={() => setPick(null)} panelRef={mapRef} />
+        <StateEditor s={s} onChange={setS} onPickArea={(index) => setPick({ kind: 'legion', index })} pickIndex={pick?.kind === 'legion' ? pick.index : null} />
         <RoundPanel s={s} onChange={commit} />
         <PhasePanel s={s} onChange={setS} />
         <VehiclePanel s={s} />

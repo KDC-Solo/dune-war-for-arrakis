@@ -101,9 +101,15 @@ function setGenericLeaders(l: Legion, generic: number): Leader[] {
 export function StateEditor({
   s,
   onChange,
+  onPickArea,
+  pickIndex,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
+  /** Ask the board map to set legion `index`'s area by clicking. */
+  onPickArea?: (index: number) => void;
+  /** Legion index currently being picked on the map (for button highlight). */
+  pickIndex?: number | null;
 }) {
   const setMarker = (power: 'choam' | 'spacing_guild' | 'landsraad', value: number) => {
     const markers = { ...s.spice.markers, [power]: clamp(value, 1, 5) };
@@ -363,6 +369,16 @@ export function StateEditor({
                   </option>
                 ))}
               </select>
+              {onPickArea && (
+                <button
+                  type="button"
+                  className={`pick-map-btn${pickIndex === i ? ' active' : ''}`}
+                  title="Pick this legion's area on the board map"
+                  onClick={() => onPickArea(i)}
+                >
+                  📍
+                </button>
+              )}
               {UNIT_TYPES.map(({ key, label }) => (
                 <label key={key} className="mini">
                   {label}

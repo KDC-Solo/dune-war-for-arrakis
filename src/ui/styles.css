@@ -717,15 +717,15 @@ label.mini.check input {
   border: 1px solid var(--line);
   background: #f3e2bd;
 }
-.map-label {
-  pointer-events: none;
-  paint-order: stroke;
-  stroke: #f3e2bd;
-  stroke-width: 1.4px;
+.map-dot {
+  cursor: pointer;
+  transition: r 0.08s ease;
 }
-.map-area:hover circle {
-  stroke: var(--accent);
-  stroke-width: 2;
+.board-map.picking {
+  outline: 2px solid var(--accent);
+}
+.board-map.picking .map-dot {
+  cursor: crosshair;
 }
 .map-pick {
   display: flex;
@@ -764,3 +764,33 @@ label.mini.check input {
 .map-legend .lg-si { background: #2f5d50; border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .map-legend .lg-st { background: #8a2c1f; border-radius: 2px; }
 .map-legend .lg-tgt { background: transparent; border: 2px solid #d4a017; }
+
+.map-pick-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.6rem;
+  padding: 0.5rem 0.7rem;
+  background: #fbeae7;
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+.pick-map-btn {
+  align-self: flex-end;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.pick-map-btn:hover {
+  border-color: var(--accent);
+}
+.pick-map-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
