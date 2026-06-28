@@ -9,7 +9,6 @@ import { useState } from 'react';
 import { AREAS } from '../engine/board';
 import type { Terrain } from '../engine/board';
 import { AREA_POSITIONS, BOARD_ASPECT } from '../engine/boardPositions';
-import { areaLabel } from '../engine/describeArea';
 import type { GameState } from '../engine/state';
 
 const W = 1000;
@@ -34,35 +33,23 @@ const xy = (id: string): [number, number] => {
   return p ? [p[0] * W, p[1] * H] : [0, 0];
 };
 
-/** A readable label box floating above an area dot (used for hover + selection). */
-function LabelTip({ id, accent }: { id: string; accent?: boolean }) {
-  const [cx, cy] = xy(id);
-  const text = areaLabel(id);
-  const fs = 17;
-  const w = Math.max(40, text.length * fs * 0.56 + 12);
-  const x = Math.min(W - w / 2, Math.max(w / 2, cx)); // clamp inside the viewBox
-  const y = cy - 16;
-  return (
-    <g pointerEvents="none">
-      <rect x={x - w / 2} y={y - fs} width={w} height={fs + 8} rx={4} fill={accent ? '#7a1d12' : '#2b2117'} opacity={0.92} />
-      <text x={x} y={y} fontSize={fs} fill="#fff" textAnchor="middle" fontWeight={700}>{text}</text>
-    </g>
-  );
-}
-
 export interface BoardMapProps {
-  /** Area to emphasize (gold pulse + label). */
+  /** Area to emphasize (gold pulse). */
   highlight?: string | null;
   /** Called when an area dot is clicked. */
   onSelect?: (id: string) => void;
+  /** Called as the pointer enters/leaves a dot (id or null). Drives the info card. */
+  onHover?: (id: string | null) => void;
   /** Optional game state to overlay pieces. */
   state?: GameState;
   /** When true, dots show a "pick" cursor (map is acting as an area picker). */
   picking?: boolean;
 }
 
-export function BoardMap({ highlight, onSelect, state, picking }: BoardMapProps) {
+export function BoardMap({ highlight, onSelect, onHover, state, picking }: BoardMapProps) {
   const [hover, setHover] = useState<string | null>(null);
+  const enter = (id: string) => { setHover(id); onHover?.(id); };
+  const leave = (id: string) => setHover((h) => { if (h === id) { onHover?.(null); return null; } return h; });
   const ids = Object.keys(AREA_POSITIONS);
 
   const legionByArea = new Map<string, { h: boolean; a: boolean }>();
@@ -110,8 +97,8 @@ export function BoardMap({ highlight, onSelect, state, picking }: BoardMapProps)
             stroke={big ? '#7a1d12' : '#6b5a3c'}
             strokeWidth={big ? 2.2 : 1}
             onClick={() => onSelect?.(id)}
-            onMouseEnter={() => setHover(id)}
-            onMouseLeave={() => setHover((h) => (h === id ? null : h))}
+            onMouseEnter={() => enter(id)}
+            onMouseLeave={() => leave(id)}
           />
         );
       })}
@@ -167,10 +154,6 @@ export function BoardMap({ highlight, onSelect, state, picking }: BoardMapProps)
           </circle>
         );
       })()}
-
-      {/* Label tips: the selected/highlighted area always, plus whatever is hovered */}
-      {highlight && AREA_POSITIONS[highlight] && <LabelTip id={highlight} accent />}
-      {hover && hover !== highlight && <LabelTip id={hover} />}
     </svg>
   );
 }

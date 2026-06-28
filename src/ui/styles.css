@@ -794,3 +794,63 @@ label.mini.check input {
   background: var(--accent);
   border-color: var(--accent);
 }
+
+/* --- board-map area info card --- */
+.area-card {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.75rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  min-height: 3.2rem;
+  font-size: 0.9rem;
+}
+.area-card.empty {
+  color: #6a583c;
+  font-style: italic;
+  border-left-color: var(--line);
+}
+.area-card-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.area-card-meta {
+  color: #5a4a32;
+  font-size: 0.82rem;
+  margin-top: 0.1rem;
+}
+.area-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+.area-card .atag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #efe2c6;
+  color: #5a4a32;
+  border: 1px solid var(--line);
+}
+.area-card .atag.st { background: #f1d9d4; color: #7a1d12; border-color: #e0b3a9; }
+.area-card .atag.si { background: #d9ece4; color: #1f5142; border-color: #aacdbf; }
+.area-card .atag.tgt { background: #d4a017; color: #2b2117; border-color: #b3870f; }
+.area-card .atag.worm { background: #e7dac3; color: #5b3b1a; }
+.area-card .atag.gone { opacity: 0.55; text-decoration: line-through; }
+.area-card-occ {
+  margin-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.area-card-occ .occ-h { color: #b3261e; }
+.area-card-occ .occ-a { color: #2f7d3a; }
+.area-card-adj {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: #5a4a32;
+}

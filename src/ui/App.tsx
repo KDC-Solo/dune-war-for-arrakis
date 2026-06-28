@@ -27,7 +27,8 @@ import { newGameState } from '../engine/newGame';
 import { StateEditor } from './StateEditor';
 import { GamesPanel } from './GamesPanel';
 import { BoardMap } from './BoardMap';
-import { AREA_IDS } from '../engine/board';
+import { AREA_IDS, AREAS } from '../engine/board';
+import { neighbors as boardNeighbors } from '../engine/graph';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 import { loadState, saveState, clearState, exportState } from './persistence';
@@ -395,6 +396,65 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
 /** A request from the editor to set some field's area by clicking the map. */
 export type PickTarget = { kind: 'legion'; index: number };
 
+const TERRAIN_WORD: Record<string, string> = {
+  desert: 'Desert',
+  minor_erg: 'Minor erg',
+  plateau: 'Plateau',
+  mountain: 'Mountain',
+};
+
+function legionLine(l: Legion): string {
+  const parts: string[] = [];
+  if (l.units.regular) parts.push(`${l.units.regular} regular`);
+  if (l.units.elite) parts.push(`${l.units.elite} elite`);
+  if (l.units.special_elite) parts.push(`${l.units.special_elite} ${l.faction === 'harkonnen' ? 'Sardaukar' : 'Fedaykin'}`);
+  if (l.deploymentTokens) parts.push(`${l.deploymentTokens} token${l.deploymentTokens === 1 ? '' : 's'}`);
+  for (const ld of l.leaders) parts.push(ld.kind === 'named' && ld.name ? ld.name : l.faction === 'harkonnen' ? 'Bashar' : 'Naib');
+  return parts.length ? parts.join(', ') : 'present';
+}
+
+/** Rich details card for the hovered / selected area (replaces the clipping in-map tooltip). */
+function AreaInfoCard({ id, s }: { id: string | null; s: GameState }) {
+  if (!id) return <div className="area-card empty">Hover or click an area for details.</div>;
+  const a = AREAS[id];
+  if (!a) return <div className="area-card empty">{id}</div>;
+
+  const terrain = a.deep ? 'Deep desert' : (a.terrain ? TERRAIN_WORD[a.terrain] : 'Unknown');
+  const si = s.sietches.find((x) => x.area === id);
+  const st = s.settlements.find((x) => x.area === id);
+  const ts = s.testingStations.find((x) => x.area === id);
+  const hk = s.legions.find((l) => l.area === id && l.faction === 'harkonnen');
+  const at = s.legions.find((l) => l.area === id && l.faction === 'atreides');
+  const hasWorm = s.wormsigns.some((w) => w.area === id);
+  const hasSandworm = s.sandworms.some((w) => w.area === id);
+  const neighbors = boardNeighbors(id).map(areaLabel).sort();
+
+  return (
+    <div className="area-card">
+      <div className="area-card-title">{areaLabel(id)}</div>
+      <div className="area-card-meta">
+        {terrain} · sector {a.sector}
+        {a.deep && ' · worm/spice'}
+      </div>
+      <div className="area-card-tags">
+        {st && <span className={`atag st${st.destroyed ? ' gone' : ''}`}>Settlement rank {st.rank}{st.destroyed ? ' (destroyed)' : ''}</span>}
+        {si && <span className={`atag si${si.destroyed ? ' gone' : ''}`}>Sietch{si.rank ? ` rank ${si.rank}` : ' (rank hidden)'}{si.destroyed ? ' (destroyed)' : si.revealed ? ' (revealed)' : ''}</span>}
+        {id === s.targetSietchId && <span className="atag tgt">Target sietch</span>}
+        {ts && <span className="atag">Testing station{ts.revealed ? ' (revealed)' : ''}</span>}
+        {hasWorm && <span className="atag worm">Wormsign</span>}
+        {hasSandworm && <span className="atag worm">Sandworm</span>}
+      </div>
+      {(hk || at) && (
+        <div className="area-card-occ">
+          {hk && <div><b className="occ-h">Harkonnen:</b> {legionLine(hk)}</div>}
+          {at && <div><b className="occ-a">Atreides:</b> {legionLine(at)}</div>}
+        </div>
+      )}
+      <div className="area-card-adj"><b>Adjacent:</b> {neighbors.join(', ')}</div>
+    </div>
+  );
+}
+
 function BoardMapPanel({
   s,
   onChange,
@@ -409,6 +469,7 @@ function BoardMapPanel({
   panelRef: React.RefObject<HTMLDetailsElement>;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   // When the editor requests a pick, open the map and scroll it into view.
   useEffect(() => {
@@ -430,10 +491,12 @@ function BoardMapPanel({
     }
   };
 
+  const active = hovered ?? (pick && pickedLegion ? pickedLegion.area : picked);
+
   return (
     <details className="panel" ref={panelRef}>
       <summary className="map-summary">Board map</summary>
-      <p className="hint">Every area, colored by terrain, with your pieces overlaid. Hover a dot for its name; click (or pick below) to locate an area.</p>
+      <p className="hint">Every area, colored by terrain, with your pieces overlaid. Hover or click a dot for full details; use <em>Find an area</em> to locate one.</p>
 
       {pick && pickedLegion && (
         <div className="map-pick-banner">
@@ -454,9 +517,16 @@ function BoardMapPanel({
           ))}
         </select>
       </label>
-      {picked && <p className="map-caption">{areaLabel(picked)}</p>}
 
-      <BoardMap state={s} highlight={pick && pickedLegion ? pickedLegion.area : picked} onSelect={onMapSelect} picking={!!pick} />
+      <AreaInfoCard id={active} s={s} />
+
+      <BoardMap
+        state={s}
+        highlight={pick && pickedLegion ? pickedLegion.area : picked}
+        onSelect={onMapSelect}
+        onHover={setHovered}
+        picking={!!pick}
+      />
 
       <div className="map-legend">
         <span><i className="lg-h" /> Harkonnen</span>
