@@ -29,6 +29,7 @@ import { GamesPanel } from './GamesPanel';
 import { BoardMap } from './BoardMap';
 import { AREA_IDS, AREAS } from '../engine/board';
 import { neighbors as boardNeighbors } from '../engine/graph';
+import { isDesertArea } from '../engine/describeArea';
 import type { PickTarget } from './pick';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
@@ -498,11 +499,16 @@ function BoardMapPanel({
     }
   }
 
+  // Wormsigns & sandworms may only be placed on Desert areas.
+  const wormPick = pick?.kind === 'wormsign' || pick?.kind === 'sandworm';
+  const selectable = wormPick ? isDesertArea : undefined;
+
   const onMapSelect = (id: string) => {
     if (!pick) {
       setPicked(id);
       return;
     }
+    if (selectable && !selectable(id)) return; // ignore invalid terrain
     if (pick.kind === 'legion') {
       onChange({ ...s, legions: s.legions.map((l, i) => (i === pick.index ? { ...l, area: id } : l)) });
     } else if (pick.kind === 'wormsign') {
@@ -526,6 +532,7 @@ function BoardMapPanel({
       {pick && (
         <div className="map-pick-banner">
           Click an area to set <strong>{pickWhat}</strong>.
+          {wormPick && ' Only Desert areas are valid.'}
           <button className="die" onClick={clearPick}>Cancel</button>
         </div>
       )}
@@ -548,6 +555,7 @@ function BoardMapPanel({
         onSelect={onMapSelect}
         onHover={setHovered}
         picking={!!pick}
+        selectable={selectable}
       />
 
       <AreaInfoCard id={active} s={s} />

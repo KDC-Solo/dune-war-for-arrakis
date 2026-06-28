@@ -82,3 +82,12 @@ export function areaLabel(id: string): string {
   if (!a) return id;
   return a.name ?? LABELS[id] ?? id;
 }
+
+/**
+ * Desert (incl. Deep Desert) areas — the only places wormsigns and sandworms may be (rulebook:
+ * wormsigns go "1 in each Desert Area"; sandworms move "up to 2 Desert Areas"). Deep Desert is a
+ * Desert subtype, so `terrain === 'desert'` covers both; Mountain/Plateau/Minor Erg are excluded.
+ */
+export function isDesertArea(id: string): boolean {
+  return AREAS[id]?.terrain === 'desert';
+}

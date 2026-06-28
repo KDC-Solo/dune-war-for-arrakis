@@ -16,6 +16,7 @@ import {
   type UnitType,
 } from '../engine/state';
 import { areaLabel } from './describeAction';
+import { isDesertArea } from '../engine/describeArea';
 import { NAMED_LEADERS } from '../engine/leaders';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
@@ -66,6 +67,8 @@ const UNIT_TYPES: { key: UnitType; label: string }[] = [
 ];
 
 const SORTED_AREAS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
+// Wormsigns & sandworms only go on Desert / Deep Desert areas.
+const DESERT_AREAS = SORTED_AREAS.filter(isDesertArea);
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
@@ -153,9 +156,9 @@ export function StateEditor({
   const setReserveUnit = (key: UnitType, value: number) =>
     onChange({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: clamp(value, 0, 16) } } });
 
-  // Wormsigns / sandworms: arrays of { area }. First unused area is a sensible default to add.
+  // Wormsigns / sandworms: arrays of { area }. First unused Desert area is a sensible default to add.
   const firstFreeArea = (taken: { area: string }[]) =>
-    SORTED_AREAS.find((id) => !taken.some((t) => t.area === id)) ?? SORTED_AREAS[0];
+    DESERT_AREAS.find((id) => !taken.some((t) => t.area === id)) ?? DESERT_AREAS[0];
   const addWormsign = () => onChange({ ...s, wormsigns: [...s.wormsigns, { area: firstFreeArea(s.wormsigns) }] });
   const setWormsign = (i: number, area: string) =>
     onChange({ ...s, wormsigns: s.wormsigns.map((w, idx) => (idx === i ? { area } : w)) });
@@ -335,7 +338,7 @@ export function StateEditor({
           {s.wormsigns.map((w, i) => (
             <div key={i} className="worm-row">
               <select value={w.area} onChange={(e) => setWormsign(i, e.target.value)}>
-                {SORTED_AREAS.map((id) => (
+                {DESERT_AREAS.map((id) => (
                   <option key={id} value={id}>
                     {areaLabel(id)}
                   </option>
@@ -356,7 +359,7 @@ export function StateEditor({
           {s.sandworms.map((w, i) => (
             <div key={i} className="worm-row">
               <select value={w.area} onChange={(e) => setSandworm(i, e.target.value)}>
-                {SORTED_AREAS.map((id) => (
+                {DESERT_AREAS.map((id) => (
                   <option key={id} value={id}>
                     {areaLabel(id)}
                   </option>

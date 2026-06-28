@@ -1,7 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { describeAction, actionHeadline, areaLabel } from './describeAction';
+import { isDesertArea } from '../engine/describeArea';
 import { resolveAction } from '../engine/harkonnenActions';
 import { sampleState } from './sampleState';
+
+describe('isDesertArea (wormsign/sandworm placement)', () => {
+  it('is true for Desert and Deep Desert, false for other terrain', () => {
+    expect(isDesertArea('sihaya_ridge')).toBe(true); // deep desert
+    expect(isDesertArea('s1_1')).toBe(true); // unnamed deep desert
+    expect(isDesertArea('arrakeen')).toBe(false); // plateau
+    expect(isDesertArea('broken_land')).toBe(false); // mountain
+    expect(isDesertArea('harg_pass')).toBe(false); // minor erg
+  });
+});
 
 describe('areaLabel', () => {
   it('uses the proper name for named areas', () => {

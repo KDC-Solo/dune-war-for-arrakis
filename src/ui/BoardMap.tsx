@@ -64,9 +64,11 @@ export interface BoardMapProps {
   state?: GameState;
   /** When true, dots show a "pick" cursor (map is acting as an area picker). */
   picking?: boolean;
+  /** When picking, which areas are valid targets (others are dimmed and not clickable). */
+  selectable?: (id: string) => boolean;
 }
 
-export function BoardMap({ highlight, onSelect, onHover, state, picking }: BoardMapProps) {
+export function BoardMap({ highlight, onSelect, onHover, state, picking, selectable }: BoardMapProps) {
   const [hover, setHover] = useState<string | null>(null);
   const [view, setView] = useState<View>({ k: 1, tx: 0, ty: 0 });
   const svgRef = useRef<SVGSVGElement>(null);
@@ -200,6 +202,7 @@ export function BoardMap({ highlight, onSelect, onHover, state, picking }: Board
           {ids.map((id) => {
             const [cx, cy] = xy(id);
             const big = hover === id || highlight === id;
+            const ok = !selectable || selectable(id);
             return (
               <circle
                 key={id}
@@ -210,8 +213,10 @@ export function BoardMap({ highlight, onSelect, onHover, state, picking }: Board
                 fill={fillFor(id)}
                 stroke={big ? '#7a1d12' : '#6b5a3c'}
                 strokeWidth={(big ? 2.2 : 1) / view.k}
-                onClick={() => tap(id)}
-                onMouseEnter={() => enter(id)}
+                opacity={ok ? 1 : 0.25}
+                style={ok ? undefined : { pointerEvents: 'none' }}
+                onClick={() => ok && tap(id)}
+                onMouseEnter={() => ok && enter(id)}
                 onMouseLeave={() => leave(id)}
               />
             );
