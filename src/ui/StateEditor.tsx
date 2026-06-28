@@ -17,6 +17,7 @@ import {
 } from '../engine/state';
 import { areaLabel } from './describeAction';
 import { isDesertArea } from '../engine/describeArea';
+import { canPlaceWormsign, canPlaceSandworm } from '../engine/wormsigns';
 import { NAMED_LEADERS } from '../engine/leaders';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
@@ -156,14 +157,14 @@ export function StateEditor({
   const setReserveUnit = (key: UnitType, value: number) =>
     onChange({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: clamp(value, 0, 16) } } });
 
-  // Wormsigns / sandworms: arrays of { area }. First unused Desert area is a sensible default to add.
-  const firstFreeArea = (taken: { area: string }[]) =>
-    DESERT_AREAS.find((id) => !taken.some((t) => t.area === id)) ?? DESERT_AREAS[0];
-  const addWormsign = () => onChange({ ...s, wormsigns: [...s.wormsigns, { area: firstFreeArea(s.wormsigns) }] });
+  // Wormsigns / sandworms: arrays of { area }. Default a new one to the first rules-valid Desert area.
+  const addWormsign = () =>
+    onChange({ ...s, wormsigns: [...s.wormsigns, { area: DESERT_AREAS.find((id) => canPlaceWormsign(s, id)) ?? DESERT_AREAS[0] }] });
   const setWormsign = (i: number, area: string) =>
     onChange({ ...s, wormsigns: s.wormsigns.map((w, idx) => (idx === i ? { area } : w)) });
   const removeWormsign = (i: number) => onChange({ ...s, wormsigns: s.wormsigns.filter((_, idx) => idx !== i) });
-  const addSandworm = () => onChange({ ...s, sandworms: [...s.sandworms, { area: firstFreeArea(s.sandworms) }] });
+  const addSandworm = () =>
+    onChange({ ...s, sandworms: [...s.sandworms, { area: DESERT_AREAS.find((id) => canPlaceSandworm(s, id)) ?? DESERT_AREAS[0] }] });
   const setSandworm = (i: number, area: string) =>
     onChange({ ...s, sandworms: s.sandworms.map((w, idx) => (idx === i ? { area } : w)) });
   const removeSandworm = (i: number) => onChange({ ...s, sandworms: s.sandworms.filter((_, idx) => idx !== i) });
@@ -338,7 +339,7 @@ export function StateEditor({
           {s.wormsigns.map((w, i) => (
             <div key={i} className="worm-row">
               <select value={w.area} onChange={(e) => setWormsign(i, e.target.value)}>
-                {DESERT_AREAS.map((id) => (
+                {DESERT_AREAS.filter((id) => id === w.area || canPlaceWormsign(s, id)).map((id) => (
                   <option key={id} value={id}>
                     {areaLabel(id)}
                   </option>
@@ -359,7 +360,7 @@ export function StateEditor({
           {s.sandworms.map((w, i) => (
             <div key={i} className="worm-row">
               <select value={w.area} onChange={(e) => setSandworm(i, e.target.value)}>
-                {DESERT_AREAS.map((id) => (
+                {DESERT_AREAS.filter((id) => id === w.area || canPlaceSandworm(s, id)).map((id) => (
                   <option key={id} value={id}>
                     {areaLabel(id)}
                   </option>

@@ -29,7 +29,13 @@ import { GamesPanel } from './GamesPanel';
 import { BoardMap } from './BoardMap';
 import { AREA_IDS, AREAS } from '../engine/board';
 import { neighbors as boardNeighbors } from '../engine/graph';
-import { isDesertArea } from '../engine/describeArea';
+import {
+  canPlaceWormsign,
+  canPlaceSandworm,
+  wormsignPlacementAreas,
+  wormsignsToDiscard,
+  placeWormsigns,
+} from '../engine/wormsigns';
 import type { PickTarget } from './pick';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
@@ -111,6 +117,10 @@ function HelpPanel() {
           <strong>Resolve a card or leader ability</strong> — pick a Harkonnen planning card / leader special to see
           its steps. <span className="badge-inline auto">auto</span> steps the app applies;
           <span className="badge-inline you">you</span> steps you do.
+        </li>
+        <li>
+          <strong>Wormsigns</strong> — the Desert Hazards step: discards wormsigns where an Atreides legion/sandworm
+          appeared and places new ones in Desert areas with a Harkonnen legion or harvester. One tap to apply.
         </li>
         <li>
           <strong>Coriolis Storms</strong> — for each exposed legion, roll 2 combat dice, enter swords + specials,
@@ -325,6 +335,30 @@ function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =>
 
 const UNDO_LIMIT = 20;
 
+function WormsignPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+  const place = useMemo(() => wormsignPlacementAreas(s), [s]);
+  const discard = useMemo(() => wormsignsToDiscard(s), [s]);
+  const nothing = place.length === 0 && discard.length === 0;
+  const apply = () => onApply(placeWormsigns(s).state);
+  return (
+    <section className="panel">
+      <h2>Wormsigns</h2>
+      <p className="hint">Desert Hazards: discard wormsigns where an Atreides legion or sandworm now sits, then place 1 in each Desert area holding a Harkonnen legion or harvester (no worm/sandworm already).</p>
+      <dl className="kv">
+        <dt>Token pool</dt>
+        <dd>{s.decks.wormsignPool}</dd>
+        <dt>Discard</dt>
+        <dd>{discard.length ? discard.map(areaLabel).join(', ') : 'none'}</dd>
+        <dt>Place</dt>
+        <dd>{place.length ? place.map(areaLabel).join(', ') : 'none'}</dd>
+      </dl>
+      <button className="confirm-btn" onClick={apply} disabled={nothing}>
+        {nothing ? 'No wormsigns to place' : 'Place wormsigns'}
+      </button>
+    </section>
+  );
+}
+
 function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
   const targets = useMemo(() => stormTargets(s), [s]);
   const [dice, setDice] = useState<Record<number, StormDice>>({});
@@ -499,9 +533,14 @@ function BoardMapPanel({
     }
   }
 
-  // Wormsigns & sandworms may only be placed on Desert areas.
+  // Wormsigns & sandworms have terrain + occupancy rules; valid targets stay clickable, others dim.
   const wormPick = pick?.kind === 'wormsign' || pick?.kind === 'sandworm';
-  const selectable = wormPick ? isDesertArea : undefined;
+  const selectable =
+    pick?.kind === 'wormsign'
+      ? (id: string) => canPlaceWormsign(s, id)
+      : pick?.kind === 'sandworm'
+        ? (id: string) => canPlaceSandworm(s, id)
+        : undefined;
 
   const onMapSelect = (id: string) => {
     if (!pick) {
@@ -532,7 +571,7 @@ function BoardMapPanel({
       {pick && (
         <div className="map-pick-banner">
           Click an area to set <strong>{pickWhat}</strong>.
-          {wormPick && ' Only Desert areas are valid.'}
+          {wormPick && ' Only valid Desert areas are highlighted; the rest are dimmed.'}
           <button className="die" onClick={clearPick}>Cancel</button>
         </div>
       )}
@@ -869,6 +908,7 @@ export function App() {
         <ResolvePanel s={s} onApply={commit} />
         <BattlePanel s={s} onApply={commit} />
         <CardPanel s={s} onApply={commit} />
+        <WormsignPanel s={s} onApply={commit} />
         <StormPanel s={s} onApply={commit} />
       </main>
       <footer>
