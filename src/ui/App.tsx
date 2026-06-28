@@ -29,6 +29,7 @@ import { GamesPanel } from './GamesPanel';
 import { BoardMap } from './BoardMap';
 import { AREA_IDS, AREAS } from '../engine/board';
 import { neighbors as boardNeighbors } from '../engine/graph';
+import type { PickTarget } from './pick';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 import { loadState, saveState, clearState, exportState } from './persistence';
@@ -394,9 +395,6 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
 // Board map: a schematic reference of every area, overlaid with the game state.
 // ---------------------------------------------------------------------------
 
-/** A request from the editor to set some field's area by clicking the map. */
-export type PickTarget = { kind: 'legion'; index: number };
-
 const TERRAIN_WORD: Record<string, string> = {
   desert: 'Desert',
   minor_erg: 'Minor erg',
@@ -480,29 +478,54 @@ function BoardMapPanel({
     }
   }, [pick, panelRef]);
 
-  const pickedLegion = pick ? s.legions[pick.index] : null;
+  // The area currently held by the pick target (to highlight while picking), and a description.
+  let pickArea: string | null = null;
+  let pickWhat = '';
+  if (pick) {
+    if (pick.kind === 'legion') {
+      const l = s.legions[pick.index];
+      pickArea = l?.area ?? null;
+      pickWhat = l ? `the ${l.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion now at ${areaLabel(l.area)}` : 'this legion';
+    } else if (pick.kind === 'wormsign') {
+      pickArea = s.wormsigns[pick.index]?.area ?? null;
+      pickWhat = `wormsign ${pick.index + 1}`;
+    } else if (pick.kind === 'sandworm') {
+      pickArea = s.sandworms[pick.index]?.area ?? null;
+      pickWhat = `sandworm ${pick.index + 1}`;
+    } else {
+      pickArea = s.targetSietchId;
+      pickWhat = 'the target sietch';
+    }
+  }
 
   const onMapSelect = (id: string) => {
-    if (pick && pickedLegion) {
-      onChange({ ...s, legions: s.legions.map((l, i) => (i === pick.index ? { ...l, area: id } : l)) });
+    if (!pick) {
       setPicked(id);
-      clearPick();
-    } else {
-      setPicked(id);
+      return;
     }
+    if (pick.kind === 'legion') {
+      onChange({ ...s, legions: s.legions.map((l, i) => (i === pick.index ? { ...l, area: id } : l)) });
+    } else if (pick.kind === 'wormsign') {
+      onChange({ ...s, wormsigns: s.wormsigns.map((w, i) => (i === pick.index ? { ...w, area: id } : w)) });
+    } else if (pick.kind === 'sandworm') {
+      onChange({ ...s, sandworms: s.sandworms.map((w, i) => (i === pick.index ? { ...w, area: id } : w)) });
+    } else {
+      onChange({ ...s, targetSietchId: id });
+    }
+    setPicked(id);
+    clearPick();
   };
 
-  const active = hovered ?? (pick && pickedLegion ? pickedLegion.area : picked);
+  const active = hovered ?? (pick ? pickArea : picked);
 
   return (
     <details className="panel" ref={panelRef}>
       <summary className="map-summary">Board map</summary>
       <p className="hint">Every area, colored by terrain, with your pieces overlaid. Hover or click a dot for full details; use <em>Find an area</em> to locate one.</p>
 
-      {pick && pickedLegion && (
+      {pick && (
         <div className="map-pick-banner">
-          Click an area to move the {pickedLegion.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion now at{' '}
-          <strong>{areaLabel(pickedLegion.area)}</strong>.
+          Click an area to set <strong>{pickWhat}</strong>.
           <button className="die" onClick={clearPick}>Cancel</button>
         </div>
       )}
@@ -521,7 +544,7 @@ function BoardMapPanel({
 
       <BoardMap
         state={s}
-        highlight={pick && pickedLegion ? pickedLegion.area : picked}
+        highlight={pick ? pickArea : picked}
         onSelect={onMapSelect}
         onHover={setHovered}
         picking={!!pick}
@@ -831,7 +854,7 @@ export function App() {
         <HelpPanel />
         <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
         <BoardMapPanel s={s} onChange={setS} pick={pick} clearPick={() => setPick(null)} panelRef={mapRef} />
-        <StateEditor s={s} onChange={setS} onPickArea={(index) => setPick({ kind: 'legion', index })} pickIndex={pick?.kind === 'legion' ? pick.index : null} />
+        <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} />
         <RoundPanel s={s} onChange={commit} />
         <PhasePanel s={s} onChange={setS} />
         <VehiclePanel s={s} />

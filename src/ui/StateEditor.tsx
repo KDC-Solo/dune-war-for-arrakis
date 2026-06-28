@@ -17,6 +17,8 @@ import {
 } from '../engine/state';
 import { areaLabel } from './describeAction';
 import { NAMED_LEADERS } from '../engine/leaders';
+import type { PickTarget } from './pick';
+import { samePick } from './pick';
 
 const NAMED_LEADER_NAMES: readonly string[] = NAMED_LEADERS.map((l) => l.name);
 
@@ -101,16 +103,28 @@ function setGenericLeaders(l: Legion, generic: number): Leader[] {
 export function StateEditor({
   s,
   onChange,
-  onPickArea,
-  pickIndex,
+  onPick,
+  pick,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
-  /** Ask the board map to set legion `index`'s area by clicking. */
-  onPickArea?: (index: number) => void;
-  /** Legion index currently being picked on the map (for button highlight). */
-  pickIndex?: number | null;
+  /** Ask the board map to set this field's area by clicking. */
+  onPick?: (target: PickTarget) => void;
+  /** The pick target currently active (for button highlight). */
+  pick?: PickTarget | null;
 }) {
+  // A 📍 button that asks the map to set `target`'s area; highlighted while that pick is active.
+  const pickBtn = (target: PickTarget) =>
+    onPick ? (
+      <button
+        type="button"
+        className={`pick-map-btn${samePick(pick ?? null, target) ? ' active' : ''}`}
+        title="Pick this area on the board map"
+        onClick={() => onPick(target)}
+      >
+        📍
+      </button>
+    ) : null;
   const setMarker = (power: 'choam' | 'spacing_guild' | 'landsraad', value: number) => {
     const markers = { ...s.spice.markers, [power]: clamp(value, 1, 5) };
     onChange({ ...s, spice: { ...s.spice, markers, activeBans: activeBans(markers) } });
@@ -175,17 +189,20 @@ export function StateEditor({
         </label>
         <label>
           Target sietch
-          <select
-            value={s.targetSietchId ?? 'none'}
-            onChange={(e) => onChange({ ...s, targetSietchId: e.target.value === 'none' ? null : e.target.value })}
-          >
-            <option value="none">—</option>
-            {liveSietches.map((si) => (
-              <option key={si.area} value={si.area}>
-                {areaLabel(si.area)} (rank {si.rank ?? '?'})
-              </option>
-            ))}
-          </select>
+          <span className="pick-field">
+            <select
+              value={s.targetSietchId ?? 'none'}
+              onChange={(e) => onChange({ ...s, targetSietchId: e.target.value === 'none' ? null : e.target.value })}
+            >
+              <option value="none">—</option>
+              {liveSietches.map((si) => (
+                <option key={si.area} value={si.area}>
+                  {areaLabel(si.area)} (rank {si.rank ?? '?'})
+                </option>
+              ))}
+            </select>
+            {pickBtn({ kind: 'target' })}
+          </span>
         </label>
       </div>
 
@@ -324,6 +341,7 @@ export function StateEditor({
                   </option>
                 ))}
               </select>
+              {pickBtn({ kind: 'wormsign', index: i })}
               <button className="remove" onClick={() => removeWormsign(i)} title="Remove wormsign">
                 ✕
               </button>
@@ -344,6 +362,7 @@ export function StateEditor({
                   </option>
                 ))}
               </select>
+              {pickBtn({ kind: 'sandworm', index: i })}
               <button className="remove" onClick={() => removeSandworm(i)} title="Remove sandworm">
                 ✕
               </button>
@@ -369,16 +388,7 @@ export function StateEditor({
                   </option>
                 ))}
               </select>
-              {onPickArea && (
-                <button
-                  type="button"
-                  className={`pick-map-btn${pickIndex === i ? ' active' : ''}`}
-                  title="Pick this legion's area on the board map"
-                  onClick={() => onPickArea(i)}
-                >
-                  📍
-                </button>
-              )}
+              {pickBtn({ kind: 'legion', index: i })}
               {UNIT_TYPES.map(({ key, label }) => (
                 <label key={key} className="mini">
                   {label}

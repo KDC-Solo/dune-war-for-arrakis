@@ -887,3 +887,9 @@ label.mini.check input {
   background: #fff;
   border-color: var(--accent);
 }
+
+.pick-field {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
