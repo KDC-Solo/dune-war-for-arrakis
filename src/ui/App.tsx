@@ -768,6 +768,7 @@ function BoardMapPanel({
         <span><i className="lg-st" /> Settlement</span>
         <span><i className="lg-tgt" /> Target sietch</span>
         <span><i className="lg-az" /> Air zone</span>
+        <span><i className="lg-imp" /> Impassable</span>
       </div>
     </details>
   );
