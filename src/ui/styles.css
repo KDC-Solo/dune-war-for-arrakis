@@ -864,6 +864,27 @@ label.mini.check input {
 .board-map {
   touch-action: none; /* we handle pan/pinch ourselves */
 }
+/* Maximized: full-window overlay so the map is easy to read on any screen. */
+.map-wrap.maximized {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  margin: 0;
+  padding: 0.6rem 0.8rem 0.8rem;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.35);
+}
+.map-wrap.maximized .board-map {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+}
+.map-max {
+  font-size: 0.95rem !important;
+}
 .map-toolbar {
   display: flex;
   align-items: center;

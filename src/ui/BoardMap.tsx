@@ -42,7 +42,8 @@ function fillFor(id: string): string {
 const DISPLAY_POS: Record<string, readonly [number, number]> = {
   splintered_rock: [0.401, 0.441], // off the pole — Wind Pass is the s8 area adjacent to N. Pole
   s2_6: [0.7565, 0.837], // pull in off the bottom edge
-  s5_5: [0.677, 0.314], // out toward the NE arc, between s1_5 and s1_7, so its cell fronts both
+  s5_5: [0.67, 0.39], // fronts the NE arc (borders s1_5/s1_7) while still touching s5_4 and imperial_basin
+  imperial_basin: [0.59, 0.38], // pulled off s5_7 (not adjacent) and clear of the s5_5↔s5_4 edge
 };
 const xy = (id: string): [number, number] => {
   const p = DISPLAY_POS[id] ?? AREA_POSITIONS[id];
@@ -294,7 +295,21 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
   const [emphasis, setEmphasis] = useState<string | null>(null);
   // Fill cells by terrain (default) or by sector (radial-wedge clarity).
   const [colorBy, setColorBy] = useState<'terrain' | 'sector'>('terrain');
+  // Blow the map up to a full-window overlay so it's easy to read (Esc / button to restore).
+  const [maximized, setMaximized] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // While maximized, lock page scroll and let Escape restore the inline size.
+  useEffect(() => {
+    if (!maximized) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMaximized(false);
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [maximized]);
 
   // Zoom & pan the located area to the centre of the viewport so it's unmistakable.
   useEffect(() => {
@@ -407,7 +422,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
   const ids = Object.keys(AREA_POSITIONS);
 
   return (
-    <div className="map-wrap">
+    <div className={`map-wrap${maximized ? ' maximized' : ''}`}>
       <div className="map-toolbar">
         <div className="map-colorby" role="group" aria-label="Colour cells by">
           <button type="button" className={colorBy === 'terrain' ? 'on' : ''} onClick={() => setColorBy('terrain')}>
@@ -421,6 +436,15 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
           <button type="button" onClick={() => zoomBtn(1.4)} aria-label="Zoom in">+</button>
           <button type="button" onClick={() => zoomBtn(1 / 1.4)} aria-label="Zoom out">−</button>
           <button type="button" onClick={reset} aria-label="Reset zoom">⟲</button>
+          <button
+            type="button"
+            className="map-max"
+            onClick={() => setMaximized((m) => !m)}
+            aria-label={maximized ? 'Restore map size' : 'Maximize map'}
+            title={maximized ? 'Restore (Esc)' : 'Maximize'}
+          >
+            {maximized ? '🗗' : '⛶'}
+          </button>
         </div>
       </div>
       <svg
