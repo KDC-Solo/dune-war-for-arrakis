@@ -598,7 +598,9 @@ function AreaInfoCard({ id, s }: { id: string | null; s: GameState }) {
 
   return (
     <div className="area-card">
-      <div className="area-card-title">{areaLabel(id)}</div>
+      <div className="area-card-title">
+        {areaLabel(id)} <code className="area-card-id">{id}</code>
+      </div>
       <div className="area-card-meta">
         {terrain} · sector {a.sector}
         {a.deep && ' · worm/spice'}
@@ -765,6 +767,7 @@ function BoardMapPanel({
         <span><i className="lg-si" /> Sietch</span>
         <span><i className="lg-st" /> Settlement</span>
         <span><i className="lg-tgt" /> Target sietch</span>
+        <span><i className="lg-az" /> Air zone</span>
       </div>
     </details>
   );

@@ -7,14 +7,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Delaunay } from 'd3-delaunay';
-import { AREAS } from '../engine/board';
+import { AREAS, AIR_ZONES } from '../engine/board';
 import type { Terrain } from '../engine/board';
-import { AREA_POSITIONS, BOARD_ASPECT } from '../engine/boardPositions';
+import { AREA_POSITIONS } from '../engine/boardPositions';
 import { areaLabel } from '../engine/describeArea';
 import type { GameState } from '../engine/state';
 
 const W = 1000;
-const H = Math.round(W * BOARD_ASPECT);
+// Render aspect (height/width). Matches the squarer DuneMapTool framing (1680×1174) rather than the
+// wide source photo, which reads better and keeps the radial sectors balanced.
+const MAP_ASPECT = 0.6988;
+const H = Math.round(W * MAP_ASPECT);
 const MAX_K = 8;
 const DRAG_THRESHOLD = 6; // px of movement before a press counts as a pan (not a tap)
 
@@ -44,77 +47,139 @@ const SECTOR_FILL: Record<string, string> = {
   s1: '#cf6a4a', s2: '#d9913f', s3: '#c9b13b', s4: '#7fa64e',
   s5: '#4f9e86', s6: '#4e86b0', s7: '#7a6fb0', s8: '#b05f97', np: '#9c8550',
 };
+const POLAR_FILL = '#b8b1a4'; // the North Pole cap (grey, like the board's polar sink)
+const AIR_ZONE_FILL = '#e87aa0'; // ornithopter / carryall air-zone circles (pink)
 
 // Voronoi tessellation of the area centres — turns our captured points into filled, contiguous
 // cells that tile the board (our own generated geometry, no third-party art). We also derive the
-// sector boundaries (shared edges between cells of different sectors) and per-sector labels so the
-// board's radial sector structure reads clearly. Static → computed once at module load.
+// board's RADIAL sector structure as clean shapes: a quadrant cross + an inner/outer ring circle +
+// a polar cap, so the 8 sectors (+ N. Pole) read as straight/circular divisions, not jagged edges.
+// Static → computed once at module load.
 const GEO = (() => {
   const ids = Object.keys(AREA_POSITIONS);
-  const pts = ids.map(xy);
-  const delaunay = Delaunay.from(pts);
-  const voronoi = delaunay.voronoi([0, 0, W, H]);
-  const cells = ids.map((id, i) => ({
-    id,
-    d: voronoi.renderCell(i),
-    terrainFill: fillFor(id),
-    sector: sectorOf(id),
-  }));
 
-  // Centre of the radial layout + each sector's centroid (for labels and inner/outer detection).
-  const C: [number, number] = [
-    pts.reduce((t, p) => t + p[0], 0) / pts.length,
-    pts.reduce((t, p) => t + p[1], 0) / pts.length,
-  ];
+  // Radial centre = the North Pole area (where the four quadrant boards meet).
+  const C: [number, number] = AREA_POSITIONS['north_pole'] ? xy('north_pole') : [W / 2, H / 2];
+  const rad = (p: [number, number]) => Math.hypot(p[0] - C[0], p[1] - C[1]);
+  const quadOf = (p: [number, number]) => `${p[1] < C[1] ? 'N' : 'S'}${p[0] < C[0] ? 'W' : 'E'}`;
+
+  // Group area ids by sector; classify each non-polar sector into a quadrant (by majority of its
+  // areas) and rank inner/outer within the quadrant by mean radius.
+  const sectorAreas = new Map<string, string[]>();
+  for (const id of ids) (sectorAreas.get(sectorOf(id)) ?? sectorAreas.set(sectorOf(id), []).get(sectorOf(id))!).push(id);
   const bySector = new Map<string, [number, number][]>();
-  cells.forEach((cell, i) => {
-    (bySector.get(cell.sector) ?? bySector.set(cell.sector, []).get(cell.sector)!).push(pts[i]);
-  });
-  const centroid = (ps: [number, number][]): [number, number] => [
-    ps.reduce((t, p) => t + p[0], 0) / ps.length,
-    ps.reduce((t, p) => t + p[1], 0) / ps.length,
-  ];
-  const meanRadius = (ps: [number, number][]) =>
-    ps.reduce((t, p) => t + Math.hypot(p[0] - C[0], p[1] - C[1]), 0) / ps.length;
-  // Each non-polar sector → a quadrant by its centroid; within a quadrant the nearer-to-centre
-  // sector is "Inner", the farther "Outer" (so the two sectors per quadrant never collide).
-  const info = [...bySector.entries()].map(([s, ps]) => {
-    const [cx, cy] = centroid(ps);
-    const quad = s === 'np' ? '' : `${cy < C[1] ? 'N' : 'S'}${cx < C[0] ? 'W' : 'E'}`;
-    return { s, x: cx, y: cy, quad, r: meanRadius(ps) };
-  });
-  const byQuad = new Map<string, typeof info>();
-  for (const it of info) if (it.quad) (byQuad.get(it.quad) ?? byQuad.set(it.quad, []).get(it.quad)!).push(it);
-  for (const arr of byQuad.values()) arr.sort((a, b) => a.r - b.r);
-  const labels = info.map((it) => ({
-    s: it.s,
-    x: it.x,
-    y: it.y,
-    text: it.s === 'np' ? 'N. Pole' : `${byQuad.get(it.quad)!.indexOf(it) === 0 ? 'Inner' : 'Outer'} ${it.quad}`,
-  }));
+  for (const [s, as] of sectorAreas) bySector.set(s, as.map(xy));
+  const sInfo = [...bySector.entries()]
+    .filter(([s]) => s !== 'np')
+    .map(([s, ps]) => {
+      const qc: Record<string, number> = {};
+      for (const p of ps) qc[quadOf(p)] = (qc[quadOf(p)] ?? 0) + 1;
+      const quad = Object.entries(qc).sort((a, b) => b[1] - a[1])[0][0];
+      const mr = ps.reduce((t, p) => t + rad(p), 0) / ps.length;
+      const cx = ps.reduce((t, p) => t + p[0], 0) / ps.length;
+      const cy = ps.reduce((t, p) => t + p[1], 0) / ps.length;
+      return { s, quad, mr, cx, cy };
+    });
+  const byQuad = new Map<string, typeof sInfo>();
+  for (const it of sInfo) (byQuad.get(it.quad) ?? byQuad.set(it.quad, []).get(it.quad)!).push(it);
+  for (const arr of byQuad.values()) arr.sort((a, b) => a.mr - b.mr);
+  const ringSector: Record<string, { inner: string; outer: string }> = {};
+  for (const [q, arr] of byQuad) ringSector[q] = { inner: arr[0].s, outer: (arr[1] ?? arr[0]).s };
 
-  // Sector boundaries: a Voronoi edge shared by two cells whose sectors differ. An edge endpoint
-  // that lies on it is equidistant from both sites (it's a circumcentre of a triangle on edge i–j).
-  const equidist = (p: [number, number], a: [number, number], b: [number, number]) =>
-    Math.abs(Math.hypot(p[0] - a[0], p[1] - a[1]) - Math.hypot(p[0] - b[0], p[1] - b[1])) < 0.5;
-  const segs: [number, number, number, number][] = [];
-  for (let i = 0; i < ids.length; i++) {
-    const poly = voronoi.cellPolygon(i);
-    if (!poly) continue;
-    for (const j of delaunay.neighbors(i)) {
-      if (j <= i || cells[i].sector === cells[j].sector) continue;
-      for (let k = 0; k < poly.length - 1; k++) {
-        const a = poly[k] as [number, number];
-        const b = poly[k + 1] as [number, number];
-        if (equidist(a, pts[i], pts[j]) && equidist(b, pts[i], pts[j])) {
-          segs.push([a[0], a[1], b[0], b[1]]);
-          break;
-        }
-      }
+  // Per-quadrant boundary radius: the inner mass bulges different amounts into each quadrant, so
+  // r1 is computed PER quadrant (midpoint between that quadrant's inner sector's farthest area and
+  // its outer sector's nearest area). The arcs therefore differ — they don't form one circle.
+  const QUADS = ['NW', 'NE', 'SW', 'SE'] as const;
+  const radsOf = (sectorId: string) => ids.filter((id) => sectorOf(id) === sectorId).map((id) => rad(xy(id)));
+  const r1: Record<string, number> = {};
+  for (const q of QUADS) {
+    const inR = radsOf(ringSector[q]?.inner ?? 'np');
+    const ouR = radsOf(ringSector[q]?.outer ?? 'np');
+    r1[q] = (Math.max(...inR) + Math.min(...ouR)) / 2;
+  }
+  const innerSet = new Set(QUADS.map((q) => ringSector[q]?.inner).filter(Boolean));
+  const innerAreas = ids.filter((id) => innerSet.has(sectorOf(id)));
+  const r0 = Math.min(...innerAreas.map((id) => rad(xy(id)))) * 0.55;
+
+  // Clean sector regions for the "Sectors" view: outer rect-quadrants, inner pie-wedges, polar cap.
+  const ANG: Record<string, [number, number]> = {
+    NE: [-Math.PI / 2, 0], SE: [0, Math.PI / 2], SW: [Math.PI / 2, Math.PI], NW: [Math.PI, (3 * Math.PI) / 2],
+  };
+  const RECT: Record<string, [number, number, number, number]> = {
+    NW: [0, 0, C[0], C[1]], NE: [C[0], 0, W - C[0], C[1]],
+    SW: [0, C[1], C[0], H - C[1]], SE: [C[0], C[1], W - C[0], H - C[1]],
+  };
+  const arcPt = (a: number, r: number): [number, number] => [C[0] + r * Math.cos(a), C[1] + r * Math.sin(a)];
+  const pie = (q: string) => {
+    const [a0, a1] = ANG[q];
+    const [x0, y0] = arcPt(a0, r1[q]);
+    const [x1, y1] = arcPt(a1, r1[q]);
+    return `M${C[0]},${C[1]} L${x0},${y0} A${r1[q]},${r1[q]} 0 0,1 ${x1},${y1} Z`;
+  };
+  const regions: { d: string; fill: string }[] = [];
+  for (const q of QUADS) {
+    const [x, y, w, h] = RECT[q];
+    regions.push({ d: `M${x},${y} h${w} v${h} h${-w} Z`, fill: SECTOR_FILL[ringSector[q]?.outer ?? 'np'] });
+  }
+  for (const q of QUADS) regions.push({ d: pie(q), fill: SECTOR_FILL[ringSector[q]?.inner ?? 'np'] });
+
+  // Clip path per sector. Outer sectors = rect-quadrant MINUS the pie; inner sectors = the pie
+  // wedge MINUS the polar cap (both even-odd) — so inner cells stop at the polar circle.
+  const circle = (r: number) => `M${C[0] - r},${C[1]} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0 Z`;
+  const sectorClip: Record<string, string> = {};
+  for (const q of QUADS) {
+    const [x, y, w, h] = RECT[q];
+    if (ringSector[q]) {
+      sectorClip[ringSector[q].outer] = `M${x},${y} h${w} v${h} h${-w} Z ${pie(q)}`;
+      sectorClip[ringSector[q].inner] = `${pie(q)} ${circle(r0)}`;
     }
   }
 
-  return { cells, segs, labels, C };
+  // Per-SECTOR Voronoi: tessellate each sector's region among only that sector's areas, so every
+  // point in the region belongs to the nearest area IN that sector (no orphaned strips), cells fill
+  // the whole region, and cross-sector-adjacent areas meet along the divider lines.
+  const cells: { id: string; d: string; terrainFill: string; sector: string }[] = [];
+  for (const [s, as] of sectorAreas) {
+    if (s === 'np') continue;
+    const seeds = as.map(xy);
+    const pad: [number, number][] = seeds.length >= 2 ? seeds : [seeds[0], [seeds[0][0] + 0.01, seeds[0][1]]];
+    const vor = Delaunay.from(pad).voronoi([0, 0, W, H]);
+    as.forEach((id, i) => {
+      const d = vor.renderCell(Math.min(i, pad.length - 1));
+      if (d) cells.push({ id, d, terrainFill: fillFor(id), sector: s });
+    });
+  }
+
+  // Per-quadrant boundary arcs (the divider lines, varying radius — not a single circle).
+  const arcs = QUADS.map((q) => {
+    const [a0, a1] = ANG[q];
+    const [x0, y0] = arcPt(a0, r1[q]);
+    const [x1, y1] = arcPt(a1, r1[q]);
+    return `M${x0},${y0} A${r1[q]},${r1[q]} 0 0,1 ${x1},${y1}`;
+  });
+
+  // Air-zone circles (ornithopter/carryall), at the centroid of each zone's member areas.
+  const airZones = AIR_ZONES.map((z) => {
+    const ps = z.areas.map(xy);
+    return {
+      id: z.id,
+      x: ps.reduce((t, p) => t + p[0], 0) / ps.length,
+      y: ps.reduce((t, p) => t + p[1], 0) / ps.length,
+    };
+  });
+
+  // Labels at each sector's centroid.
+  const labels = [
+    ...sInfo.map((it) => ({
+      x: it.cx,
+      y: it.cy,
+      text: `${byQuad.get(it.quad)!.indexOf(it) === 0 ? 'Inner' : 'Outer'} ${it.quad}`,
+    })),
+    ...(bySector.has('np') ? [{ x: C[0], y: C[1] - r0 - 5, text: 'N. Pole' }] : []),
+  ];
+
+  const sectors = Object.keys(sectorClip);
+  return { cells, regions, arcs, airZones, labels, sectorClip, sectors, C, r0 };
 })();
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
@@ -305,52 +370,103 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
       >
         <rect x={0} y={0} width={W} height={H} rx={10} fill="#f3e2bd" stroke="#d8c9aa" />
         <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
-          {/* Voronoi cells of the area centres — the filled, contiguous base map. Clicking anywhere
-              in a cell selects that area, so the hit targets are large and easy to tap. */}
-          {GEO.cells.map(({ id, d, terrainFill, sector }) => {
-            const on = hover === id || highlight === id;
-            const ok = !selectable || selectable(id);
-            const fill = colorBy === 'sector' ? SECTOR_FILL[sector] : terrainFill;
-            return (
-              <path
-                key={`c-${id}`}
-                className="map-cell"
-                d={d}
-                fill={fill}
-                stroke={on ? '#7a1d12' : '#9c8550'}
-                strokeWidth={on ? 2.4 : 0.6}
-                vectorEffect="non-scaling-stroke"
-                fillOpacity={on ? 1 : colorBy === 'sector' ? 0.82 : 0.92}
-                opacity={ok ? 1 : 0.2}
-                style={ok ? undefined : { pointerEvents: 'none' }}
-                onClick={() => ok && tap(id)}
-                onMouseEnter={() => ok && enter(id)}
-                onMouseLeave={() => leave(id)}
-              />
-            );
-          })}
+          {/* Clip paths so each area's cell is bounded by its sector's clean region. */}
+          <defs>
+            {GEO.sectors.map((s) => (
+              <clipPath key={`clip-${s}`} id={`sec-clip-${s}`} clipPathUnits="userSpaceOnUse">
+                <path d={GEO.sectorClip[s]} clipRule="evenodd" />
+              </clipPath>
+            ))}
+          </defs>
 
-          {/* Sector boundaries (bold) — the board's radial wedge structure, drawn from our own
-              cell geometry so the 8 sectors read clearly in either colour mode. */}
-          {GEO.segs.map(([x1, y1, x2, y2], i) => (
-            <line
-              key={`b-${i}`}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="#3a2a18"
-              strokeWidth={2.4}
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-              pointerEvents="none"
-            />
+          {/* Terrain cells: a per-sector Voronoi clipped to the sector region, so cells fill the
+              whole sector and never spill across a boundary. The cells are the click/hover targets. */}
+          {GEO.sectors.map((s) => (
+            <g key={`sg-${s}`} clipPath={`url(#sec-clip-${s})`}>
+              {GEO.cells
+                .filter((c) => c.sector === s)
+                .map(({ id, d, terrainFill }) => {
+                  const on = hover === id || highlight === id;
+                  const ok = !selectable || selectable(id);
+                  return (
+                    <path
+                      key={`c-${id}`}
+                      className="map-cell"
+                      d={d}
+                      fill={terrainFill}
+                      stroke={on ? '#7a1d12' : '#9c8550'}
+                      strokeWidth={on ? 2.4 : 0.6}
+                      vectorEffect="non-scaling-stroke"
+                      fillOpacity={on ? 1 : 0.92}
+                      opacity={ok ? 1 : 0.2}
+                      style={ok ? undefined : { pointerEvents: 'none' }}
+                      onClick={() => ok && tap(id)}
+                      onMouseEnter={() => ok && enter(id)}
+                      onMouseLeave={() => leave(id)}
+                    />
+                  );
+                })}
+            </g>
           ))}
 
-          {/* Sector labels at each sector's centroid */}
-          {GEO.labels.map(({ s, x, y, text }) => (
+          {/* Sectors view: clean radial region colours overlaid on the cells (non-interactive —
+              clicks fall through to the cells underneath). */}
+          {colorBy === 'sector' &&
+            GEO.regions.map((r, i) => (
+              <path key={`sr-${i}`} d={r.d} fill={r.fill} fillOpacity={0.9} pointerEvents="none" />
+            ))}
+
+          {/* North Pole: a clean circle at the centre (also the click target for that area). */}
+          {(() => {
+            const np = AREA_POSITIONS['north_pole'] ? 'north_pole' : null;
+            const on = np && (hover === np || highlight === np);
+            return (
+              <circle
+                className="map-cell"
+                cx={GEO.C[0]}
+                cy={GEO.C[1]}
+                r={GEO.r0}
+                fill={POLAR_FILL}
+                stroke={on ? '#7a1d12' : '#2b2117'}
+                strokeWidth={on ? 2.4 : 2}
+                vectorEffect="non-scaling-stroke"
+                onClick={() => np && tap(np)}
+                onMouseEnter={() => np && enter(np)}
+                onMouseLeave={() => np && leave(np)}
+              />
+            );
+          })()}
+
+          {/* Clean sector dividers: the quadrant cross + a per-quadrant inner/outer arc (each a
+              different radius, not one circle) + the polar circle. Shown in both colour modes. */}
+          <g pointerEvents="none" opacity={colorBy === 'sector' ? 1 : 0.7}>
+            <line x1={GEO.C[0]} y1={0} x2={GEO.C[0]} y2={H} stroke="#2b2117" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+            <line x1={0} y1={GEO.C[1]} x2={W} y2={GEO.C[1]} stroke="#2b2117" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+            {GEO.arcs.map((d, i) => (
+              <path key={`arc-${i}`} d={d} fill="none" stroke="#2b2117" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+            ))}
+          </g>
+
+          {/* Air zones (ornithopter / carryall) — pink circles at each zone's centroid. */}
+          {GEO.airZones.map((z) => (
+            <circle
+              key={z.id}
+              cx={z.x}
+              cy={z.y}
+              r={7 / Math.sqrt(view.k)}
+              fill={AIR_ZONE_FILL}
+              stroke="#8a2c4f"
+              strokeWidth={1.4 / view.k}
+              pointerEvents="none"
+            >
+              <title>Air zone {z.id}</title>
+            </circle>
+          ))}
+
+          {/* Sector labels */}
+          {GEO.labels.map(({ x, y, text }, i) => (
             <text
-              key={`sl-${s}`}
+              key={`sl-${i}`}
               x={x}
               y={y}
               fontSize={11 / view.k}
@@ -360,7 +476,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
               strokeWidth={3 / view.k}
               paintOrder="stroke"
               textAnchor="middle"
-              opacity={0.85}
+              opacity={0.9}
               pointerEvents="none"
             >
               {text}

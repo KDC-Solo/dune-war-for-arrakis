@@ -764,6 +764,7 @@ label.mini.check input {
 .map-legend .lg-si { background: #2f5d50; border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .map-legend .lg-st { background: #8b1f30; border-radius: 2px; }
 .map-legend .lg-tgt { background: transparent; border: 2px solid #d4a017; }
+.map-legend .lg-az { background: #e87aa0; border: 1px solid #8a2c4f; }
 
 .map-pick-banner {
   display: flex;
@@ -1022,4 +1023,14 @@ label.mini.smf-collected input {
 .area-chip:focus-visible {
   text-decoration-style: solid;
   outline: none;
+}
+
+.area-card-id {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6a583c;
+  background: #efe6d2;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
 }
