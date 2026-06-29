@@ -969,3 +969,32 @@ label.mini.smf-collected input {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* Locate chips: area labels that jump to the board map */
+.area-chip {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.area-chip::before {
+  content: '📍';
+  font-size: 0.72em;
+  margin-right: 0.15em;
+  text-decoration: none;
+  opacity: 0.65;
+}
+
+.area-chip:hover,
+.area-chip:focus-visible {
+  text-decoration-style: solid;
+  outline: none;
+}

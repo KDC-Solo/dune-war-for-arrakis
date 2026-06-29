@@ -44,6 +44,7 @@ import {
   placeWormsigns,
 } from '../engine/wormsigns';
 import type { PickTarget } from './pick';
+import { LocateContext, AreaChip, AreaChips } from './locate';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 import { loadState, saveState, clearState, exportState } from './persistence';
@@ -101,7 +102,8 @@ function HelpPanel() {
         <li>
           <strong>Board map</strong> — every area colored by terrain with your pieces overlaid. Tap/hover a dot for full
           details, or use <em>Find an area</em>. Pinch or use +/− to zoom (one-finger drag to pan) — handy on a phone.
-          The 📍 button on a legion lets you set its area by tapping the map.
+          The 📍 button on a legion lets you set its area by tapping the map. Anywhere an area name shows a
+          📍 pin, tap it to jump here and pulse that area — so you can always see where it is.
         </li>
         <li>
           <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans. <em>Start next round</em> when done.
@@ -171,7 +173,7 @@ function RoundPanel({ s, onChange }: { s: GameState; onChange: (next: GameState)
         <dt>Harvesting sector</dt>
         <dd>{s.harvestingSector ?? '—'}</dd>
         <dt>Target sietch</dt>
-        <dd>{s.targetSietchId ? areaLabel(s.targetSietchId) : '—'}</dd>
+        <dd>{s.targetSietchId ? <AreaChip id={s.targetSietchId} /> : '—'}</dd>
         <dt>Harkonnen dice</dt>
         <dd>{avail.diceAvailable}</dd>
         <dt>Vehicles available</dt>
@@ -204,8 +206,7 @@ function VehiclePanel({ s }: { s: GameState }) {
       <h2>Vehicle placement</h2>
       <p className="hint">Where to place the Harkonnen vehicles on the board this round.</p>
       <p>
-        <strong>Harvesters:</strong>{' '}
-        {placement.harvesters.length ? placement.harvesters.map(areaLabel).join(', ') : 'none'}
+        <strong>Harvesters:</strong> <AreaChips ids={placement.harvesters} />
       </p>
       <p>
         <strong>Carryalls:</strong> {placement.carryalls.length ? placement.carryalls.map(airZoneLabel).join('; ') : 'none'}
@@ -359,9 +360,9 @@ function WormsignPanel({ s, onApply }: { s: GameState; onApply: (next: GameState
         <dt>Token pool</dt>
         <dd>{s.decks.wormsignPool}</dd>
         <dt>Discard</dt>
-        <dd>{discard.length ? discard.map(areaLabel).join(', ') : 'none'}</dd>
+        <dd><AreaChips ids={discard} /></dd>
         <dt>Place</dt>
-        <dd>{place.length ? place.map(areaLabel).join(', ') : 'none'}</dd>
+        <dd><AreaChips ids={place} /></dd>
       </dl>
       <button className="confirm-btn" onClick={apply} disabled={nothing}>
         {nothing ? 'No wormsigns to place' : 'Place wormsigns'}
@@ -397,7 +398,7 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
             return (
               <div key={t.legionIndex} className="storm-row">
                 <div className="storm-area">
-                  <strong>{t.areaLabel}</strong>
+                  <strong><AreaChip id={t.area} label={t.areaLabel} /></strong>
                   <span className="hint">
                     {t.deep ? 'deep desert' : t.terrain} · special = {t.specialHitValue} hit{t.specialHitValue === 1 ? '' : 's'}
                   </span>
@@ -592,7 +593,7 @@ function AreaInfoCard({ id, s }: { id: string | null; s: GameState }) {
   const at = s.legions.find((l) => l.area === id && l.faction === 'atreides');
   const hasWorm = s.wormsigns.some((w) => w.area === id);
   const hasSandworm = s.sandworms.some((w) => w.area === id);
-  const neighbors = boardNeighbors(id).map(areaLabel).sort();
+  const neighbors = [...boardNeighbors(id)].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
   const airZones = airZonesOf(id).map((z) => airZoneLabel(z.id));
 
   return (
@@ -616,7 +617,7 @@ function AreaInfoCard({ id, s }: { id: string | null; s: GameState }) {
           {at && <div><b className="occ-a">Atreides:</b> {legionLine(at)}</div>}
         </div>
       )}
-      <div className="area-card-adj"><b>Adjacent:</b> {neighbors.join(', ')}</div>
+      <div className="area-card-adj"><b>Adjacent:</b> <AreaChips ids={neighbors} /></div>
       {airZones.length > 0 && <div className="area-card-adj"><b>Air zones:</b> {airZones.join('; ')}</div>}
     </div>
   );
@@ -627,12 +628,16 @@ function BoardMapPanel({
   onChange,
   pick,
   clearPick,
+  locate,
+  clearLocate,
   panelRef,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
   pick: PickTarget | null;
   clearPick: () => void;
+  locate: string | null;
+  clearLocate: () => void;
   panelRef: React.RefObject<HTMLDetailsElement>;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
@@ -645,6 +650,18 @@ function BoardMapPanel({
       panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [pick, panelRef]);
+
+  // When a locate chip is clicked, select that area, open the map, and scroll to it (the
+  // highlight prop pulses it). Then clear the one-shot request.
+  useEffect(() => {
+    if (!locate) return;
+    setPicked(locate);
+    if (panelRef.current) {
+      panelRef.current.open = true;
+      panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    clearLocate();
+  }, [locate, clearLocate, panelRef]);
 
   // The area currently held by the pick target (to highlight while picking), and a description.
   let pickArea: string | null = null;
@@ -699,7 +716,7 @@ function BoardMapPanel({
   return (
     <details className="panel" ref={panelRef}>
       <summary className="map-summary">Board map</summary>
-      <p className="hint">Every area, colored by terrain, with your pieces overlaid. Hover or click a dot for full details; use <em>Find an area</em> to locate one.</p>
+      <p className="hint">Every area, colored by terrain, with your pieces overlaid. Hover or click a dot for full details; use <em>Find an area</em> to locate one. Any 📍 area name elsewhere in the app jumps here and pulses that area.</p>
 
       {pick && (
         <div className="map-pick-banner">
@@ -907,7 +924,7 @@ function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) 
               {pairs.map((p) => (
                 <li key={p.area} className="legion-row">
                   <span>
-                    <strong>{areaLabel(p.area)}</strong> — Harkonnen ({legionSummary(p.attacker)}) vs Atreides ({legionSummary(p.defender)})
+                    <strong><AreaChip id={p.area} /></strong> — Harkonnen ({legionSummary(p.attacker)}) vs Atreides ({legionSummary(p.defender)})
                   </span>
                   <button className="confirm-btn" onClick={() => start(p)}>
                     Fight
@@ -923,7 +940,7 @@ function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) 
         <>
           <dl className="kv">
             <dt>Area</dt>
-            <dd>{areaLabel(session.ctx.defender.area)}</dd>
+            <dd><AreaChip id={session.ctx.defender.area} /></dd>
             <dt>Round</dt>
             <dd>{session.rounds + (session.status === 'ongoing' ? 1 : 0)}</dd>
             <dt>Harkonnen</dt>
@@ -975,6 +992,8 @@ export function App() {
   const [past, setPast] = useState<GameState[]>([]);
   // Active "click the map to set this area" request from the editor.
   const [pick, setPick] = useState<PickTarget | null>(null);
+  // Active "show this area on the map" request from a locate chip.
+  const [locate, setLocate] = useState<string | null>(null);
   const mapRef = useRef<HTMLDetailsElement>(null);
 
   // Persist on every change.
@@ -1018,6 +1037,7 @@ export function App() {
   };
 
   return (
+    <LocateContext.Provider value={setLocate}>
     <div className="app">
       <header>
         <div className="header-row">
@@ -1033,7 +1053,15 @@ export function App() {
       <main>
         <HelpPanel />
         <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
-        <BoardMapPanel s={s} onChange={setS} pick={pick} clearPick={() => setPick(null)} panelRef={mapRef} />
+        <BoardMapPanel
+          s={s}
+          onChange={setS}
+          pick={pick}
+          clearPick={() => setPick(null)}
+          locate={locate}
+          clearLocate={() => setLocate(null)}
+          panelRef={mapRef}
+        />
         <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} />
         <RoundPanel s={s} onChange={commit} />
         <PhasePanel s={s} onChange={setS} />
@@ -1049,5 +1077,6 @@ export function App() {
         <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>
       </footer>
     </div>
+    </LocateContext.Provider>
   );
 }

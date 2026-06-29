@@ -21,6 +21,7 @@ import { canPlaceWormsign, canPlaceSandworm } from '../engine/wormsigns';
 import { NAMED_LEADERS } from '../engine/leaders';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
+import { AreaChip } from './locate';
 
 const NAMED_LEADER_NAMES: readonly string[] = NAMED_LEADERS.map((l) => l.name);
 
@@ -231,7 +232,7 @@ export function StateEditor({
       <div className="feature-list">
         {s.sietches.map((si, i) => (
           <div key={si.area} className={`feature-row ${si.destroyed ? 'destroyed' : ''}`}>
-            <span className="feature-name">{areaLabel(si.area)}</span>
+            <span className="feature-name"><AreaChip id={si.area} /></span>
             <label className="mini">
               Rank
               <select
@@ -274,7 +275,7 @@ export function StateEditor({
         {s.settlements.map((st, i) => (
           <div key={st.area} className={`feature-row ${st.destroyed ? 'destroyed' : ''}`}>
             <span className="feature-name">
-              {areaLabel(st.area)} <span className="hint">(rank {st.rank})</span>
+              <AreaChip id={st.area} /> <span className="hint">(rank {st.rank})</span>
             </span>
             <label className="mini check">
               <input
