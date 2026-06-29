@@ -718,14 +718,13 @@ label.mini.check input {
   border: 1px solid var(--line);
   background: #f3e2bd;
 }
-.map-dot {
+.map-cell {
   cursor: pointer;
-  transition: r 0.08s ease;
 }
 .board-map.picking {
   outline: 2px solid var(--accent);
 }
-.board-map.picking .map-dot {
+.board-map.picking .map-cell {
   cursor: crosshair;
 }
 .map-pick {

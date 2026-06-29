@@ -6,6 +6,7 @@
 // wheel zooms on desktop, and +/−/reset buttons work everywhere — so dots are tappable on phones.
 
 import { useEffect, useRef, useState } from 'react';
+import { Delaunay } from 'd3-delaunay';
 import { AREAS } from '../engine/board';
 import type { Terrain } from '../engine/board';
 import { AREA_POSITIONS, BOARD_ASPECT } from '../engine/boardPositions';
@@ -35,6 +36,16 @@ const xy = (id: string): [number, number] => {
   const p = AREA_POSITIONS[id];
   return p ? [p[0] * W, p[1] * H] : [0, 0];
 };
+
+// Voronoi tessellation of the area centres — turns our captured points into filled, contiguous
+// terrain cells that tile the board (our own generated geometry, no third-party art). Static, so
+// it's computed once at module load rather than per render.
+const CELLS: { id: string; d: string; fill: string }[] = (() => {
+  const ids = Object.keys(AREA_POSITIONS);
+  const delaunay = Delaunay.from(ids.map(xy));
+  const voronoi = delaunay.voronoi([0, 0, W, H]);
+  return ids.map((id, i) => ({ id, d: voronoi.renderCell(i), fill: fillFor(id) }));
+})();
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
@@ -212,16 +223,41 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
       >
         <rect x={0} y={0} width={W} height={H} rx={10} fill="#f3e2bd" stroke="#d8c9aa" />
         <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
+          {/* Terrain cells (Voronoi of the area centres) — the filled, contiguous base map. Clicking
+              anywhere in a cell selects that area, so the hit targets are large and easy to tap. */}
+          {CELLS.map(({ id, d, fill }) => {
+            const on = hover === id || highlight === id;
+            const ok = !selectable || selectable(id);
+            return (
+              <path
+                key={`c-${id}`}
+                className="map-cell"
+                d={d}
+                fill={fill}
+                stroke={on ? '#7a1d12' : '#9c8550'}
+                strokeWidth={on ? 2.4 : 0.8}
+                vectorEffect="non-scaling-stroke"
+                fillOpacity={on ? 1 : 0.92}
+                opacity={ok ? 1 : 0.2}
+                style={ok ? undefined : { pointerEvents: 'none' }}
+                onClick={() => ok && tap(id)}
+                onMouseEnter={() => ok && enter(id)}
+                onMouseLeave={() => leave(id)}
+              />
+            );
+          })}
+
           {/* Target sietch halo (under markers) */}
           {target && AREA_POSITIONS[target] && (() => {
             const [cx, cy] = xy(target);
             return <circle cx={cx} cy={cy} r={15} fill="none" stroke="#d4a017" strokeWidth={3} strokeDasharray="4 3" />;
           })()}
 
-          {/* Area dots */}
+          {/* Small centre dots mark each area (so adjacent same-terrain cells stay distinct).
+              Non-interactive — the cells underneath handle clicks/hover. */}
           {ids.map((id) => {
             const [cx, cy] = xy(id);
-            const big = hover === id || highlight === id;
+            const on = hover === id || highlight === id;
             const ok = !selectable || selectable(id);
             return (
               <circle
@@ -229,15 +265,10 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
                 className="map-dot"
                 cx={cx}
                 cy={cy}
-                r={(big ? 11 : 8) / Math.sqrt(view.k)}
-                fill={fillFor(id)}
-                stroke={big ? '#7a1d12' : '#6b5a3c'}
-                strokeWidth={(big ? 2.2 : 1) / view.k}
-                opacity={ok ? 1 : 0.25}
-                style={ok ? undefined : { pointerEvents: 'none' }}
-                onClick={() => ok && tap(id)}
-                onMouseEnter={() => ok && enter(id)}
-                onMouseLeave={() => leave(id)}
+                r={(on ? 3.4 : 2.2) / Math.sqrt(view.k)}
+                fill={on ? '#7a1d12' : '#4a3c28'}
+                opacity={ok ? 0.85 : 0.2}
+                pointerEvents="none"
               />
             );
           })}
