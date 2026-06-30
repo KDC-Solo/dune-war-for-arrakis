@@ -3,7 +3,7 @@
 // App via LocateContext and consumed by the Board map panel.
 
 import { createContext, useContext } from 'react';
-import { areaLabel } from '../engine/describeArea';
+import { areaLabel, airZoneLabel } from '../engine/describeArea';
 
 export type LocateFn = (areaId: string) => void;
 
@@ -38,6 +38,36 @@ export function AreaChips({ ids, sep = ', ', empty = 'none' }: { ids: string[]; 
         <span key={`${id}-${i}`}>
           {i > 0 && sep}
           <AreaChip id={id} />
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** An air-zone label that, when clicked, highlights that air zone on the Board map. */
+export function AirZoneChip({ id, label }: { id: string; label?: string }) {
+  const locate = useLocate();
+  return (
+    <button
+      type="button"
+      className="area-chip"
+      onClick={() => locate(id)}
+      title="Show this air zone on the board map"
+    >
+      {label ?? airZoneLabel(id)}
+    </button>
+  );
+}
+
+/** A separated list of air-zone ids as locate chips. */
+export function AirZoneChips({ ids, sep = '; ', empty = 'none' }: { ids: string[]; sep?: string; empty?: string }) {
+  if (ids.length === 0) return <>{empty}</>;
+  return (
+    <>
+      {ids.map((id, i) => (
+        <span key={`${id}-${i}`}>
+          {i > 0 && sep}
+          <AirZoneChip id={id} />
         </span>
       ))}
     </>

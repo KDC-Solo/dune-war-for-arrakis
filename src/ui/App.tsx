@@ -35,7 +35,6 @@ import { GamesPanel } from './GamesPanel';
 import { BoardMap } from './BoardMap';
 import { AREA_IDS, AREAS } from '../engine/board';
 import { neighbors as boardNeighbors, airZonesOf } from '../engine/graph';
-import { airZoneLabel } from '../engine/describeArea';
 import {
   canPlaceWormsign,
   canPlaceSandworm,
@@ -44,7 +43,7 @@ import {
   placeWormsigns,
 } from '../engine/wormsigns';
 import type { PickTarget } from './pick';
-import { LocateContext, AreaChip, AreaChips } from './locate';
+import { LocateContext, AreaChip, AreaChips, AirZoneChips } from './locate';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 import { loadState, saveState, clearState, exportState } from './persistence';
@@ -209,11 +208,10 @@ function VehiclePanel({ s }: { s: GameState }) {
         <strong>Harvesters:</strong> <AreaChips ids={placement.harvesters} />
       </p>
       <p>
-        <strong>Carryalls:</strong> {placement.carryalls.length ? placement.carryalls.map(airZoneLabel).join('; ') : 'none'}
+        <strong>Carryalls:</strong> <AirZoneChips ids={placement.carryalls} />
       </p>
       <p>
-        <strong>Ornithopters:</strong>{' '}
-        {placement.ornithopters.length ? placement.ornithopters.map(airZoneLabel).join('; ') : 'none'}
+        <strong>Ornithopters:</strong> <AirZoneChips ids={placement.ornithopters} />
       </p>
     </section>
   );
@@ -594,7 +592,7 @@ function AreaInfoCard({ id, s }: { id: string | null; s: GameState }) {
   const hasWorm = s.wormsigns.some((w) => w.area === id);
   const hasSandworm = s.sandworms.some((w) => w.area === id);
   const neighbors = [...boardNeighbors(id)].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
-  const airZones = airZonesOf(id).map((z) => airZoneLabel(z.id));
+  const airZones = airZonesOf(id).map((z) => z.id);
 
   return (
     <div className="area-card">
@@ -620,7 +618,7 @@ function AreaInfoCard({ id, s }: { id: string | null; s: GameState }) {
         </div>
       )}
       <div className="area-card-adj"><b>Adjacent:</b> <AreaChips ids={neighbors} /></div>
-      {airZones.length > 0 && <div className="area-card-adj"><b>Air zones:</b> {airZones.join('; ')}</div>}
+      {airZones.length > 0 && <div className="area-card-adj"><b>Air zones:</b> <AirZoneChips ids={airZones} sep="; " /></div>}
     </div>
   );
 }
@@ -647,9 +645,10 @@ function BoardMapPanel({
   // One-shot request to zoom/pan the map onto an area (nonce re-fires identical locates).
   const [focus, setFocus] = useState<{ id: string; nonce: number } | null>(null);
 
-  // Select an area, pulse it, and zoom/centre the map on it.
+  // Select an area (or air zone), pulse it, and centre the map on it. Air zones aren't areas, so
+  // they don't drive the area selection/info card — only the map focus.
   const focusArea = (id: string | null) => {
-    setPicked(id);
+    if (!id || AREAS[id]) setPicked(id);
     if (id) setFocus({ id, nonce: Date.now() });
   };
 

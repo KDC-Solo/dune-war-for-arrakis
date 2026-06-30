@@ -10,7 +10,7 @@ import { AREAS, AIR_ZONES, IMPASSABLE } from '../engine/board';
 import type { Terrain } from '../engine/board';
 import { AREA_POSITIONS } from '../engine/boardPositions';
 import { AREA_SHAPES, AIR_ZONE_DOTS } from '../engine/boardShapes';
-import { areaLabel } from '../engine/describeArea';
+import { areaLabel, airZoneLabel } from '../engine/describeArea';
 import type { GameState } from '../engine/state';
 
 const W = 1000;
@@ -141,8 +141,6 @@ function clampView(v: View): View {
   };
 }
 
-const FOCUS_ZOOM = 3.2; // how far to zoom in when focusing a located area
-
 export interface BoardMapProps {
   /** Area to emphasize (gold pulse + label). */
   highlight?: string | null;
@@ -184,13 +182,13 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
     };
   }, [maximized]);
 
-  // Zoom & pan the located area to the centre of the viewport so it's unmistakable.
+  // Pan the located area to the centre of the viewport so it's unmistakable. We keep the current
+  // zoom level (the player asked not to zoom in on locate) and just re-centre + emphasize.
   useEffect(() => {
     if (!focus) return;
-    const p = AREA_POSITIONS[focus.id];
+    const p = AREA_POSITIONS[focus.id] ?? AIR_ZONE_DOTS[focus.id];
     if (!p) return;
-    const k = FOCUS_ZOOM;
-    setView(clampView({ k, tx: W / 2 - k * (p[0] * W), ty: H / 2 - k * (p[1] * H) }));
+    setView((v) => clampView({ k: v.k, tx: W / 2 - v.k * (p[0] * W), ty: H / 2 - v.k * (p[1] * H) }));
     setEmphasis(focus.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus?.nonce]);
@@ -374,10 +372,20 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             );
           })}
 
-          {/* Selected / located area — highlight the whole polygon (gold), not just a dot. */}
+          {/* Selected / located area — highlight the whole polygon (gold), not just a dot. An air
+              zone (no polygon) pulses a gold ring around its circle instead. */}
           {(() => {
             const sel = emphasis ?? highlight;
-            const cell = sel ? GEO.cells.find((c) => c.id === sel) : null;
+            if (!sel) return null;
+            const azDot = AIR_ZONE_DOTS[sel];
+            if (azDot) {
+              return (
+                <circle cx={azDot[0] * W} cy={azDot[1] * H} r={AIR_ZONE_R + 5} fill="#f4c842" stroke="#d4a017" strokeWidth={4} vectorEffect="non-scaling-stroke" pointerEvents="none">
+                  <animate attributeName="fill-opacity" values="0.5;0.15;0.5" dur="1.4s" repeatCount="indefinite" />
+                </circle>
+              );
+            }
+            const cell = GEO.cells.find((c) => c.id === sel);
             if (!cell) return null;
             return (
               <path d={cell.d} fill="#f4c842" stroke="#d4a017" strokeWidth={4} strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none">
@@ -482,22 +490,23 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
           {/* Strong locate emphasis: dim the rest of the board and label the located area (the gold
               whole-area highlight above marks it). Cleared on first interaction. */}
           {emphasis && (() => {
-            const cell = GEO.cells.find((c) => c.id === emphasis);
-            if (!cell) return null;
-            const [cx, cy] = xy(emphasis);
+            const azDot = AIR_ZONE_DOTS[emphasis];
+            const cell = azDot ? null : GEO.cells.find((c) => c.id === emphasis);
+            if (!azDot && !cell) return null;
+            const [cx, cy] = azDot ? [azDot[0] * W, azDot[1] * H] : xy(emphasis);
             const s = 1 / view.k; // keep the label a constant on-screen size at any zoom
             return (
               <g pointerEvents="none">
                 <defs>
                   <mask id="focus-mask">
                     <rect x={0} y={0} width={W} height={H} fill="#fff" />
-                    <path d={cell.d} fill="#000" />
+                    {cell ? <path d={cell.d} fill="#000" /> : <circle cx={cx} cy={cy} r={AIR_ZONE_R + 5} fill="#000" />}
                   </mask>
                 </defs>
                 <rect x={0} y={0} width={W} height={H} fill="#1c160d" opacity={0.42} mask="url(#focus-mask)" />
                 <text
                   x={cx}
-                  y={cy}
+                  y={azDot ? cy + (AIR_ZONE_R + 14) : cy}
                   fontSize={13 * s}
                   fontWeight={700}
                   fill="#3a2a12"
@@ -506,7 +515,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
                   paintOrder="stroke"
                   textAnchor="middle"
                 >
-                  {areaLabel(emphasis)}
+                  {azDot ? airZoneLabel(emphasis) : areaLabel(emphasis)}
                 </text>
               </g>
             );
