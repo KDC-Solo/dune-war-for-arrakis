@@ -44,6 +44,9 @@ const DISPLAY_POS: Record<string, readonly [number, number]> = {
   s2_6: [0.7565, 0.837], // pull in off the bottom edge
   s5_5: [0.67, 0.39], // fronts the NE arc (borders s1_5/s1_7) while still touching s5_4 and imperial_basin
   imperial_basin: [0.55, 0.335], // up off the s5_4↔s5_5 edge (lengthens it ~46px) and clear of s5_7
+  s5_1: [0.515, 0.315], // wedged between carthag and imperial_basin so those two don't touch
+  s4_11: [0.45, 0.215], // down off the top board edge (sand area s4_3 covers the corner)
+  s4_3: [0.44, 0.05], // along the top edge so it covers the corner above s4_11
 };
 const xy = (id: string): [number, number] => {
   const p = DISPLAY_POS[id] ?? AREA_POSITIONS[id];
