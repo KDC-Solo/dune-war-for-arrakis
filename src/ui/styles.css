@@ -764,7 +764,7 @@ label.mini.check input {
 .map-legend .lg-si { background: #2f5d50; border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .map-legend .lg-st { background: #8b1f30; border-radius: 2px; }
 .map-legend .lg-tgt { background: transparent; border: 2px solid #d4a017; }
-.map-legend .lg-az { background: #ec3f87; border: 1px solid #fff; }
+.map-legend .lg-az { background: #2563c9; border: 1px solid #fff; }
 .map-legend .lg-imp { background: #c0182a; border: 1px solid #fff; border-radius: 1px; height: 5px; align-self: center; }
 
 .map-pick-banner {

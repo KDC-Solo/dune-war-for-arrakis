@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AREAS, AIR_ZONES, IMPASSABLE } from '../engine/board';
 import type { Terrain } from '../engine/board';
 import { AREA_POSITIONS } from '../engine/boardPositions';
-import { AREA_SHAPES } from '../engine/boardShapes';
+import { AREA_SHAPES, AIR_ZONE_DOTS } from '../engine/boardShapes';
 import { areaLabel } from '../engine/describeArea';
 import type { GameState } from '../engine/state';
 
@@ -50,7 +50,8 @@ const SECTOR_FILL: Record<string, string> = {
   s5: '#4f9e86', s6: '#4e86b0', s7: '#7a6fb0', s8: '#b05f97', np: '#9c8550',
 };
 const POLAR_FILL = '#b8b1a4'; // the North Pole cap (grey, like the board's polar sink)
-const AIR_ZONE_FILL = '#ec3f87'; // ornithopter / carryall air-zone circles (pink)
+const AIR_ZONE_FILL = '#2563c9'; // ornithopter / carryall air-zone circles (blue — distinct from red walls)
+const AIR_ZONE_R = 16; // board units, matching the printed board's circles
 
 // Board geometry from the traced area outlines (boardShapes.ts, derived from docs/images/dune-map.png).
 // Each area renders as its real polygon; impassable walls are the polygons' shared borders; air zones
@@ -114,18 +115,11 @@ const GEO = (() => {
     .map(([a, b]) => ({ d: sharedBorder(a, b) ?? sharedBorder(b, a) ?? closestMark(a, b) }))
     .filter((x): x is { d: string } => !!x.d);
 
-  const centroid = (poly: [number, number][]): [number, number] => {
-    const n = poly.length - 1;
-    let x = 0, y = 0;
-    for (let i = 0; i < n; i++) { x += poly[i][0]; y += poly[i][1]; }
-    return [x / n, y / n];
-  };
+  // Air-zone circles at the spots traced from the board (boardShapes.ts), same size as on the board.
   const airZones = AIR_ZONES.map((z) => {
-    const cs = z.areas.map((id) => polyOf[id]).filter(Boolean).map(centroid);
-    const x = cs.reduce((t, p) => t + p[0], 0) / (cs.length || 1);
-    const y = cs.reduce((t, p) => t + p[1], 0) / (cs.length || 1);
-    return { id: z.id, x, y };
-  });
+    const dot = AIR_ZONE_DOTS[z.id];
+    return dot ? { id: z.id, x: dot[0] * W, y: dot[1] * H } : null;
+  }).filter((z): z is { id: string; x: number; y: number } => !!z);
   return { cells, impassable, airZones };
 })();
 
@@ -380,6 +374,18 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             );
           })}
 
+          {/* Selected / located area — highlight the whole polygon (gold), not just a dot. */}
+          {(() => {
+            const sel = emphasis ?? highlight;
+            const cell = sel ? GEO.cells.find((c) => c.id === sel) : null;
+            if (!cell) return null;
+            return (
+              <path d={cell.d} fill="#f4c842" stroke="#d4a017" strokeWidth={4} strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none">
+                <animate attributeName="fill-opacity" values="0.5;0.15;0.5" dur="1.4s" repeatCount="indefinite" />
+              </path>
+            );
+          })()}
+
           {/* Impassable borders — a bold red mark (white-cased) along the two areas' shared edge. */}
           {GEO.impassable.map((b, i) => (
             <g key={`imp-${i}`} pointerEvents="none" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -388,16 +394,18 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             </g>
           ))}
 
-          {/* Air zones (ornithopter / carryall) — pink circles at each zone's centre. */}
+          {/* Air zones (ornithopter / carryall) — blue circles matching the board's size/position. */}
           {GEO.airZones.map((z) => (
             <circle
               key={z.id}
               cx={z.x}
               cy={z.y}
-              r={10 / Math.sqrt(view.k)}
+              r={AIR_ZONE_R}
               fill={AIR_ZONE_FILL}
+              fillOpacity={0.92}
               stroke="#fff"
-              strokeWidth={2 / view.k}
+              strokeWidth={2}
+              vectorEffect="non-scaling-stroke"
               pointerEvents="none"
             >
               <title>Air zone {z.id}</title>
@@ -471,42 +479,25 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             return <circle key={`w-${id}`} cx={cx + 10} cy={cy - 3} r={3} fill="#5b3b1a" pointerEvents="none" />;
           })}
 
-          {/* Light highlight ring for a plainly selected area (constant on-screen size at any zoom) */}
-          {highlight && highlight !== emphasis && AREA_POSITIONS[highlight] && (() => {
-            const [cx, cy] = xy(highlight);
-            const s = 1 / view.k;
-            return (
-              <circle cx={cx} cy={cy} r={13 * s} fill="none" stroke="#d4a017" strokeWidth={3 * s} pointerEvents="none">
-                <animate attributeName="r" values={`${11 * s};${17 * s};${11 * s}`} dur="1.4s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="1;0.3;1" dur="1.4s" repeatCount="indefinite" />
-              </circle>
-            );
-          })()}
-
-          {/* Strong locate emphasis: dim the rest of the board, a bright pulsing ring, and a label,
-              so a just-located area is unmistakable even on a crowded board. Cleared on interaction. */}
-          {emphasis && AREA_POSITIONS[emphasis] && (() => {
+          {/* Strong locate emphasis: dim the rest of the board and label the located area (the gold
+              whole-area highlight above marks it). Cleared on first interaction. */}
+          {emphasis && (() => {
+            const cell = GEO.cells.find((c) => c.id === emphasis);
+            if (!cell) return null;
             const [cx, cy] = xy(emphasis);
-            const s = 1 / view.k; // keep ring/label a constant on-screen size at any zoom
+            const s = 1 / view.k; // keep the label a constant on-screen size at any zoom
             return (
               <g pointerEvents="none">
                 <defs>
                   <mask id="focus-mask">
                     <rect x={0} y={0} width={W} height={H} fill="#fff" />
-                    <circle cx={cx} cy={cy} r={40 * s} fill="#000" />
+                    <path d={cell.d} fill="#000" />
                   </mask>
                 </defs>
-                <rect x={0} y={0} width={W} height={H} fill="#1c160d" opacity={0.38} mask="url(#focus-mask)" />
-                <circle cx={cx} cy={cy} r={20 * s} fill="none" stroke="#fff" strokeWidth={4 * s} opacity={0.9}>
-                  <animate attributeName="r" values={`${14 * s};${24 * s};${14 * s}`} dur="1.3s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="1;0.25;1" dur="1.3s" repeatCount="indefinite" />
-                </circle>
-                <circle cx={cx} cy={cy} r={20 * s} fill="none" stroke="#d4a017" strokeWidth={2.4 * s}>
-                  <animate attributeName="r" values={`${14 * s};${24 * s};${14 * s}`} dur="1.3s" repeatCount="indefinite" />
-                </circle>
+                <rect x={0} y={0} width={W} height={H} fill="#1c160d" opacity={0.42} mask="url(#focus-mask)" />
                 <text
                   x={cx}
-                  y={cy - 24 * s}
+                  y={cy}
                   fontSize={13 * s}
                   fontWeight={700}
                   fill="#3a2a12"
