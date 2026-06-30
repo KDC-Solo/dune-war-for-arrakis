@@ -494,7 +494,8 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             const cell = azDot ? null : GEO.cells.find((c) => c.id === emphasis);
             if (!azDot && !cell) return null;
             const [cx, cy] = azDot ? [azDot[0] * W, azDot[1] * H] : xy(emphasis);
-            const s = 1 / view.k; // keep the label a constant on-screen size at any zoom
+            // The label is drawn in board units (no 1/k compensation), so it zooms in and out with
+            // the map — readable at default zoom and larger as you zoom in.
             return (
               <g pointerEvents="none">
                 <defs>
@@ -506,12 +507,12 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
                 <rect x={0} y={0} width={W} height={H} fill="#1c160d" opacity={0.42} mask="url(#focus-mask)" />
                 <text
                   x={cx}
-                  y={azDot ? cy + (AIR_ZONE_R + 14) : cy}
-                  fontSize={13 * s}
+                  y={azDot ? cy + (AIR_ZONE_R + 16) : cy}
+                  fontSize={24}
                   fontWeight={700}
                   fill="#3a2a12"
                   stroke="#fff"
-                  strokeWidth={3 * s}
+                  strokeWidth={5}
                   paintOrder="stroke"
                   textAnchor="middle"
                 >
