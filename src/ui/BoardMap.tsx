@@ -39,14 +39,21 @@ function fillFor(id: string): string {
 // spot so the radial layout matches the board's adjacency — e.g. Splintered Rock isn't adjacent to
 // the North Pole, but its captured point sits between Wind Pass and the centre, so its cell would
 // touch the pole. Engine logic uses the adjacency graph, not these pixels, so this is purely visual.
+// Display-only nudges, fitted by scripts/layout/optimize.mjs to minimise the gap between the
+// rendered cell adjacency and the board's ADJACENCY∪IMPASSABLE graph (docs/images/dune-map.png),
+// capped near each area's captured spot. Engine logic uses the graph, not these pixels.
 const DISPLAY_POS: Record<string, readonly [number, number]> = {
   splintered_rock: [0.401, 0.441], // off the pole — Wind Pass is the s8 area adjacent to N. Pole
   s2_6: [0.7565, 0.837], // pull in off the bottom edge
-  s5_5: [0.67, 0.39], // fronts the NE arc (borders s1_5/s1_7) while still touching s5_4 and imperial_basin
-  imperial_basin: [0.55, 0.335], // up off the s5_4↔s5_5 edge (lengthens it ~46px) and clear of s5_7
-  s5_1: [0.515, 0.315], // wedged between carthag and imperial_basin so those two don't touch
-  s4_11: [0.45, 0.215], // down off the top board edge (sand area s4_3 covers the corner)
-  s4_3: [0.44, 0.05], // along the top edge so it covers the corner above s4_11
+  // inner-NE (s5) wedge — reconcile the crowded named/rock areas with the adjacency graph
+  s5_1: [0.525, 0.325], s5_2: [0.5009, 0.4592], s5_3: [0.5103, 0.4936], s5_5: [0.67, 0.4],
+  s5_9: [0.7624, 0.5759], arrakeen: [0.5566, 0.2874], broken_land: [0.4934, 0.2075],
+  carthag: [0.4935, 0.2865], hole_in_the_rock: [0.5317, 0.4486], imperial_basin: [0.59, 0.375],
+  rimwall_west: [0.6063, 0.256], shield_wall_1: [0.738, 0.4583],
+  // inner-NW (s4) rock areas + top sand cover
+  s4_3: [0.41, 0.04], s4_10: [0.396, 0.0933], s4_11: [0.428, 0.1791], s4_12: [0.171, 0.5642],
+  // inner-NW (s8)
+  arsunt: [0.4308, 0.2876], hagga_basin: [0.4216, 0.3874], s8_2: [0.3679, 0.4407], wind_pass: [0.3706, 0.5757],
 };
 const xy = (id: string): [number, number] => {
   const p = DISPLAY_POS[id] ?? AREA_POSITIONS[id];
