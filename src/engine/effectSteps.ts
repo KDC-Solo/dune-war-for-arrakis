@@ -126,22 +126,23 @@ export function placeVehicles(
   const newCarryalls = placeCarryalls(s, counts.carryall ?? 0, harvesterAreas);
   const newOrnithopters = placeOrnithopters(s, counts.ornithopter ?? 0);
 
+  // Describe what the card says (from counts), not just what positions were found.
   const countParts: string[] = [];
-  if (newHarvesters.length)
+  if (counts.harvester)
     countParts.push(
-      `${newHarvesters.length} harvester${newHarvesters.length === 1 ? "" : "s"}`,
+      `${counts.harvester} harvester${counts.harvester === 1 ? "" : "s"}`,
     );
-  if (newCarryalls.length)
+  if (counts.carryall)
     countParts.push(
-      `${newCarryalls.length} carryall${newCarryalls.length === 1 ? "" : "s"}`,
+      `${counts.carryall} carryall${counts.carryall === 1 ? "" : "s"}`,
     );
-  if (newOrnithopters.length)
+  if (counts.ornithopter)
     countParts.push(
-      `${newOrnithopters.length} ornithopter${newOrnithopters.length === 1 ? "" : "s"}`,
+      `${counts.ornithopter} ornithopter${counts.ornithopter === 1 ? "" : "s"}`,
     );
   const text = countParts.length
     ? `Place ${countParts.join(" and ")} on the board:`
-    : "No legal vehicle placement available.";
+    : "No vehicles to place.";
 
   return {
     text,

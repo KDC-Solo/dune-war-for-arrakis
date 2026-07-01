@@ -179,7 +179,8 @@ function harvestersProtected(
 /**
  * Place `count` carryalls in the unoccupied air zones that protect the most harvesters (1 per
  * zone). `harvesterAreas` are the harvesters on the board this round. Zones protecting 0
- * harvesters are skipped (a carryall there protects nothing).
+ * harvesters are skipped in the primary ranking but used as fallback so a carryall is always
+ * placed when one is requested (e.g. from a card effect).
  */
 export function placeCarryalls(
   s: GameState,
@@ -189,12 +190,16 @@ export function placeCarryalls(
   if (count <= 0) return [];
   const hset = new Set(harvesterAreas);
   const taken = occupiedZones(s);
-  const ranked = AIR_ZONES.map((z) => z.id)
-    .filter((id) => !taken.has(id))
+  const free = AIR_ZONES.map((z) => z.id).filter((id) => !taken.has(id));
+  // Primary: zones that protect at least 1 harvester, ranked by coverage.
+  const primary = free
     .map((id) => ({ id, n: harvestersProtected(id, hset) }))
     .filter((z) => z.n > 0)
-    .sort((a, b) => (b.n !== a.n ? b.n - a.n : a.id.localeCompare(b.id)));
-  return ranked.slice(0, count).map((z) => z.id);
+    .sort((a, b) => (b.n !== a.n ? b.n - a.n : a.id.localeCompare(b.id)))
+    .map((z) => z.id);
+  // Fallback: any remaining free zone (for card effects that must always place).
+  const fallback = free.filter((id) => !primary.includes(id)).sort();
+  return [...primary, ...fallback].slice(0, count);
 }
 
 // --- ornithopter placement -------------------------------------------------
