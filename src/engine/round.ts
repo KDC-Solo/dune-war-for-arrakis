@@ -210,7 +210,9 @@ export function startNextRound(
     ...s,
     round: s.round + 1,
     tracks: { ...s.tracks, supremacy },
-    vehicles: [], // vehicles return to supply at end of each round
+    // Ornithopters and carryalls are removed at end of round (rulebook end-of-round step 2).
+    // Harvesters are removed during spice harvesting. All vehicles are off the board by here.
+    vehicles: [],
   };
   return {
     state: setupRound(ended, rng),

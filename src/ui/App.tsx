@@ -226,7 +226,7 @@ function VehiclePanel({ s, onChange }: { s: GameState; onChange: (next: GameStat
       ...placement.carryalls.map((loc) => ({ type: 'carryall' as const, location: loc })),
       ...placement.ornithopters.map((loc) => ({ type: 'ornithopter' as const, location: loc })),
     ];
-    onChange({ ...s, vehicles: [...s.vehicles, ...newVehicles] });
+    onChange({ ...s, vehicles: newVehicles });
   };
 
   const removeVehicle = (v: import('../engine/state').Vehicle) =>
