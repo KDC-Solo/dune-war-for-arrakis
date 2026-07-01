@@ -3,8 +3,10 @@
 // and panels react to the updated state. Sietch/settlement ranks are fixed board data, so only
 // their presence (legions) and the round/marker state are editable here for now.
 
+import { useState } from 'react';
 import { AREA_IDS, type SectorId } from '../engine/board';
 import { activeBans } from '../engine/spiceMustFlow';
+import { deployFromReserve } from '../engine/applyAction';
 import {
   emptyLegion,
   type Faction,
@@ -138,6 +140,79 @@ function setGenericLeaders(l: Legion, generic: number): Leader[] {
   const gens: Leader[] = [];
   for (let i = 0; i < generic; i++) gens.push({ kind: 'generic', faction: l.faction });
   return [...gens, ...named];
+}
+
+/**
+ * Move units + an optional leader from the Harkonnen reserve onto the board, drawing them down
+ * from the pool so board and reserve totals stay in sync (instead of editing a legion's counts by
+ * hand, which leaves the reserve untouched). Drops into a live Harkonnen settlement or any area
+ * that already holds a Harkonnen legion, merging into it.
+ */
+function DeployForm({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
+  const r = s.harkonnenReserve;
+  const areaSet = new Set<string>();
+  for (const st of s.settlements) if (!st.destroyed) areaSet.add(st.area);
+  for (const l of s.legions) if (l.faction === 'harkonnen') areaSet.add(l.area);
+  const areaList = [...areaSet].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
+  const leaderOptions = [...(r.bashars > 0 ? ['Bashar'] : []), ...r.namedLeaders];
+
+  const [area, setArea] = useState('');
+  const [units, setUnits] = useState<Record<UnitType, number>>({ regular: 0, elite: 0, special_elite: 0 });
+  const [leader, setLeader] = useState('');
+
+  const dropArea = areaList.includes(area) ? area : areaList[0] ?? '';
+  const total = units.regular + units.elite + units.special_elite + (leader ? 1 : 0);
+  const canDeploy = !!dropArea && total > 0;
+
+  const deploy = () => {
+    if (!canDeploy) return;
+    onChange(deployFromReserve(s, { settlement: dropArea, units, leader: leader || null }));
+    setUnits({ regular: 0, elite: 0, special_elite: 0 });
+    setLeader('');
+  };
+
+  return (
+    <div className="deploy-form">
+      <div className="ed-grid">
+        <label>
+          Into
+          <select value={dropArea} onChange={(e) => setArea(e.target.value)}>
+            {areaList.length === 0 && <option value="">— no Harkonnen area —</option>}
+            {areaList.map((id) => (
+              <option key={id} value={id}>
+                {areaLabel(id)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {UNIT_TYPES.map(({ key, label }) => (
+          <label key={key}>
+            {label} <span className="hint">/ {r.units[key]}</span>
+            <NumInput
+              min={0}
+              max={r.units[key]}
+              value={units[key]}
+              onChange={(n) => setUnits((u) => ({ ...u, [key]: n }))}
+            />
+          </label>
+        ))}
+        <label>
+          Leader
+          <select value={leader} onChange={(e) => setLeader(e.target.value)}>
+            <option value="">— none —</option>
+            {leaderOptions.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <button className="add-mini" disabled={!canDeploy} onClick={deploy}>
+        Deploy {total || ''} from reserve
+      </button>
+    </div>
+  );
 }
 
 export function StateEditor({
@@ -359,6 +434,9 @@ export function StateEditor({
           onChange={(regenerationTank) => onChange({ ...s, harkonnenReserve: { ...r, regenerationTank } })}
         />
       </div>
+
+      <h3>Deploy from reserve <span className="hint">(moves units onto the board, drawing down the pool)</span></h3>
+      <DeployForm s={s} onChange={onChange} />
 
       <h3>Wormsigns &amp; sandworms</h3>
       <div className="ed-grid">

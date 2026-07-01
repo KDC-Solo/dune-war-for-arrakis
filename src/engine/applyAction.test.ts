@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyHarkonnenAction, isAutoApplied } from './applyAction';
+import { applyHarkonnenAction, deployFromReserve, isAutoApplied } from './applyAction';
 import { emptyLegion, type GameState, type Legion } from './state';
 
 function state(over: Partial<GameState> = {}): GameState {
@@ -78,6 +78,26 @@ describe('applyHarkonnenAction — deploy', () => {
     expect(leg.leaders).toEqual([{ kind: 'named', faction: 'harkonnen', name: 'Feyd-Rautha' }]);
     expect(r.state.harkonnenReserve.units.regular).toBe(8); // 10 - 2
     expect(r.state.harkonnenReserve.namedLeaders).not.toContain('Feyd-Rautha');
+  });
+});
+
+describe('deployFromReserve', () => {
+  it('merges units into an existing legion and draws them from the reserve (totals conserved)', () => {
+    const s = state({ legions: [hLeg('carthag', { regular: 1 })] });
+    const next = deployFromReserve(s, { settlement: 'carthag', units: { regular: 2, elite: 1, special_elite: 0 }, leader: 'Bashar' });
+    const leg = next.legions.find((l) => l.area === 'carthag')!;
+    expect(leg.units).toEqual({ regular: 3, elite: 1, special_elite: 0 }); // 1 + 2
+    expect(leg.leaders).toEqual([{ kind: 'generic', faction: 'harkonnen' }]);
+    expect(next.harkonnenReserve.units.regular).toBe(8); // 10 - 2
+    expect(next.harkonnenReserve.units.elite).toBe(5); // 6 - 1
+    expect(next.harkonnenReserve.bashars).toBe(1); // 2 - 1
+  });
+
+  it('clamps a request to what the reserve actually holds', () => {
+    const s = state({ harkonnenReserve: { units: { regular: 1, elite: 0, special_elite: 0 }, deploymentTokens: 0, bashars: 0, namedLeaders: [] } });
+    const next = deployFromReserve(s, { settlement: 'carthag', units: { regular: 5, elite: 2, special_elite: 0 }, leader: null });
+    expect(next.legions.find((l) => l.area === 'carthag')!.units.regular).toBe(1);
+    expect(next.harkonnenReserve.units.regular).toBe(0);
   });
 });
 

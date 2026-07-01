@@ -5,7 +5,7 @@
 
 import type { GameState, Legion, UnitType } from './state';
 import { emptyLegion } from './state';
-import type { HarkonnenAction } from './harkonnenActions';
+import type { DeployPlacement, HarkonnenAction } from './harkonnenActions';
 import { placeHarvesters, placeOrnithopters } from './vehiclePlacement';
 
 export interface ApplyResult {
@@ -97,6 +97,15 @@ function applyDeploy(s: GameState, placements: Extract<HarkonnenAction, { kind: 
     applied: true,
     note: 'Units deployed from the reserve.',
   };
+}
+
+/**
+ * Manually deploy one placement — units plus an optional leader — from the Harkonnen reserve to
+ * the target area's legion (merging into an existing one), drawing from the reserve pools clamped
+ * to what's actually available. Keeps board + reserve totals conserved so the two never drift.
+ */
+export function deployFromReserve(s: GameState, placement: DeployPlacement): GameState {
+  return applyDeploy(s, [placement]).state;
 }
 
 // --- house: replace regulars with elites -----------------------------------

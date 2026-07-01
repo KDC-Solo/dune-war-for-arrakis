@@ -710,6 +710,13 @@ label.mini.check input {
   font-weight: 600;
 }
 
+.deploy-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: flex-start;
+}
+
 /* --- board map --- */
 .map-summary {
   font-weight: 700;
