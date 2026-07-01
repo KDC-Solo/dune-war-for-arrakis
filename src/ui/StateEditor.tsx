@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { AREA_IDS, type SectorId } from '../engine/board';
 import { activeBans } from '../engine/spiceMustFlow';
 import { deployFromReserve } from '../engine/applyAction';
+import { harkonnenFigureTally } from '../engine/figureBudget';
 import {
   emptyLegion,
   type Faction,
@@ -298,6 +299,8 @@ export function StateEditor({
   const r = s.harkonnenReserve;
   const setReserveUnit = (key: UnitType, value: number) =>
     onChange({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: clamp(value, 0, 16) } } });
+  // Reconcile unit figures across board + reserve so raw legion edits that over-allocate are caught.
+  const tally = harkonnenFigureTally(s);
 
   // Wormsigns / sandworms: arrays of { area }. Default a new one to the first rules-valid Desert area.
   const addWormsign = () => {
@@ -454,6 +457,19 @@ export function StateEditor({
           />
         </label>
       </div>
+      <p className={`figure-tally${tally.over.length ? ' over' : ''}`}>
+        Unit figures (board + reserve):{' '}
+        {UNIT_TYPES.map(({ key, label }, idx) => (
+          <span key={key} className={tally.over.includes(key) ? 'over' : ''}>
+            {idx > 0 ? ' · ' : ''}
+            {label} {tally.total[key]}/{tally.max[key]}
+          </span>
+        ))}
+        {tally.over.length > 0
+          ? ' — over the game’s figure count; a raw legion edit didn’t draw from the reserve.'
+          : ' ✓ balanced'}
+        <span className="hint"> (deployment tokens tracked separately)</span>
+      </p>
       <div className="reserve-leaders">
         <span className="reserve-leaders-label">Named leaders</span>
         <LeaderPicker

@@ -723,6 +723,24 @@ label.mini.check input {
   align-items: flex-start;
 }
 
+.figure-tally {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: #4a7a2f;
+}
+.figure-tally.over {
+  color: var(--accent);
+  font-weight: 600;
+}
+.figure-tally .over {
+  color: var(--accent);
+  font-weight: 700;
+}
+.figure-tally .hint {
+  color: #6a583c;
+  font-weight: 400;
+}
+
 /* --- board map --- */
 .map-summary {
   font-weight: 700;
