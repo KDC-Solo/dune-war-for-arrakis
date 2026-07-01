@@ -95,6 +95,10 @@ function HelpPanel() {
       </p>
 
       <h4>Each round, top to bottom</h4>
+      <p className="hint">
+        The action panels below show only for the phase you're in (tracked in <em>Round walkthrough</em>) —
+        tick <em>Show every phase's panel</em> there to see them all at once.
+      </p>
       <ul className="help-list">
         <li>
           <strong>Games</strong> — new game, export/import a backup, reset, and your named saves (load/delete).
@@ -796,7 +800,17 @@ const PHASE_GUIDE: Record<RoundPhase, string> = {
   end: 'Advance supremacy and reshuffle the tactical deck — use "Start next round" in This round.',
 };
 
-function PhasePanel({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
+function PhasePanel({
+  s,
+  onChange,
+  showAll,
+  onToggleShowAll,
+}: {
+  s: GameState;
+  onChange: (next: GameState) => void;
+  showAll: boolean;
+  onToggleShowAll: (next: boolean) => void;
+}) {
   const phase = s.phase;
   const i = PHASE_ORDER.indexOf(phase);
   const prev = i > 0 ? PHASE_ORDER[i - 1] : null;
@@ -822,6 +836,10 @@ function PhasePanel({ s, onChange }: { s: GameState; onChange: (next: GameState)
           {next ? `Next: ${PHASE_LABEL[next]} →` : 'Round complete'}
         </button>
       </div>
+      <label className="check phase-showall">
+        <input type="checkbox" checked={showAll} onChange={(e) => onToggleShowAll(e.target.checked)} />
+        Show every phase's panel (otherwise only the current phase's are shown)
+      </label>
     </section>
   );
 }
@@ -1078,6 +1096,9 @@ export function App() {
   const [pick, setPick] = useState<PickTarget | null>(null);
   // Active "show this area on the map" request from a locate chip.
   const [locate, setLocate] = useState<string | null>(null);
+  // Show only the current phase's action panels, or all of them (escape hatch).
+  const [showAllPanels, setShowAllPanels] = useState(false);
+  const inPhase = (...phases: RoundPhase[]) => showAllPanels || phases.includes(s.phase);
   const mapRef = useRef<HTMLDetailsElement>(null);
 
   // Persist on every change.
@@ -1148,14 +1169,14 @@ export function App() {
         />
         <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} />
         <RoundPanel s={s} onChange={commit} />
-        <PhasePanel s={s} onChange={setS} />
-        <VehiclePanel s={s} />
-        <ResolvePanel s={s} onApply={commit} />
-        <BattlePanel s={s} onApply={commit} />
-        <CardPanel s={s} onApply={commit} />
-        <WormsignPanel s={s} onApply={commit} />
-        <StormPanel s={s} onApply={commit} />
-        <SpicePanel s={s} onApply={commit} />
+        <PhasePanel s={s} onChange={setS} showAll={showAllPanels} onToggleShowAll={setShowAllPanels} />
+        {inPhase('vehicle_placement') && <VehiclePanel s={s} />}
+        {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} />}
+        {inPhase('action_resolution') && <BattlePanel s={s} onApply={commit} />}
+        {inPhase('action_resolution') && <CardPanel s={s} onApply={commit} />}
+        {inPhase('desert_hazards') && <WormsignPanel s={s} onApply={commit} />}
+        {inPhase('desert_hazards') && <StormPanel s={s} onApply={commit} />}
+        {inPhase('spice_harvesting') && <SpicePanel s={s} onApply={commit} />}
       </main>
       <footer>
         <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>
