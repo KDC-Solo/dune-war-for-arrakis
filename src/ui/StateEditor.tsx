@@ -64,7 +64,10 @@ const IMPERIUM: { key: 'choam' | 'spacing_guild' | 'landsraad'; label: string }[
   { key: 'landsraad', label: 'Landsraad' },
 ];
 
-const HARVEST_SECTORS: (SectorId | 'central')[] = ['central', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'];
+// The harvesting sector always comes from a tactical card, whose sector is tacticalSectorOf(sietch)
+// — s5–s8 all collapse to 'central', so those are the only values the game can produce (never a bare
+// s5–s8). Picking an individual central sub-sector would misplace harvesters into just that sector.
+const HARVEST_SECTORS: (SectorId | 'central')[] = ['central', 's1', 's2', 's3', 's4'];
 const UNIT_TYPES: { key: UnitType; label: string }[] = [
   { key: 'regular', label: 'Reg' },
   { key: 'elite', label: 'Elite' },
