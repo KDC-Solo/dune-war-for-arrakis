@@ -208,7 +208,7 @@ function RoundPanel({ s, onChange }: { s: GameState; onChange: (next: GameState)
   );
 }
 
-function VehiclePanel({ s }: { s: GameState }) {
+function VehiclePanel({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
   const avail = availability(s.spice.markers);
   const placement = useMemo(
     () =>
@@ -219,19 +219,49 @@ function VehiclePanel({ s }: { s: GameState }) {
       }),
     [s, avail.harvesters, avail.carryalls, avail.ornithopters],
   );
+
+  const harvesters = s.vehicles.filter((v) => v.type === 'harvester');
+  const carryalls = s.vehicles.filter((v) => v.type === 'carryall');
+  const ornithopters = s.vehicles.filter((v) => v.type === 'ornithopter');
+  const removeVehicle = (idx: number) =>
+    onChange({ ...s, vehicles: s.vehicles.filter((_, i) => i !== idx) });
+
   return (
     <section className="panel">
-      <h2>Vehicle placement</h2>
-      <p className="hint">Where to place the Harkonnen vehicles on the board this round.</p>
-      <p>
-        <strong>Harvesters:</strong> <AreaChips ids={placement.harvesters} />
-      </p>
-      <p>
-        <strong>Carryalls:</strong> <AirZoneChips ids={placement.carryalls} />
-      </p>
-      <p>
-        <strong>Ornithopters:</strong> <AirZoneChips ids={placement.ornithopters} />
-      </p>
+      <h2>Vehicles</h2>
+      {(placement.harvesters.length > 0 || placement.carryalls.length > 0 || placement.ornithopters.length > 0) && (
+        <>
+          <p className="hint">Where to place the Harkonnen vehicles on the board this round.</p>
+          <p><strong>Place harvesters:</strong> <AreaChips ids={placement.harvesters} /></p>
+          <p><strong>Place carryalls:</strong> <AirZoneChips ids={placement.carryalls} /></p>
+          <p><strong>Place ornithopters:</strong> <AirZoneChips ids={placement.ornithopters} /></p>
+        </>
+      )}
+      {(harvesters.length > 0 || carryalls.length > 0 || ornithopters.length > 0) && (
+        <>
+          <p className="hint">Currently on the board. Remove a harvester when an Atreides legion moves onto it.</p>
+          {harvesters.length > 0 && (
+            <p><strong>Harvesters:</strong>{' '}
+              {harvesters.map((v, i) => (
+                <span key={i} style={{ marginRight: '0.4em' }}>
+                  <AreaChip id={v.location} />{' '}
+                  <button
+                    className="remove"
+                    title="Remove this harvester"
+                    onClick={() => removeVehicle(s.vehicles.indexOf(v))}
+                  >✕</button>
+                </span>
+              ))}
+            </p>
+          )}
+          {carryalls.length > 0 && (
+            <p><strong>Carryalls:</strong> <AirZoneChips ids={carryalls.map((v) => v.location)} /></p>
+          )}
+          {ornithopters.length > 0 && (
+            <p><strong>Ornithopters:</strong> <AirZoneChips ids={ornithopters.map((v) => v.location)} /></p>
+          )}
+        </>
+      )}
     </section>
   );
 }
@@ -346,6 +376,12 @@ function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =>
               <li key={i} className={st.auto ? 'auto' : 'manual'}>
                 <span className="step-badge">{st.auto ? 'auto' : 'you'}</span>
                 {st.text}
+                {st.groundLocations && st.groundLocations.length > 0 && (
+                  <> <AreaChips ids={st.groundLocations} /></>
+                )}
+                {st.airLocations && st.airLocations.length > 0 && (
+                  <> <AirZoneChips ids={st.airLocations} /></>
+                )}
               </li>
             ))}
           </ol>
@@ -1311,7 +1347,7 @@ export function App() {
         <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} />
         <RoundPanel s={s} onChange={commit} />
         <PhasePanel s={s} onChange={setS} showAll={showAllPanels} onToggleShowAll={setShowAllPanels} />
-        {inPhase('vehicle_placement') && <VehiclePanel s={s} />}
+        {(inPhase('vehicle_placement') || inPhase('action_resolution')) && <VehiclePanel s={s} onChange={commit} />}
         {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <BattlePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <CardPanel s={s} onApply={commit} />}

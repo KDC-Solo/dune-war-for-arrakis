@@ -12,7 +12,7 @@ import {
   placeCarryalls,
   placeOrnithopters,
 } from "./vehiclePlacement";
-import { areaLabel, airZoneLabel } from "./describeArea";
+import { areaLabel } from "./describeArea";
 
 export interface EffectStep {
   /** Human-readable directive for this step. */
@@ -21,6 +21,10 @@ export interface EffectStep {
   auto: boolean;
   /** Present iff `auto`: returns the next state. */
   apply?: (s: GameState) => GameState;
+  /** Ground area ids to render as clickable chips in the UI (vehicle/unit placement steps). */
+  groundLocations?: string[];
+  /** Air-zone ids to render as clickable chips in the UI (carryall/ornithopter placement steps). */
+  airLocations?: string[];
 }
 
 export interface EffectResolution {
@@ -122,25 +126,27 @@ export function placeVehicles(
   const newCarryalls = placeCarryalls(s, counts.carryall ?? 0, harvesterAreas);
   const newOrnithopters = placeOrnithopters(s, counts.ornithopter ?? 0);
 
-  const parts: string[] = [];
+  const countParts: string[] = [];
   if (newHarvesters.length)
-    parts.push(
-      `${newHarvesters.length} harvester${newHarvesters.length === 1 ? "" : "s"} in ${newHarvesters.map(areaLabel).join(", ")}`,
+    countParts.push(
+      `${newHarvesters.length} harvester${newHarvesters.length === 1 ? "" : "s"}`,
     );
   if (newCarryalls.length)
-    parts.push(
-      `${newCarryalls.length} carryall${newCarryalls.length === 1 ? "" : "s"} in ${newCarryalls.map(airZoneLabel).join(", ")}`,
+    countParts.push(
+      `${newCarryalls.length} carryall${newCarryalls.length === 1 ? "" : "s"}`,
     );
   if (newOrnithopters.length)
-    parts.push(
-      `${newOrnithopters.length} ornithopter${newOrnithopters.length === 1 ? "" : "s"} in ${newOrnithopters.map(airZoneLabel).join(", ")}`,
+    countParts.push(
+      `${newOrnithopters.length} ornithopter${newOrnithopters.length === 1 ? "" : "s"}`,
     );
-  const text = parts.length
-    ? `Place ${parts.join("; ")}.`
+  const text = countParts.length
+    ? `Place ${countParts.join(" and ")} on the board:`
     : "No legal vehicle placement available.";
 
   return {
     text,
+    groundLocations: newHarvesters,
+    airLocations: [...newCarryalls, ...newOrnithopters],
     auto: true,
     apply: (st) => {
       const vehicles = [...st.vehicles];

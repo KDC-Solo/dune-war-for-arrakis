@@ -5,16 +5,21 @@
 // cover the target sector. This module covers HARVESTERS first (the intricate part); carryalls
 // and ornithopters follow.
 
-import { AREAS, ADJACENCY, AIR_ZONES, type SectorId } from './board';
-import type { GameState, TacticalSector } from './state';
-import { combatPower } from './combatPower';
-import { harkonnenDistance, airZonesConnectedToSector, airZoneSectors } from './movement';
+import { AREAS, ADJACENCY, AIR_ZONES, type SectorId } from "./board";
+import type { GameState, TacticalSector } from "./state";
+import { combatPower } from "./combatPower";
+import {
+  harkonnenDistance,
+  airZonesConnectedToSector,
+  airZoneSectors,
+} from "./movement";
 
-const CENTRAL: SectorId[] = ['s5', 's6', 's7', 's8'];
+const CENTRAL: SectorId[] = ["s5", "s6", "s7", "s8"];
 
 /** Areas belonging to a tactical-sector selection ('central' = all 4 central sectors). */
 export function areasInSector(sel: TacticalSector): string[] {
-  const inSel = (s: SectorId) => (sel === 'central' ? CENTRAL.includes(s) : s === sel);
+  const inSel = (s: SectorId) =>
+    sel === "central" ? CENTRAL.includes(s) : s === sel;
   return Object.values(AREAS)
     .filter((a) => inSel(a.sector))
     .map((a) => a.id);
@@ -22,13 +27,13 @@ export function areasInSector(sel: TacticalSector): string[] {
 
 /** Sectors ground-adjacent to a selection (some area in one borders an area in the other). */
 export function sectorsAdjacentTo(sel: TacticalSector): SectorId[] {
-  const selSectors = new Set<SectorId>(sel === 'central' ? CENTRAL : [sel]);
+  const selSectors = new Set<SectorId>(sel === "central" ? CENTRAL : [sel]);
   const out = new Set<SectorId>();
   for (const a of Object.keys(ADJACENCY)) {
     if (!selSectors.has(AREAS[a].sector)) continue;
     for (const n of ADJACENCY[a]) {
       const ns = AREAS[n].sector;
-      if (!selSectors.has(ns) && ns !== 'np') out.add(ns);
+      if (!selSectors.has(ns) && ns !== "np") out.add(ns);
     }
   }
   return [...out];
@@ -44,8 +49,12 @@ interface PlacementCtx {
 }
 
 function buildCtx(s: GameState): PlacementCtx {
-  const atreidesAreas = new Set(s.legions.filter((l) => l.faction === 'atreides').map((l) => l.area));
-  const sietchAreas = new Set(s.sietches.filter((si) => !si.destroyed).map((si) => si.area));
+  const atreidesAreas = new Set(
+    s.legions.filter((l) => l.faction === "atreides").map((l) => l.area),
+  );
+  const sietchAreas = new Set(
+    s.sietches.filter((si) => !si.destroyed).map((si) => si.area),
+  );
   const sandwormAreas = new Set(s.sandworms.map((w) => w.area));
   const occupied = new Set<string>();
   for (const l of s.legions) occupied.add(l.area);
@@ -58,12 +67,16 @@ function buildCtx(s: GameState): PlacementCtx {
   return { atreidesAreas, sietchAreas, sandwormAreas, occupied };
 }
 
-const isDesert = (a: string) => AREAS[a].terrain === 'desert';
+const isDesert = (a: string) => AREAS[a].terrain === "desert";
 const isDeep = (a: string) => AREAS[a].deep === true;
 
 /** Free for the Harkonnen: no Atreides legion, no sietch, no sandworm. */
 function isFree(ctx: PlacementCtx, a: string): boolean {
-  return !ctx.atreidesAreas.has(a) && !ctx.sietchAreas.has(a) && !ctx.sandwormAreas.has(a);
+  return (
+    !ctx.atreidesAreas.has(a) &&
+    !ctx.sietchAreas.has(a) &&
+    !ctx.sandwormAreas.has(a)
+  );
 }
 
 /** Empty: nothing of any kind present. */
@@ -73,7 +86,9 @@ function isEmpty(ctx: PlacementCtx, a: string): boolean {
 
 /** Adjacent (normal ground) to an Atreides legion or a sietch. */
 function adjacentToAtreides(ctx: PlacementCtx, a: string): boolean {
-  return (ADJACENCY[a] ?? []).some((n) => ctx.atreidesAreas.has(n) || ctx.sietchAreas.has(n));
+  return (ADJACENCY[a] ?? []).some(
+    (n) => ctx.atreidesAreas.has(n) || ctx.sietchAreas.has(n),
+  );
 }
 
 // --- harvester placement ---------------------------------------------------
@@ -92,13 +107,20 @@ export function placeHarvesters(s: GameState, count: number): string[] {
   if (count <= 0 || !s.harvestingSector) return [];
   const ctx = buildCtx(s);
   const placed: string[] = [];
-  const used = new Set<string>();
+  // Seed with existing harvester locations so tiers 3-4 never re-pick an occupied area.
+  const used = new Set<string>(
+    s.vehicles.filter((v) => v.type === "harvester").map((v) => v.location),
+  );
 
   const tiers = (areas: string[]): string[][] => {
     const desert = areas.filter(isDesert);
     return [
-      desert.filter((a) => isDeep(a) && isEmpty(ctx, a) && !adjacentToAtreides(ctx, a)),
-      desert.filter((a) => !isDeep(a) && isEmpty(ctx, a) && !adjacentToAtreides(ctx, a)),
+      desert.filter(
+        (a) => isDeep(a) && isEmpty(ctx, a) && !adjacentToAtreides(ctx, a),
+      ),
+      desert.filter(
+        (a) => !isDeep(a) && isEmpty(ctx, a) && !adjacentToAtreides(ctx, a),
+      ),
       desert.filter((a) => isDeep(a) && isFree(ctx, a)),
       desert.filter((a) => !isDeep(a) && isFree(ctx, a)),
     ];
@@ -117,7 +139,9 @@ export function placeHarvesters(s: GameState, count: number): string[] {
 
   fillFrom(areasInSector(s.harvestingSector));
   if (placed.length < count) {
-    const targetSector = s.targetSietchId ? AREAS[s.targetSietchId].sector : null;
+    const targetSector = s.targetSietchId
+      ? AREAS[s.targetSietchId].sector
+      : null;
     const overflow = sectorsAdjacentTo(s.harvestingSector)
       .filter((sec) => sec !== targetSector)
       .flatMap((sec) => areasInSector(sec));
@@ -131,7 +155,7 @@ export function placeHarvesters(s: GameState, count: number): string[] {
 /** Air-zone ids already holding a vehicle (carryall/ornithopter). */
 function occupiedZones(s: GameState): Set<string> {
   return new Set(
-    s.vehicles.filter((v) => v.type !== 'harvester').map((v) => v.location),
+    s.vehicles.filter((v) => v.type !== "harvester").map((v) => v.location),
   );
 }
 
@@ -140,8 +164,13 @@ function occupiedZones(s: GameState): Set<string> {
  * all Areas within both Sectors" (rulebook), so a carryall there can save any harvester in either
  * bordering Sector — not just the zone's few member Areas.
  */
-function harvestersProtected(zoneId: string, harvesterAreas: Set<string>): number {
-  const covered = new Set(airZoneSectors(zoneId).flatMap((sec) => areasInSector(sec)));
+function harvestersProtected(
+  zoneId: string,
+  harvesterAreas: Set<string>,
+): number {
+  const covered = new Set(
+    airZoneSectors(zoneId).flatMap((sec) => areasInSector(sec)),
+  );
   let n = 0;
   for (const a of covered) if (harvesterAreas.has(a)) n++;
   return n;
@@ -152,7 +181,11 @@ function harvestersProtected(zoneId: string, harvesterAreas: Set<string>): numbe
  * zone). `harvesterAreas` are the harvesters on the board this round. Zones protecting 0
  * harvesters are skipped (a carryall there protects nothing).
  */
-export function placeCarryalls(s: GameState, count: number, harvesterAreas: string[]): string[] {
+export function placeCarryalls(
+  s: GameState,
+  count: number,
+  harvesterAreas: string[],
+): string[] {
   if (count <= 0) return [];
   const hset = new Set(harvesterAreas);
   const taken = occupiedZones(s);
@@ -168,7 +201,9 @@ export function placeCarryalls(s: GameState, count: number, harvesterAreas: stri
 
 /** Combat power of the Atreides legion defending a sietch area (0 if none). */
 function sietchDefenderCP(s: GameState, area: string): number {
-  const def = s.legions.find((l) => l.faction === 'atreides' && l.area === area);
+  const def = s.legions.find(
+    (l) => l.faction === "atreides" && l.area === area,
+  );
   return def ? combatPower(def) : 0;
 }
 
@@ -194,13 +229,16 @@ export function placeOrnithopters(s: GameState, count: number): string[] {
   // 1. Threaten sietches a legion is exactly 2 areas from and could beat.
   const liveSietches = s.sietches.filter((si) => !si.destroyed);
   const threatSectors: SectorId[] = [];
-  for (const l of s.legions.filter((x) => x.faction === 'harkonnen')) {
+  for (const l of s.legions.filter((x) => x.faction === "harkonnen")) {
     const canThreaten = liveSietches.some(
-      (si) => harkonnenDistance(l.area, si.area) === 2 && combatPower(l) > sietchDefenderCP(s, si.area),
+      (si) =>
+        harkonnenDistance(l.area, si.area) === 2 &&
+        combatPower(l) > sietchDefenderCP(s, si.area),
     );
     if (canThreaten) threatSectors.push(AREAS[l.area].sector);
   }
-  for (const sec of threatSectors) for (const z of airZonesConnectedToSector(sec)) take(z);
+  for (const sec of threatSectors)
+    for (const z of airZonesConnectedToSector(sec)) take(z);
 
   // 2. Cover the target sietch's sector, then adjacent sectors (central↔central first).
   if (chosen.length < count && s.targetSietchId) {
@@ -210,14 +248,16 @@ export function placeOrnithopters(s: GameState, count: number): string[] {
       const adj = sectorsAdjacentTo(targetSector);
       const zonesByCentrality = AIR_ZONES.map((z) => z.id)
         .filter((id) => airZoneSectors(id).some((sec) => adj.includes(sec)))
-        .sort((a, b) => centralLinks(b) - centralLinks(a) || a.localeCompare(b));
+        .sort(
+          (a, b) => centralLinks(b) - centralLinks(a) || a.localeCompare(b),
+        );
       for (const z of zonesByCentrality) take(z);
     }
   }
   return chosen;
 }
 
-const CENTRAL_SET = new Set<SectorId>(['s5', 's6', 's7', 's8']);
+const CENTRAL_SET = new Set<SectorId>(["s5", "s6", "s7", "s8"]);
 /** How many of an air zone's sectors are central (2 = a central↔central link). */
 function centralLinks(zoneId: string): number {
   return airZoneSectors(zoneId).filter((s) => CENTRAL_SET.has(s)).length;
@@ -241,7 +281,10 @@ export function placeVehicles(
   // Reflect carryalls as occupying zones before ornithopters choose.
   const withCarryalls: GameState = {
     ...s,
-    vehicles: [...s.vehicles, ...carryalls.map((location) => ({ type: 'carryall' as const, location }))],
+    vehicles: [
+      ...s.vehicles,
+      ...carryalls.map((location) => ({ type: "carryall" as const, location })),
+    ],
   };
   const ornithopters = placeOrnithopters(withCarryalls, available.ornithopters);
   return { harvesters, carryalls, ornithopters };
