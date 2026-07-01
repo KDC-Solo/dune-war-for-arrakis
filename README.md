@@ -21,8 +21,11 @@ truth; the app is the co‑processor.**
 ### Interactive board map
 Every one of the 101 areas, drawn as its real traced shape and colored by terrain (impassable walls
 and air zones included), with your pieces overlaid (legions, sietches, settlements, the target‑sietch
-halo, wormsigns). Hover or tap a dot for full details, or use **Find an area** to locate one — any
-area or air‑zone name elsewhere in the app jumps here and pulses it. Pinch‑zoom & pan on touch.
+halo, wormsigns). It opens as a floating overlay from the **🗺 button** (bottom‑right) anywhere on the
+page. Hover or tap a dot for full details, or use **Find an area** to locate one — any area or
+air‑zone name elsewhere in the app jumps here and pulses it. Pinch‑zoom & pan on touch. Whenever you
+set an area (a legion, wormsign, the target sietch…) the map pops open to **pick it by tapping**, then
+closes right back to where you were.
 
 ![Board map](screenshots/board-map.png)
 
@@ -40,8 +43,11 @@ round from the Spice Must Flow markers.
 ![Round walkthrough](screenshots/walkthrough.png)
 
 ### Game‑state editor
-Match the app to your table: imperium markers, legions (with a 📍 "set on the map" picker), sietch/
-settlement ranks, the Harkonnen reserve, wormsigns & sandworms.
+Match the app to your table: imperium markers, legions, sietch/settlement ranks, the Harkonnen
+reserve, wormsigns & sandworms. Every area is set **map‑first** — tap a 📍 field and choose the spot on
+the board instead of hunting through a dropdown of (often unnamed) area names. A **Deploy from
+reserve** form moves units onto the board while drawing down the pool, so board and reserve totals
+never drift.
 
 ![State editor](screenshots/editor.png)
 

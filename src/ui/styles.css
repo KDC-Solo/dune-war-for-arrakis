@@ -888,6 +888,44 @@ label.mini.check input {
   border-color: var(--accent);
 }
 
+/* Primary area control: labelled button that opens the board map to set an area. */
+.area-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: #3a2f1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.15;
+}
+.area-field:hover {
+  border-color: var(--accent);
+}
+.area-field.active {
+  border-color: var(--accent);
+  background: #fbeff0;
+  box-shadow: 0 0 0 2px rgba(139, 31, 48, 0.25);
+}
+.area-field.static {
+  cursor: default;
+  border: none;
+  background: transparent;
+  padding-left: 0;
+}
+/* In a legion row the area button takes the first line; unit boxes wrap beneath it. */
+.legion-row .area-field {
+  flex: 1 1 12rem;
+}
+.worm-row .area-field {
+  flex: 1 1 auto;
+}
+
 /* --- board-map area info card --- */
 .area-card {
   margin: 0.5rem 0;

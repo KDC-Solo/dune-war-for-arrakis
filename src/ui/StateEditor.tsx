@@ -240,6 +240,22 @@ export function StateEditor({
         📍
       </button>
     ) : null;
+  // The primary area control: a labelled button showing the current area that opens the board map
+  // to set it by tapping (much clearer than a dropdown of names for the many unnamed areas). Falls
+  // back to a plain label if the map picker isn't wired up.
+  const areaField = (area: string, target: PickTarget) =>
+    onPick ? (
+      <button
+        type="button"
+        className={`area-field${samePick(pick ?? null, target) ? ' active' : ''}`}
+        title="Set this area on the board map"
+        onClick={() => onPick(target)}
+      >
+        📍 {areaLabel(area)}
+      </button>
+    ) : (
+      <span className="area-field static">{areaLabel(area)}</span>
+    );
   const setMarker = (power: 'choam' | 'spacing_guild' | 'landsraad', value: number) => {
     const markers = { ...s.spice.markers, [power]: clamp(value, 1, 5) };
     onChange({ ...s, spice: { ...s.spice, markers, activeBans: activeBans(markers) } });
@@ -249,11 +265,13 @@ export function StateEditor({
     onChange({ ...s, legions: s.legions.map((l, idx) => (idx === i ? next : l)) });
   const removeLegion = (i: number) =>
     onChange({ ...s, legions: s.legions.filter((_, idx) => idx !== i) });
-  const addLegion = (faction: Faction) =>
+  const addLegion = (faction: Faction) => {
     onChange({
       ...s,
       legions: [...s.legions, { ...emptyLegion(faction, 'carthag'), units: { regular: 1, elite: 0, special_elite: 0 } }],
     });
+    onPick?.({ kind: 'legion', index: s.legions.length }); // open the map to place the new legion
+  };
 
   const updateSietch = (i: number, patch: Partial<SietchState>) => {
     const sietches = s.sietches.map((si, idx) => (idx === i ? { ...si, ...patch } : si));
@@ -273,15 +291,11 @@ export function StateEditor({
     onChange({ ...s, wormsigns: [...s.wormsigns, { area: DESERT_AREAS.find((id) => canPlaceWormsign(s, id)) ?? DESERT_AREAS[0] }] });
     onPick?.({ kind: 'wormsign', index: s.wormsigns.length }); // open the map to place the new one
   };
-  const setWormsign = (i: number, area: string) =>
-    onChange({ ...s, wormsigns: s.wormsigns.map((w, idx) => (idx === i ? { area } : w)) });
   const removeWormsign = (i: number) => onChange({ ...s, wormsigns: s.wormsigns.filter((_, idx) => idx !== i) });
   const addSandworm = () => {
     onChange({ ...s, sandworms: [...s.sandworms, { area: DESERT_AREAS.find((id) => canPlaceSandworm(s, id)) ?? DESERT_AREAS[0] }] });
     onPick?.({ kind: 'sandworm', index: s.sandworms.length }); // open the map to place the new one
   };
-  const setSandworm = (i: number, area: string) =>
-    onChange({ ...s, sandworms: s.sandworms.map((w, idx) => (idx === i ? { area } : w)) });
   const removeSandworm = (i: number) => onChange({ ...s, sandworms: s.sandworms.filter((_, idx) => idx !== i) });
 
   const liveSietches = s.sietches.filter((si) => !si.destroyed);
@@ -448,14 +462,7 @@ export function StateEditor({
           <span className="hint">Wormsigns (avoided by Harkonnen moves)</span>
           {s.wormsigns.map((w, i) => (
             <div key={i} className="worm-row">
-              <select value={w.area} onChange={(e) => setWormsign(i, e.target.value)}>
-                {DESERT_AREAS.filter((id) => id === w.area || canPlaceWormsign(s, id)).map((id) => (
-                  <option key={id} value={id}>
-                    {areaLabel(id)}
-                  </option>
-                ))}
-              </select>
-              {pickBtn({ kind: 'wormsign', index: i })}
+              {areaField(w.area, { kind: 'wormsign', index: i })}
               <button className="remove" onClick={() => removeWormsign(i)} title="Remove wormsign">
                 ✕
               </button>
@@ -469,14 +476,7 @@ export function StateEditor({
           <span className="hint">Sandworms (block movement &amp; placement)</span>
           {s.sandworms.map((w, i) => (
             <div key={i} className="worm-row">
-              <select value={w.area} onChange={(e) => setSandworm(i, e.target.value)}>
-                {DESERT_AREAS.filter((id) => id === w.area || canPlaceSandworm(s, id)).map((id) => (
-                  <option key={id} value={id}>
-                    {areaLabel(id)}
-                  </option>
-                ))}
-              </select>
-              {pickBtn({ kind: 'sandworm', index: i })}
+              {areaField(w.area, { kind: 'sandworm', index: i })}
               <button className="remove" onClick={() => removeSandworm(i)} title="Remove sandworm">
                 ✕
               </button>
@@ -495,14 +495,7 @@ export function StateEditor({
           return (
             <div key={i} className={`legion-row ${l.faction}`}>
               <span className="faction-tag">{l.faction === 'harkonnen' ? 'H' : 'A'}</span>
-              <select value={l.area} onChange={(e) => updateLegion(i, { ...l, area: e.target.value })}>
-                {SORTED_AREAS.map((id) => (
-                  <option key={id} value={id}>
-                    {areaLabel(id)}
-                  </option>
-                ))}
-              </select>
-              {pickBtn({ kind: 'legion', index: i })}
+              {areaField(l.area, { kind: 'legion', index: i })}
               <div className="legion-units">
                 {UNIT_TYPES.map(({ key, label }) => (
                   <label key={key} className="mini">
