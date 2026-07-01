@@ -46,7 +46,7 @@ import {
 import { isDesertArea } from '../engine/describeArea';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
-import { LocateContext, AreaChip, AreaChips, AirZoneChips } from './locate';
+import { LocateContext, AreaChip, AreaChips, AirZoneChip, AirZoneChips } from './locate';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 const DESERT_AREA_IDS = SORTED_AREA_IDS.filter(isDesertArea);
