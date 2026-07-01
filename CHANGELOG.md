@@ -3,6 +3,42 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [0.3.0] — 2026-07-01
+
+A playtesting pass: the board map became a floating pop-over used for every area pick, deployment
+and round-setup got the rules right, and the editor gained safety rails.
+
+### Added
+- **Floating board map** — the map now opens as a full-screen overlay from a 🗺 button (bottom-right)
+  anywhere on the page, and automatically whenever you set an area. Picking an area closes it and
+  returns you to your exact scroll position, with a confirmation toast.
+- **Map-first area pickers** — legions, wormsigns and sandworms are set by tapping the board (a
+  📍 field showing the current area) instead of a dropdown of (often unnamed) area names. Adding one
+  opens the picker straight away.
+- **Deploy from reserve** — a form that moves units + a leader onto the board while drawing them
+  down from the reserve pool, so board and reserve totals stay in sync.
+- **Figure-budget drift indicator** — the reserve section reconciles unit figures (board + reserve)
+  against the game's component counts and flags a total that goes over budget.
+- **Desert Power wormsigns** — an exposed action-phase panel to place wormsign tokens on the board.
+- **Phase-gated panels** — only the current round phase's action panels show (with a "show all"
+  toggle), and each sietch now displays its Atreides defender (1 token + Naib).
+
+### Fixed
+- **Carryall placement** — a carryall protects harvesters in *both* sectors its air zone borders
+  (rulebook), not just the zone's member areas.
+- **Round 1 setup** — a new game now has a "Begin round" step that draws the harvesting sector +
+  target sietch without ending a round; the +1 supremacy (an end-of-round step) no longer fires
+  before round 1 is played.
+- **Target sietch pick** restricted to live sietches; **harvesting-sector** options limited to the
+  values a tactical draw can produce (`central`, `s1`–`s4`).
+- Numeric inputs no longer show a stray leading zero (`03`), and legion unit boxes stay on one row.
+
+### Engine
+- Test suite grown to **245 tests** (new `figureBudget` module; `setupRound` split out from
+  `startNextRound`).
+
+[0.3.0]: https://github.com/ianpogi5/dune-war-for-arrakis/releases/tag/v0.3.0
+
 ## [0.2.0] — 2026-06-30
 
 A board‑map overhaul, a completed in‑app round, locating polish, and a battle‑rules fix.

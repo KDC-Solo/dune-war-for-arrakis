@@ -70,12 +70,16 @@ Responsive layout; the board map supports pinch‑zoom and pan so dots stay tapp
   resolution.
 - **Spice Must Flow** — imperium markers drive action‑dice and vehicle availability and the bans;
   a harvesting panel previews and applies the solo spice allocation, completing the round in‑app.
-- **Interactive board map** — all 101 areas drawn as their real traced shapes, colored by terrain
-  (or by sector), with impassable walls, air zones, and your whole game state overlaid. Locate any
-  area or air zone from anywhere in the app — names everywhere are clickable and pulse the map. It
-  also doubles as an area picker for the editor, with pinch‑zoom, pan, and a full‑window view.
+- **Floating board map** — all 101 areas drawn as their real traced shapes, colored by terrain
+  (or by sector), with impassable walls, air zones, and your whole game state overlaid. It opens as
+  an overlay from a 🗺 button anywhere, and is the way you set every area: tap the board instead of
+  hunting a dropdown, and it closes back to where you were. Locate any area or air zone from anywhere
+  — names everywhere are clickable and pulse the map. Pinch‑zoom & pan on touch.
+- **Editor with safety rails** — set the whole board state (imperium markers, legions, sietch/
+  settlement ranks, wormsigns, reserve); deploy from the reserve without desyncing totals, with a
+  drift indicator that flags an over‑budget figure count.
 - **Persistence** — auto‑save to the browser, multiple named saves, plus JSON export/import.
-- **Built to be trustworthy** — a headless, pure‑TypeScript engine covered by **238 tests**.
+- **Built to be trustworthy** — a headless, pure‑TypeScript engine covered by **245 tests**.
 
 ## How it works
 
