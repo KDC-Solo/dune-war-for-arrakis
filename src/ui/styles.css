@@ -449,7 +449,13 @@ footer {
 
 .feature-name {
   font-weight: 600;
-  min-width: 9rem;
+  min-width: 11rem;
+}
+.feature-sub {
+  display: block;
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: #6a583c;
 }
 
 label.mini.check {

@@ -117,6 +117,19 @@ function countLeaders(l: Legion): { generic: number; named: number } {
     named: l.leaders.filter((x) => x.kind === 'named').length,
   };
 }
+/** One-line summary of the Atreides legion defending a sietch (units, tokens, Naib/named leaders). */
+function defenderSummary(l: Legion | undefined): string {
+  if (!l) return 'no defenders';
+  const parts: string[] = [];
+  if (l.units.regular) parts.push(`${l.units.regular} reg`);
+  if (l.units.elite) parts.push(`${l.units.elite} elite`);
+  if (l.units.special_elite) parts.push(`${l.units.special_elite} Fedaykin`);
+  if (l.deploymentTokens) parts.push(`${l.deploymentTokens} token${l.deploymentTokens === 1 ? '' : 's'}`);
+  const naibs = l.leaders.filter((x) => x.kind === 'generic').length;
+  if (naibs) parts.push(`${naibs} Naib${naibs === 1 ? '' : 's'}`);
+  for (const ld of l.leaders) if (ld.kind === 'named' && ld.name && ld.name !== 'Named') parts.push(ld.name);
+  return parts.length ? parts.join(', ') : 'present';
+}
 /** Named-leader names present on a legion (placeholder/blank names dropped). */
 function namedLeaderNames(l: Legion): string[] {
   return l.leaders.filter((x) => x.kind === 'named' && x.name && x.name !== 'Named').map((x) => x.name as string);
@@ -354,7 +367,10 @@ export function StateEditor({
       <div className="feature-list">
         {s.sietches.map((si, i) => (
           <div key={si.area} className={`feature-row ${si.destroyed ? 'destroyed' : ''}`}>
-            <span className="feature-name"><AreaChip id={si.area} /></span>
+            <span className="feature-name">
+              <AreaChip id={si.area} />
+              <span className="feature-sub">🛡 {defenderSummary(s.legions.find((l) => l.faction === 'atreides' && l.area === si.area))}</span>
+            </span>
             <label className="mini">
               Rank
               <select
