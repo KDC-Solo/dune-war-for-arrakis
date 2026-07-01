@@ -12,7 +12,7 @@ import {
   placeCarryalls,
   placeOrnithopters,
 } from "./vehiclePlacement";
-import { areaLabel } from "./describeArea";
+import { areaLabel, airZoneLabel } from "./describeArea";
 
 export interface EffectStep {
   /** Human-readable directive for this step. */
@@ -110,31 +110,54 @@ export function placeOneEach(
 
 /** Place vehicles via the placement engine (it picks the board spots). Auto. */
 export function placeVehicles(
+  s: GameState,
   counts: Partial<Record<VehicleType, number>>,
 ): EffectStep {
-  const desc = (Object.keys(counts) as VehicleType[])
-    .filter((t) => (counts[t] ?? 0) > 0)
-    .map((t) => `${counts[t]} ${t}${(counts[t] ?? 0) === 1 ? "" : "s"}`)
-    .join(" and ");
+  // Compute positions now so the step text can name the exact spots.
+  const newHarvesters = placeHarvesters(s, counts.harvester ?? 0);
+  const harvesterAreas = [
+    ...s.vehicles.filter((v) => v.type === "harvester").map((v) => v.location),
+    ...newHarvesters,
+  ];
+  const newCarryalls = placeCarryalls(s, counts.carryall ?? 0, harvesterAreas);
+  const newOrnithopters = placeOrnithopters(s, counts.ornithopter ?? 0);
+
+  const parts: string[] = [];
+  if (newHarvesters.length)
+    parts.push(
+      `${newHarvesters.length} harvester${newHarvesters.length === 1 ? "" : "s"} in ${newHarvesters.map(areaLabel).join(", ")}`,
+    );
+  if (newCarryalls.length)
+    parts.push(
+      `${newCarryalls.length} carryall${newCarryalls.length === 1 ? "" : "s"} in ${newCarryalls.map(airZoneLabel).join(", ")}`,
+    );
+  if (newOrnithopters.length)
+    parts.push(
+      `${newOrnithopters.length} ornithopter${newOrnithopters.length === 1 ? "" : "s"} in ${newOrnithopters.map(airZoneLabel).join(", ")}`,
+    );
+  const text = parts.length
+    ? `Place ${parts.join("; ")}.`
+    : "No legal vehicle placement available.";
+
   return {
-    text: `Place ${desc} on the board (positions are calculated automatically by the placement algorithm).`,
+    text,
     auto: true,
-    apply: (s) => {
-      const vehicles = [...s.vehicles];
-      const newHarvesters = placeHarvesters(s, counts.harvester ?? 0);
-      for (const loc of newHarvesters)
+    apply: (st) => {
+      const vehicles = [...st.vehicles];
+      const hrs = placeHarvesters(st, counts.harvester ?? 0);
+      for (const loc of hrs)
         vehicles.push({ type: "harvester", location: loc });
-      const harvesterAreas = [
-        ...s.vehicles
+      const hareas = [
+        ...st.vehicles
           .filter((v) => v.type === "harvester")
           .map((v) => v.location),
-        ...newHarvesters,
+        ...hrs,
       ];
-      for (const loc of placeCarryalls(s, counts.carryall ?? 0, harvesterAreas))
+      for (const loc of placeCarryalls(st, counts.carryall ?? 0, hareas))
         vehicles.push({ type: "carryall", location: loc });
-      for (const loc of placeOrnithopters(s, counts.ornithopter ?? 0))
+      for (const loc of placeOrnithopters(st, counts.ornithopter ?? 0))
         vehicles.push({ type: "ornithopter", location: loc });
-      return { ...s, vehicles };
+      return { ...st, vehicles };
     },
   };
 }
