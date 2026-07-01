@@ -269,13 +269,17 @@ export function StateEditor({
     onChange({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: clamp(value, 0, 16) } } });
 
   // Wormsigns / sandworms: arrays of { area }. Default a new one to the first rules-valid Desert area.
-  const addWormsign = () =>
+  const addWormsign = () => {
     onChange({ ...s, wormsigns: [...s.wormsigns, { area: DESERT_AREAS.find((id) => canPlaceWormsign(s, id)) ?? DESERT_AREAS[0] }] });
+    onPick?.({ kind: 'wormsign', index: s.wormsigns.length }); // open the map to place the new one
+  };
   const setWormsign = (i: number, area: string) =>
     onChange({ ...s, wormsigns: s.wormsigns.map((w, idx) => (idx === i ? { area } : w)) });
   const removeWormsign = (i: number) => onChange({ ...s, wormsigns: s.wormsigns.filter((_, idx) => idx !== i) });
-  const addSandworm = () =>
+  const addSandworm = () => {
     onChange({ ...s, sandworms: [...s.sandworms, { area: DESERT_AREAS.find((id) => canPlaceSandworm(s, id)) ?? DESERT_AREAS[0] }] });
+    onPick?.({ kind: 'sandworm', index: s.sandworms.length }); // open the map to place the new one
+  };
   const setSandworm = (i: number, area: string) =>
     onChange({ ...s, sandworms: s.sandworms.map((w, idx) => (idx === i ? { area } : w)) });
   const removeSandworm = (i: number) => onChange({ ...s, sandworms: s.sandworms.filter((_, idx) => idx !== i) });

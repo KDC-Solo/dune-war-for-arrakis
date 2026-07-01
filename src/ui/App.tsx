@@ -43,10 +43,13 @@ import {
   wormsignsToDiscard,
   placeWormsigns,
 } from '../engine/wormsigns';
+import { isDesertArea } from '../engine/describeArea';
 import type { PickTarget } from './pick';
+import { samePick } from './pick';
 import { LocateContext, AreaChip, AreaChips, AirZoneChips } from './locate';
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
+const DESERT_AREA_IDS = SORTED_AREA_IDS.filter(isDesertArea);
 import { loadState, saveState, clearState, exportState } from './persistence';
 
 const DIE_RESULTS: ActionResult[] = ['leadership', 'strategy', 'mentat', 'deployment', 'house'];
@@ -369,6 +372,63 @@ function WormsignPanel({ s, onApply }: { s: GameState; onApply: (next: GameState
       </dl>
       <button className="confirm-btn" onClick={apply} disabled={nothing}>
         {nothing ? 'No wormsigns to place' : 'Place wormsigns'}
+      </button>
+    </section>
+  );
+}
+
+// Desert Power (action phase): the Atreides may place wormsign tokens in desert areas. Exposed
+// here so it doesn't require digging into the editor; adding one opens the map to pick its area.
+function DesertPowerPanel({
+  s,
+  onChange,
+  onPick,
+  pick,
+}: {
+  s: GameState;
+  onChange: (next: GameState) => void;
+  onPick: (t: PickTarget) => void;
+  pick: PickTarget | null;
+}) {
+  const addWormsign = () => {
+    const area = DESERT_AREA_IDS.find((id) => canPlaceWormsign(s, id)) ?? DESERT_AREA_IDS[0];
+    onChange({ ...s, wormsigns: [...s.wormsigns, { area }] });
+    onPick({ kind: 'wormsign', index: s.wormsigns.length }); // pick the just-added one on the map
+  };
+  const removeWormsign = (i: number) =>
+    onChange({ ...s, wormsigns: s.wormsigns.filter((_, idx) => idx !== i) });
+
+  return (
+    <section className="panel">
+      <h2>Desert Power — wormsigns</h2>
+      <p className="hint">
+        When the Atreides take a Desert Power action (or a card / special calls for it), place wormsign
+        tokens in desert areas. Add one, then tap the board to choose where it goes.
+      </p>
+      {s.wormsigns.length === 0 ? (
+        <p className="hint">No wormsigns on the board.</p>
+      ) : (
+        <ul className="wormsign-list">
+          {s.wormsigns.map((w, i) => (
+            <li key={i} className="wormsign-item">
+              <AreaChip id={w.area} />
+              <button
+                type="button"
+                className={`pick-map-btn${samePick(pick, { kind: 'wormsign', index: i }) ? ' active' : ''}`}
+                title="Set this wormsign's area on the board map"
+                onClick={() => onPick({ kind: 'wormsign', index: i })}
+              >
+                📍
+              </button>
+              <button className="remove" onClick={() => removeWormsign(i)} title="Remove wormsign">
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button className="add-mini" onClick={addWormsign}>
+        + Add wormsign (pick on map)
       </button>
     </section>
   );
@@ -1174,6 +1234,7 @@ export function App() {
         {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <BattlePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <CardPanel s={s} onApply={commit} />}
+        {inPhase('action_resolution') && <DesertPowerPanel s={s} onChange={setS} onPick={setPick} pick={pick} />}
         {inPhase('desert_hazards') && <WormsignPanel s={s} onApply={commit} />}
         {inPhase('desert_hazards') && <StormPanel s={s} onApply={commit} />}
         {inPhase('spice_harvesting') && <SpicePanel s={s} onApply={commit} />}

@@ -1000,6 +1000,20 @@ label.mini.check input {
   font-size: 0.8rem;
   color: #6a583c;
 }
+
+.wormsign-list {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.wormsign-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
 .phase-nav button {
   /* Match both buttons' box so only the emphasis (filled Next vs outline Back) differs,
      not the size. Overrides .die's grow + min-width and aligns padding/radius. */
