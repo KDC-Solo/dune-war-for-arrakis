@@ -721,11 +721,15 @@ function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState, lo
 
 const UNDO_LIMIT = 20;
 
-function WormsignPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+function WormsignPanel({ s, onApply }: { s: GameState; onApply: (next: GameState, log?: ActionLog) => void }) {
   const place = useMemo(() => wormsignPlacementAreas(s), [s]);
   const discard = useMemo(() => wormsignsToDiscard(s), [s]);
   const nothing = place.length === 0 && discard.length === 0;
-  const apply = () => onApply(placeWormsigns(s).state);
+  const apply = () =>
+    onApply(placeWormsigns(s).state, {
+      headline: 'Wormsigns',
+      text: `Discarded ${discard.length}, placed ${place.length}.`,
+    });
   return (
     <section className="panel">
       <h2>Wormsigns</h2>
@@ -802,7 +806,7 @@ function DesertPowerPanel({
   );
 }
 
-function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState, log?: ActionLog) => void }) {
   const targets = useMemo(() => stormTargets(s), [s]);
   const [dice, setDice] = useState<Record<number, StormDice>>({});
   const get = (i: number) => dice[i] ?? { swords: 0, specials: 0 };
@@ -811,7 +815,10 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
 
   const apply = () => {
     const { state } = resolveCoriolisStorms(s, (t) => get(t.legionIndex));
-    onApply(state);
+    onApply(state, {
+      headline: 'Coriolis storms',
+      text: `Storm casualties applied to ${targets.length} exposed legion${targets.length === 1 ? '' : 's'}.`,
+    });
     setDice({});
   };
 
@@ -878,7 +885,7 @@ function markerArrow(from: number, to: number): string {
   return '·';
 }
 
-function SpicePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+function SpicePanel({ s, onApply }: { s: GameState; onApply: (next: GameState, log?: ActionLog) => void }) {
   // Default the collected spice from harvesters on the board (deep desert = 2, desert = 1);
   // the player can override it for harvesters lost to combat or worms.
   const harvesters = useMemo(
@@ -897,19 +904,25 @@ function SpicePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
   const powers = Object.keys(s.spice.markers) as ImperiumPower[];
 
   const apply = () => {
-    onApply({
-      ...s,
-      spice: {
-        ...s.spice,
-        markers: outcome.markers,
-        spiceReserve: outcome.reserve,
-        activeBans: outcome.activeBans,
+    onApply(
+      {
+        ...s,
+        spice: {
+          ...s.spice,
+          markers: outcome.markers,
+          spiceReserve: outcome.reserve,
+          activeBans: outcome.activeBans,
+        },
+        tracks: {
+          ...s.tracks,
+          supremacy: Math.min(SUPREMACY_WIN, s.tracks.supremacy + outcome.supremacyGained),
+        },
       },
-      tracks: {
-        ...s.tracks,
-        supremacy: Math.min(SUPREMACY_WIN, s.tracks.supremacy + outcome.supremacyGained),
+      {
+        headline: 'Spice Must Flow',
+        text: `Spent ${collected + s.spice.spiceReserve} spice; reserve ${outcome.reserve}${outcome.supremacyGained ? `; supremacy +${outcome.supremacyGained}` : ''}.`,
       },
-    });
+    );
   };
 
   return (
@@ -1461,7 +1474,7 @@ function BattlePanel({
   onFocusDone,
 }: {
   s: GameState;
-  onApply: (next: GameState) => void;
+  onApply: (next: GameState, log?: ActionLog) => void;
   /** Scroll here and pulse the fight at this area (set by the attack → battle handoff). */
   focus: string | null;
   onFocusDone: () => void;
@@ -1535,7 +1548,7 @@ function BattlePanel({
     let next = s;
     if (pair.attacker.deploymentTokens > 0) next = revealDeploymentTokens(next, pair.area, 'harkonnen', atk);
     if (pair.defender.deploymentTokens > 0) next = revealDeploymentTokens(next, pair.area, 'atreides', defUnits);
-    onApply(next);
+    onApply(next, { headline: 'Tokens revealed', text: `Deployment tokens flipped at ${areaLabel(pair.area)}.` });
     const attacker = next.legions.find((l) => l.faction === 'harkonnen' && l.area === pair.area)!;
     const defender = next.legions.find((l) => l.faction === 'atreides' && l.area === pair.area)!;
     setReveal(null);
@@ -1554,7 +1567,10 @@ function BattlePanel({
   const commit = () => {
     if (!session) return;
     const { state } = commitBattle(s, session);
-    onApply(state);
+    onApply(state, {
+      headline: 'Battle',
+      text: `${areaLabel(session.ctx.defender.area)} — ${OUTCOME_LABEL[session.status as Exclude<BattleSession['status'], 'ongoing'>] ?? 'resolved'}`,
+    });
     setSession(null);
   };
 
