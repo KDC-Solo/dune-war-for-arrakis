@@ -4,9 +4,10 @@
 // (`applied: false`) because they involve physical dice / the card subsystem.
 
 import type { GameState, Legion, UnitType } from "./state";
-import { emptyLegion } from "./state";
+import { emptyLegion, unitCount } from "./state";
 import type { DeployPlacement, HarkonnenAction } from "./harkonnenActions";
 import { placeHarvesters, placeOrnithopters } from "./vehiclePlacement";
+import { stackingLimit } from "./imperiumBans";
 
 export interface ApplyResult {
   state: GameState;
@@ -51,14 +52,60 @@ function applyMove(s: GameState, from: string, to: string): ApplyResult {
   if (!mover)
     return { state: s, applied: false, note: "no Harkonnen legion to move" };
 
+  // Respect the stacking limit at the destination: move units up to the remaining capacity,
+  // starting with the highest combat power (Sardaukar → elite → regular → tokens), plus ALL
+  // leaders (leaders don't count toward the limit). Any units that don't fit stay behind.
+  const limit = stackingLimit(s.spice.activeBans);
+  const dest = harkonnenAt(s, to);
+  const capacity = Math.max(0, limit - (dest ? unitCount(dest) : 0));
+  let room = capacity;
+  const take = (have: number) => {
+    const n = Math.min(have, room);
+    room -= n;
+    return n;
+  };
+  const movedSE = take(mover.units.special_elite);
+  const movedE = take(mover.units.elite);
+  const movedR = take(mover.units.regular);
+  const movedTokens = take(mover.deploymentTokens);
+  const movedUnitCount = movedSE + movedE + movedR + movedTokens;
+  // A leader cannot travel alone, so leaders only ride along when at least 1 unit/token moves.
+  const movedLeaders = movedUnitCount > 0 ? mover.leaders : [];
+
+  if (movedUnitCount === 0) {
+    return {
+      state: s,
+      applied: false,
+      note: "destination is at its stacking limit — nothing can move there.",
+    };
+  }
+
+  const remainder: Legion = {
+    ...mover,
+    units: {
+      regular: mover.units.regular - movedR,
+      elite: mover.units.elite - movedE,
+      special_elite: mover.units.special_elite - movedSE,
+    },
+    deploymentTokens: mover.deploymentTokens - movedTokens,
+    leaders: movedLeaders.length > 0 ? [] : mover.leaders,
+  };
+  const remainderEmpty = unitCount(remainder) + remainder.leaders.length === 0;
+
   let legions = s.legions.filter((l) => l !== mover);
-  legions = upsertLegion(legions, { ...mover, area: to });
+  if (!remainderEmpty) legions = [...legions, remainder];
+  legions = upsertLegion(legions, {
+    ...emptyLegion("harkonnen", to),
+    units: { regular: movedR, elite: movedE, special_elite: movedSE },
+    deploymentTokens: movedTokens,
+    leaders: movedLeaders,
+  });
 
   let reserve = s.harkonnenReserve;
-  // When a Harkonnen legion leaves a settlement, drop 2 deployment tokens there (from the pool).
-  const leftSettlement = s.settlements.some(
-    (st) => st.area === from && !st.destroyed,
-  );
+  // When a Harkonnen legion fully leaves a settlement, drop 2 deployment tokens there (from the pool).
+  const leftSettlement =
+    remainderEmpty &&
+    s.settlements.some((st) => st.area === from && !st.destroyed);
   let droppedTokens = 0;
   if (leftSettlement) {
     droppedTokens = Math.min(2, reserve.deploymentTokens);
@@ -73,13 +120,17 @@ function applyMove(s: GameState, from: string, to: string): ApplyResult {
       };
     }
   }
+  const split = !remainderEmpty;
   return {
     state: { ...s, legions, harkonnenReserve: reserve },
     applied: true,
     note:
-      droppedTokens > 0
-        ? `Legion moved; ${droppedTokens} deployment token${droppedTokens === 1 ? "" : "s"} left in the settlement.`
-        : "Legion moved.",
+      (split
+        ? `Moved ${movedUnitCount} (stacking limit ${limit}); rest stayed behind. `
+        : "Legion moved. ") +
+      (droppedTokens > 0
+        ? `${droppedTokens} deployment token${droppedTokens === 1 ? "" : "s"} left in the settlement.`
+        : ""),
   };
 }
 
@@ -144,7 +195,12 @@ export interface MoveUnits {
 }
 
 const legionEmpty = (l: Legion) =>
-  l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens + l.leaders.length === 0;
+  l.units.regular +
+    l.units.elite +
+    l.units.special_elite +
+    l.deploymentTokens +
+    l.leaders.length ===
+  0;
 
 /**
  * Move some (or all) of a legion's figures from `from` to `to`, for either faction. Both factions
@@ -163,7 +219,8 @@ export function moveLegionUnits(
   const src = s.legions.find((l) => l.faction === faction && l.area === from);
   if (!src) return s;
 
-  const cap = (n: number, max: number) => Math.max(0, Math.min(Math.floor(n) || 0, max));
+  const cap = (n: number, max: number) =>
+    Math.max(0, Math.min(Math.floor(n) || 0, max));
   const moved = {
     regular: cap(move.units.regular, src.units.regular),
     elite: cap(move.units.elite, src.units.elite),
@@ -198,7 +255,6 @@ export function moveLegionUnits(
   legions = upsertLegion(legions, movedLegion);
   return { ...s, legions };
 }
-
 
 // --- house: replace regulars with elites -----------------------------------
 

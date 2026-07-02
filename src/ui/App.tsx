@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionResult, GameState, ImperiumPower, Leader, Legion, RoundPhase } from '../engine/state';
 import { resolveAction, type HarkonnenAction } from '../engine/harkonnenActions';
 import { applyHarkonnenAction, isAutoApplied, moveLegionUnits, type MoveUnits } from '../engine/applyAction';
+import { legalMoveDestinations } from '../engine/moveTargets';
 import {
   availability,
   resolveSpiceHarvesting,
@@ -74,6 +75,13 @@ interface HistoryEntry extends ActionLog {
   id: number;
   round: number;
   time: number;
+}
+
+// A legion move whose destination is being chosen on the board map (started from the move panel).
+interface PendingMove {
+  from: string;
+  faction: Legion['faction'];
+  move: MoveUnits;
 }
 
 const HELP_KEY = 'dwfa.helpOpen';
@@ -271,13 +279,14 @@ const clampInt = (n: number, lo: number, hi: number) =>
 const leaderLabel = (ld: Leader) =>
   ld.kind === 'named' ? ld.name : ld.faction === 'harkonnen' ? 'Bashar' : 'Naib';
 
-// One legion's move/split form: choose which figures to move (all by default) and a destination.
+// One legion's move/split form: choose which figures to move (all by default); the destination is
+// then picked on the board map (only legal move areas are selectable).
 function MoveLegionRow({
   l,
-  onMove,
+  onPickDestination,
 }: {
   l: Legion;
-  onMove: (to: string, move: MoveUnits, label: string) => void;
+  onPickDestination: (move: MoveUnits) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [reg, setReg] = useState(l.units.regular);
@@ -285,7 +294,6 @@ function MoveLegionRow({
   const [spe, setSpe] = useState(l.units.special_elite);
   const [tok, setTok] = useState(l.deploymentTokens);
   const [leaderSel, setLeaderSel] = useState<boolean[]>([]);
-  const [dest, setDest] = useState('');
 
   // Open with everything selected (default: move the whole legion).
   const openForm = () => {
@@ -294,26 +302,21 @@ function MoveLegionRow({
     setSpe(l.units.special_elite);
     setTok(l.deploymentTokens);
     setLeaderSel(l.leaders.map(() => true));
-    setDest('');
     setOpen(true);
   };
 
   const movedUnits = reg + eli + spe + tok;
   const movedLeaders = leaderSel.filter(Boolean).length;
   const leaderAlone = movedLeaders > 0 && movedUnits === 0; // leaders can't travel without a unit/token
-  const canMove = !!dest && movedUnits + movedLeaders > 0 && !leaderAlone;
+  const canMove = movedUnits + movedLeaders > 0 && !leaderAlone;
 
-  const doMove = () => {
+  const pickDestination = () => {
     if (!canMove) return;
-    onMove(
-      dest,
-      {
-        units: { regular: reg, elite: eli, special_elite: spe },
-        deploymentTokens: tok,
-        leaderIndices: leaderSel.map((on, i) => (on ? i : -1)).filter((i) => i >= 0),
-      },
-      `${l.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} ${areaLabel(l.area)} → ${areaLabel(dest)}`,
-    );
+    onPickDestination({
+      units: { regular: reg, elite: eli, special_elite: spe },
+      deploymentTokens: tok,
+      leaderIndices: leaderSel.map((on, i) => (on ? i : -1)).filter((i) => i >= 0),
+    });
     setOpen(false);
   };
 
@@ -356,15 +359,6 @@ function MoveLegionRow({
             {num('Elite', eli, l.units.elite, setEli)}
             {num('S.Elite', spe, l.units.special_elite, setSpe)}
             {num('Tokens', tok, l.deploymentTokens, setTok)}
-            <label>
-              To
-              <select value={dest} onChange={(e) => setDest(e.target.value)}>
-                <option value="">— select —</option>
-                {SORTED_AREA_IDS.filter((id) => id !== l.area).map((id) => (
-                  <option key={id} value={id}>{areaLabel(id)}</option>
-                ))}
-              </select>
-            </label>
           </div>
           {l.leaders.length > 0 && (
             <div className="move-leaders">
@@ -381,10 +375,9 @@ function MoveLegionRow({
               ))}
             </div>
           )}
-          {dest && <p className="hint">Destination: <AreaChip id={dest} /></p>}
           {leaderAlone && <p className="apply-note">A leader can't move alone — include at least 1 unit or token.</p>}
-          <button className="add-mini" disabled={!canMove} onClick={doMove}>
-            Move {movedUnits + movedLeaders || ''} figure{movedUnits + movedLeaders === 1 ? '' : 's'}
+          <button className="add-mini" disabled={!canMove} onClick={pickDestination}>
+            📍 Pick destination on map ({movedUnits + movedLeaders} figure{movedUnits + movedLeaders === 1 ? '' : 's'})
           </button>
         </div>
       )}
@@ -393,12 +386,13 @@ function MoveLegionRow({
 }
 
 // Move (and optionally split) any legion, for either faction. Splitting leaves the rest behind.
+// The destination is chosen on the board map, restricted to legal move areas.
 function MoveLegionPanel({
   s,
-  onChange,
+  onStartMapMove,
 }: {
   s: GameState;
-  onChange: (next: GameState, log?: ActionLog) => void;
+  onStartMapMove: (pm: PendingMove) => void;
 }) {
   const legions = s.legions.filter(
     (l) => l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens + l.leaders.length > 0,
@@ -408,8 +402,9 @@ function MoveLegionPanel({
     <section className="panel">
       <h2>Move a legion</h2>
       <p className="hint">
-        Choose which figures to move (all by default), then a destination — splitting leaves the rest behind.
-        Works for both factions. The Harkonnen ignore impassable borders; other factions can't cross them without a troop-transport.
+        Choose which figures to move (all by default), then tap the destination on the board map — only legal
+        moves are highlighted. Splitting leaves the rest behind. Harkonnen may cross impassable borders and
+        troop-transport with an ornithopter; Atreides may sandride along wormsign/sandworm chains.
       </p>
       {legions.length === 0 ? (
         <p className="hint">No legions on the board.</p>
@@ -419,9 +414,7 @@ function MoveLegionPanel({
             <MoveLegionRow
               key={`${l.faction}:${l.area}`}
               l={l}
-              onMove={(to, move, label) =>
-                onChange(moveLegionUnits(s, l.faction, l.area, to, move), { headline: 'Move (manual)', text: label })
-              }
+              onPickDestination={(move) => onStartMapMove({ from: l.area, faction: l.faction, move })}
             />
           ))}
         </div>
@@ -982,6 +975,8 @@ function describePicked(p: PickTarget, id: string): string {
       return `Sandworm ${p.index + 1} placed at ${label}`;
     case 'target':
       return `Target sietch set to ${label}`;
+    case 'move':
+      return `Moved to ${label}`;
   }
 }
 
@@ -991,6 +986,9 @@ function describePicked(p: PickTarget, id: string): string {
 function BoardMapPanel({
   s,
   onChange,
+  onMove,
+  pendingMove,
+  clearPendingMove,
   pick,
   clearPick,
   locate,
@@ -1002,6 +1000,9 @@ function BoardMapPanel({
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
+  onMove: (next: GameState, log: ActionLog) => void;
+  pendingMove: PendingMove | null;
+  clearPendingMove: () => void;
   pick: PickTarget | null;
   clearPick: () => void;
   locate: string | null;
@@ -1015,6 +1016,13 @@ function BoardMapPanel({
   const [hovered, setHovered] = useState<string | null>(null);
   // One-shot request to zoom/pan the map onto an area (nonce re-fires identical locates).
   const [focus, setFocus] = useState<{ id: string; nonce: number } | null>(null);
+
+  // Legal destinations for a pending move (empty set otherwise) — highlighted on the map.
+  const moveLegion =
+    pick?.kind === 'move' && pendingMove
+      ? s.legions.find((l) => l.faction === pendingMove.faction && l.area === pendingMove.from)
+      : undefined;
+  const moveDestinations = moveLegion ? legalMoveDestinations(s, moveLegion) : new Set<string>();
 
   // Select an area (or air zone), pulse it, and centre the map on it. Air zones aren't areas, so
   // they don't drive the area selection/info card — only the map focus.
@@ -1037,6 +1045,11 @@ function BoardMapPanel({
     } else if (pick.kind === 'sandworm') {
       pickArea = s.sandworms[pick.index]?.area ?? null;
       pickWhat = `sandworm ${pick.index + 1}`;
+    } else if (pick.kind === 'move') {
+      pickArea = pendingMove?.from ?? null;
+      pickWhat = pendingMove
+        ? `the move destination for the ${pendingMove.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion at ${areaLabel(pendingMove.from)}`
+        : 'the move destination';
     } else {
       pickArea = s.targetSietchId;
       pickWhat = 'the target sietch';
@@ -1079,11 +1092,12 @@ function BoardMapPanel({
   // Closing the overlay also cancels an in-progress pick (nothing gets assigned).
   const closeOverlay = () => {
     if (pick) clearPick();
+    if (pendingMove) clearPendingMove();
     onClose();
   };
 
-  // Some picks restrict which areas are valid: wormsigns/sandworms by terrain + occupancy, and the
-  // target sietch must be a live sietch. Valid areas stay clickable; the rest dim.
+  // Some picks restrict which areas are valid: wormsigns/sandworms by terrain + occupancy, the
+  // target sietch must be a live sietch, and a move must be a legal destination. Rest dim.
   const wormPick = pick?.kind === 'wormsign' || pick?.kind === 'sandworm';
   const selectable =
     pick?.kind === 'wormsign'
@@ -1092,13 +1106,19 @@ function BoardMapPanel({
         ? (id: string) => canPlaceSandworm(s, id)
         : pick?.kind === 'target'
           ? (id: string) => s.sietches.some((si) => si.area === id && !si.destroyed)
-          : undefined;
+          : pick?.kind === 'move'
+            ? (id: string) => moveDestinations.has(id)
+            : undefined;
   // Hint shown in the pick banner describing what's selectable.
   const pickHint = wormPick
     ? ' Only valid Desert areas are highlighted; the rest are dimmed.'
     : pick?.kind === 'target'
       ? ' Only sietches (not destroyed) are selectable; the rest are dimmed.'
-      : '';
+      : pick?.kind === 'move'
+        ? moveDestinations.size > 0
+          ? ' Only legal move destinations are highlighted (ground, troop-transport, or sandriding); the rest are dimmed.'
+          : ' This legion has no legal move — close to cancel.'
+        : '';
 
   const onMapSelect = (id: string) => {
     if (!pick) {
@@ -1106,6 +1126,20 @@ function BoardMapPanel({
       return; // browsing: just show the info card, keep the overlay open
     }
     if (selectable && !selectable(id)) return; // ignore invalid terrain
+    if (pick.kind === 'move') {
+      if (pendingMove && moveLegion) {
+        const label = `${pendingMove.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} ${areaLabel(pendingMove.from)} → ${areaLabel(id)}`;
+        onMove(moveLegionUnits(s, pendingMove.faction, pendingMove.from, id, pendingMove.move), {
+          headline: 'Move (manual)',
+          text: label,
+        });
+        onConfirm(`Moved: ${label}`);
+      }
+      clearPendingMove();
+      clearPick();
+      onClose();
+      return;
+    }
     if (pick.kind === 'legion') {
       onChange({ ...s, legions: s.legions.map((l, i) => (i === pick.index ? { ...l, area: id } : l)) });
     } else if (pick.kind === 'wormsign') {
@@ -1590,6 +1624,8 @@ export function App() {
   const [pick, setPick] = useState<PickTarget | null>(null);
   // Active "show this area on the map" request from a locate chip.
   const [locate, setLocate] = useState<string | null>(null);
+  // A legion move awaiting a destination pick on the board map.
+  const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
   // Whether the floating board-map overlay is open.
   const [mapOpen, setMapOpen] = useState(false);
   // Transient confirmation toast (e.g. after placing a wormsign via the map).
@@ -1649,6 +1685,12 @@ export function App() {
   };
   const startNewGame = () => commit(newGameState(), { headline: 'New game', text: 'Started a fresh game.' });
 
+  // Begin choosing a move's destination on the board map (the pick opens the overlay).
+  const startMapMove = (pm: PendingMove) => {
+    setPendingMove(pm);
+    setPick({ kind: 'move' });
+  };
+
   // Download the current game as a JSON file the player can back up or share.
   const exportGame = () => {
     const blob = new Blob([exportState(s)], { type: 'application/json' });
@@ -1683,7 +1725,7 @@ export function App() {
         {inPhase('vehicle_placement') && <VehiclePanel s={s} onChange={commit} editable={false} />}
         {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <VehiclePanel s={s} onChange={commit} editable={true} />}
-        {inPhase('action_resolution') && <MoveLegionPanel s={s} onChange={commit} />}
+        {inPhase('action_resolution') && <MoveLegionPanel s={s} onStartMapMove={startMapMove} />}
         {inPhase('action_resolution') && <BattlePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <CardPanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <DesertPowerPanel s={s} onChange={setS} onPick={setPick} pick={pick} />}
@@ -1698,6 +1740,9 @@ export function App() {
       <BoardMapPanel
         s={s}
         onChange={setS}
+        onMove={commit}
+        pendingMove={pendingMove}
+        clearPendingMove={() => setPendingMove(null)}
         pick={pick}
         clearPick={() => setPick(null)}
         locate={locate}
