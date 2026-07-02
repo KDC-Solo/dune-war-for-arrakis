@@ -12,12 +12,15 @@ export function GamesPanel({
   onNewGame,
   onExport,
   onImport,
+  onGuidedSetup,
 }: {
   s: GameState;
   onReset: () => void;
   onNewGame: () => void;
   onExport: () => void;
   onImport: (next: GameState) => void;
+  /** Open the step-by-step physical-setup walkthrough (ends in a fresh game). */
+  onGuidedSetup: () => void;
 }) {
   const pickFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,6 +63,9 @@ export function GamesPanel({
           }}
         >
           New game
+        </button>
+        <button className="reset" onClick={onGuidedSetup}>
+          🧭 Guided setup
         </button>
         <button className="reset" onClick={onExport}>
           Export

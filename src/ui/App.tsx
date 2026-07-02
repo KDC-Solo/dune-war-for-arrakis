@@ -46,6 +46,7 @@ import {
 import { isDesertArea } from '../engine/describeArea';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { AtreidesPanel } from './AtreidesPanel';
+import { SetupWizard } from './SetupWizard';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
 import { LocateContext, AreaChip, AreaChips, AirZoneChip, AirZoneChips } from './locate';
@@ -88,7 +89,7 @@ interface PendingMove {
 
 const HELP_KEY = 'dwfa.helpOpen';
 
-function HelpPanel() {
+function HelpPanel({ onGuidedSetup }: { onGuidedSetup: () => void }) {
   const [open, setOpen] = useState(() => {
     try {
       return localStorage.getItem(HELP_KEY) !== 'closed';
@@ -116,6 +117,11 @@ function HelpPanel() {
       </p>
 
       <h4>First time — describe your board</h4>
+      <p className="help-cta">
+        <button type="button" className="confirm-btn" onClick={onGuidedSetup}>
+          🧭 Guided setup — walk me through laying out a fresh game
+        </button>
+      </p>
       <p>
         In <em>Games</em>, hit <em>New game</em> for a fresh starting position (or keep the demo to experiment).
         Then open <em>Edit game state</em> and match your table: imperium markers, every Harkonnen &amp;
@@ -1841,6 +1847,8 @@ export function App() {
   const [battleFocus, setBattleFocus] = useState<string | null>(null);
   // Game-over overlay dismissal (so the player can keep reviewing the final board).
   const [gameOverDismissed, setGameOverDismissed] = useState(false);
+  // Guided physical-setup walkthrough (ends by starting a fresh game).
+  const [wizardOpen, setWizardOpen] = useState(false);
   // Setup section (games + editor) starts open only before round 1 is set up.
   const [setupOpen, setSetupOpen] = useState(() => s.phase === 'start');
   useEffect(() => {
@@ -1946,14 +1954,14 @@ export function App() {
       </header>
       <StatusStrip s={s} />
       <main>
-        <HelpPanel />
+        <HelpPanel onGuidedSetup={() => setWizardOpen(true)} />
         <details
           className="setup-group"
           open={setupOpen}
           onToggle={(e) => setSetupOpen(e.currentTarget.open)}
         >
           <summary className="setup-summary">Setup — games, saves &amp; board editor</summary>
-          <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
+          <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} onGuidedSetup={() => setWizardOpen(true)} />
           <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} deployTo={deployTo} />
         </details>
         <RoundPanel s={s} />
@@ -2000,6 +2008,11 @@ export function App() {
         onClose={() => setHistoryOpen(false)}
         onUndo={undo}
         canUndo={past.length > 0}
+      />
+      <SetupWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onFinish={(next) => commit(next, { headline: 'New game', text: 'Guided setup complete — fresh Mahdi-solo game.' })}
       />
       <GameOverOverlay
         s={s}

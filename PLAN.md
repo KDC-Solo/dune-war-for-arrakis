@@ -158,7 +158,11 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       Atreides legions = token + Naib per sietch; markers at top; 12 starting deployment tokens +
       start-in-play named leaders in the reserve pool; Harkonnen settlements empty per the solo
       pool rule). Wired to a "New game" button in the editor (undoable via `commit`).
-- [ ] Sync the few Atreides-side changes the AI depends on (see "Next up" §4 — the last big Phase 3 gap)
+- [x] Sync the few Atreides-side changes the AI depends on — **DONE (2026-07-03):**
+  `AtreidesPanel` ("Your turn (Atreides)", action phase): prescience markers + secret-objective
+  goals, take testing stations, destroy settlements (all markers +rank), reveal sietches
+  (voluntary reveal → +1 reinforcements unless Spacing Guild ban), Harkonnen Bene Gesserit solo
+  rule. Legion moves via the move tool; wormsigns via Desert Power.
 - [x] Moving Harkonen legion should respect stacking limit — **DONE (2026-07-03):** AI path
   (`applyMove` splits at the limit, move tie-break prefers non-full merges, deployment overflows)
   AND the manual map-move (`moveLegionUnits` clamps to destination room, highest-value units first,
@@ -190,16 +194,14 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
 
 Lower the barrier for a brand-new solo player picking up the app cold.
 
-- [ ] **Guided board setup.** A step-by-step wizard that walks the player through physically
-      laying out the board for a fresh Mahdi-solo game (place Atreides sietch legions, deployment
-      tokens, named-leader/reserve pool, imperium markers, harvesting sector + target sietch draws),
-      instead of dropping them at the StateEditor. Builds on `newGameState()` — narrate each piece
-      as the app sets it, with the interactive board map showing where things go.
-- [ ] **Teach solo mode.** In-app tutorial / first-run experience that explains how Mahdi solo
-      works (you play Atreides; the app runs the Harkonnen AI; how a round flows: dice → actions →
-      battles → spice → storms) so a player who's never run the solo rules can learn by playing.
-      Could ride on the existing PhasePanel walkthrough + "How to use" help, expanded into a real
-      onboarding flow.
+- [x] **Guided board setup — DONE (2026-07-03).** `SetupWizard`: 7-step modal walking through
+      the physical Mahdi-solo layout (SMF board + markers, sietch garrisons, settlement tokens,
+      stations/decks/leaders, secret objective) with clickable 📍 area chips pulsing the board
+      map; finishes by applying `newGameState()`. Launched from the help panel or Games.
+- [x] **Teach solo mode — DONE (2026-07-03, first pass).** The wizard's welcome + "How a round
+      flows" steps teach the loop (you play Atreides; the app decides Harkonnen actions; dice →
+      actions → battles → hazards → spice → end), on top of the existing phase-gated walkthrough
+      and help panel. A deeper interactive tutorial can come later if playtesting wants it.
 
 ## 4. Current status (update me each session)
 
@@ -230,29 +232,41 @@ Lower the barrier for a brand-new solo player picking up the app cold.
          checkbox: it's a distinct Leadership option in the rules, not implied by the AI
          attack.) Also fixed the move/split form layout (one-line "Reg / 3" captions,
          compact inputs outside the editor, wrapping header row).
-   - [ ] **Tap-friendly number entry:** +/− stepper buttons on all NumInputs, and battle/
-         storm dice as tap-to-count rows (⚔️/🛡/✴ counters) instead of bare number fields.
-   - [ ] **Toast every applied action** (only map picks confirm today) and auto-scroll to
-         the directive when a die face is tapped.
-   - [ ] **Proper game-end screen:** replace the `alert()` on supremacy 10 with a real
-         end-of-game banner/dialog (extends to the Atreides win once modeled — see item 4).
-   - [ ] **Capacity feedback:** the move/deploy forms show "N slots free" at the chosen
-         destination (engine already clamps; tell the player before they pick).
-   - [ ] **Manual Harkonnen settlement-exit rule:** manually moving the last Harkonnen
-         figures out of a settlement should offer the "leave 2 deployment tokens" garrison
-         drop the AI move already applies.
-   - [ ] **Group setup panels:** collapse Games + Edit game state into a "Setup" section
-         during play (the Atreides-turn panel replaces mid-game editor digging).
-   - [ ] **PWA pass** (replaces the scrapped Capacitor plan): manifest + service worker →
-         installable on the phone/tablet at the table, works offline.
-4. **Game-end completeness.** `tracks.prescience` exists in state but nothing reads it:
-   model the Atreides victory path (prescience/ecological testing per rulebook) alongside
-   the existing supremacy-10 Harkonnen win; detect + announce game end both ways.
-5. **Rules audit vs fan-summary p9.** One sweep of the Mahdi solo rules against the engine
-   to catch anything not yet automated (wormsign movement, mid-round target reselection
-   triggers, imperium-ban edge cases); log gaps as checklist items here.
-6. **Playtest feedback pass → v0.4.0.** Fold in findings from the current v0.3.0 playtest.
-7. **Phase 6 onboarding** — guided physical-setup wizard + teach-solo tutorial (see §3).
+   - [x] **Tap-friendly number entry** _(DONE 2026-07-03)_: Counter steppers for battle
+         rolls, token reveals, and storm dice. (Editor NumInputs keep plain number fields.)
+   - [x] **Toast every applied action** + directive auto-scroll _(DONE 2026-07-03)_. Battle
+         commit, token reveals, wormsigns, storms, and spice now also log to history.
+   - [x] **Proper game-end screen** _(DONE 2026-07-03)_: GameOverOverlay for both victory
+         paths (alert removed); re-arms on undo/new game.
+   - [x] **Capacity feedback** _(DONE 2026-07-03)_: deploy form shows "N slots free".
+   - [x] **Manual Harkonnen settlement-exit rule** _(DONE 2026-07-03)_: manual full moves
+         out of a live settlement drop the 2 garrison tokens (pool-permitting).
+   - [x] **Group setup panels** _(DONE 2026-07-03)_: Games + editor collapse into a
+         "Setup" group that auto-opens at phase start.
+   - [x] **PWA pass** _(DONE 2026-07-03)_: vite-plugin-pwa manifest + auto-updating service
+         worker + icons; installable & offline.
+4. **Game-end completeness — ✅ DONE (2026-07-03).** `victory.ts`: `gameOutcome` (supremacy
+   10 / all prescience markers ≥ the player-entered Secret Objective), prescience economy
+   (cards via steppers, stations +1 chosen marker, settlements +rank to all), plus solo
+   bookkeeping (voluntary-reveal reinforcements, Harkonnen Bene Gesserit rule).
+   `GameState.atreidesObjective` holds the secret card's targets (player-entered; no card
+   photos exist).
+5. **Rules audit vs fan-summary p9 — ✅ DONE (2026-07-03).** Fixed: Gaius solo special is
+   draw-3-Corrino (was base-game draw-2-play-1). Added: BG-token rule, voluntary-reveal
+   bonus, settlement-exit garrison on manual moves. **Still open (small):**
+   - [ ] Deployment-token pool exhaustion (p9): when the pool is empty and tokens must be
+         placed, reveal 2 tokens of choice on the board first, then place. The app
+         currently just places fewer/none — surface a directive for this edge.
+   - [ ] Wormsign reveal when a Harkonnen legion enters a wormsign area is resolved
+         physically; add a help note pointing at the hazard tools for recording outcomes.
+6. **E2E full-game suite — ✅ DONE (2026-07-03, user request).** Playwright
+   (`e2e/full-game.spec.ts`, 5 journeys): full round from a fresh game (all 5 dice, attack
+   handoff, battle, hazards, storms, spice, next round), battle from token reveal to
+   commit, rule-filtered map move + garrison drop, guided-setup wizard, both victory paths
+   to the game-over screen. Runs in CI (`.github/workflows/e2e.yml`) on push/PR — first
+   run green in 1m03s. Local: `PLAYWRIGHT_CHROMIUM=/usr/bin/chromium-browser npm run test:e2e`.
+7. **Playtest feedback pass → v0.4.0.** Fold in findings from the current playtest; tag
+   the release (everything above is live on main/Pages already).
 
 ## 5. Key references
 

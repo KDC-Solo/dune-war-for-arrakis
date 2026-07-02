@@ -42,11 +42,15 @@ async function bump(scope: Locator, label: string, times: number) {
  *  each round, apply until an outcome banner appears, then commit it. */
 async function runBattle(page: Page) {
   const battle = panel(page, /^Battle$/);
+  const fight = battle.getByRole('button', { name: 'Fight' }).first();
   const reveal = battle.getByRole('button', { name: 'Reveal & begin battle' });
   const applyRound = battle.getByRole('button', { name: 'Apply round' });
   const banner = battle.locator('.win-banner');
 
-  // A battle whose legions hold facedown deployment tokens flips them to units first.
+  // The attack handoff focuses the pair but the player still taps Fight; and a battle whose
+  // legions hold facedown deployment tokens flips them to units first.
+  await expect(fight.or(reveal).or(applyRound).first()).toBeVisible();
+  if (await fight.isVisible()) await fight.click();
   await expect(reveal.or(applyRound).first()).toBeVisible();
   if (await reveal.isVisible()) await reveal.click();
 
@@ -174,6 +178,25 @@ test('a manual map move is rule-filtered and drops the settlement garrison', asy
   await expect(page.locator('.toast')).toContainText('Moved');
   await expect(move.locator('.move-row', { hasText: 'Arsunt' })).toContainText('2 reg');
   await expect(move.locator('.move-row', { hasText: 'Carthag' })).toContainText('2 tokens');
+});
+
+test('the guided setup wizard walks through and starts a fresh game', async ({ page }) => {
+  await open(page);
+  // The help panel offers guided setup for first-time players; the Games panel also has it
+  // (the help panel is collapsed by open(), so use the Games one).
+  const setup = page.locator('details.setup-group');
+  if (!(await setup.getAttribute('open'))) await setup.locator('summary.setup-summary').click();
+  await page.getByRole('button', { name: '🧭 Guided setup' }).click();
+  const wizard = page.locator('.wizard');
+  await expect(wizard).toContainText('Welcome to Mahdi solo');
+  // Step through every page (7 steps → 6 Next clicks), then start the game.
+  for (let i = 0; i < 6; i++) await wizard.getByRole('button', { name: 'Next →' }).click();
+  await expect(wizard).toContainText('How a round flows');
+  await wizard.getByRole('button', { name: 'Start the game' }).click();
+  await expect(wizard).toBeHidden();
+  await expect(page.locator('.status-strip')).toContainText('R1');
+  await expect(page.locator('.status-strip')).toContainText('Setup');
+  await expect(page.locator('.toast')).toContainText('New game applied');
 });
 
 test('both victory paths end in the game-over screen', async ({ page }) => {

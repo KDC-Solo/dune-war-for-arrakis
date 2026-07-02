@@ -192,6 +192,51 @@ header h1 {
   margin-bottom: 0.8rem;
 }
 
+/* Guided setup wizard. */
+.wizard-overlay {
+  z-index: 80;
+}
+.wizard {
+  max-width: 34rem;
+}
+.wizard-progress {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.2rem 0 0.8rem;
+}
+.wizard-dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+.wizard-dot.done {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.wizard-dot.current {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.wizard-body {
+  min-height: 11rem;
+}
+.wizard-flow {
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.wizard-nav {
+  justify-content: space-between;
+}
+.help-cta {
+  margin: 0.4rem 0;
+}
+
 /* End-of-game overlay. */
 .gameover-overlay {
   z-index: 90;
