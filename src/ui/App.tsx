@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ActionResult, GameState, ImperiumPower, Legion, RoundPhase } from '../engine/state';
+import type { ActionResult, GameState, ImperiumPower, Leader, Legion, RoundPhase } from '../engine/state';
 import { resolveAction, type HarkonnenAction } from '../engine/harkonnenActions';
-import { applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
+import { applyHarkonnenAction, isAutoApplied, moveLegionUnits, type MoveUnits } from '../engine/applyAction';
 import {
   availability,
   resolveSpiceHarvesting,
@@ -265,45 +265,164 @@ function VehiclePanel({
   );
 }
 
-// Relocate any legion (either faction) by tapping a destination on the board map. Reuses the
-// editor's legion pick — the Board map applies the new area — so this is just a quick launcher.
+const clampInt = (n: number, lo: number, hi: number) =>
+  Math.max(lo, Math.min(hi, Math.floor(Number.isFinite(n) ? n : lo)));
+
+const leaderLabel = (ld: Leader) =>
+  ld.kind === 'named' ? ld.name : ld.faction === 'harkonnen' ? 'Bashar' : 'Naib';
+
+// One legion's move/split form: choose which figures to move (all by default) and a destination.
+function MoveLegionRow({
+  l,
+  onMove,
+}: {
+  l: Legion;
+  onMove: (to: string, move: MoveUnits, label: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [reg, setReg] = useState(l.units.regular);
+  const [eli, setEli] = useState(l.units.elite);
+  const [spe, setSpe] = useState(l.units.special_elite);
+  const [tok, setTok] = useState(l.deploymentTokens);
+  const [leaderSel, setLeaderSel] = useState<boolean[]>([]);
+  const [dest, setDest] = useState('');
+
+  // Open with everything selected (default: move the whole legion).
+  const openForm = () => {
+    setReg(l.units.regular);
+    setEli(l.units.elite);
+    setSpe(l.units.special_elite);
+    setTok(l.deploymentTokens);
+    setLeaderSel(l.leaders.map(() => true));
+    setDest('');
+    setOpen(true);
+  };
+
+  const movedUnits = reg + eli + spe + tok;
+  const movedLeaders = leaderSel.filter(Boolean).length;
+  const leaderAlone = movedLeaders > 0 && movedUnits === 0; // leaders can't travel without a unit/token
+  const canMove = !!dest && movedUnits + movedLeaders > 0 && !leaderAlone;
+
+  const doMove = () => {
+    if (!canMove) return;
+    onMove(
+      dest,
+      {
+        units: { regular: reg, elite: eli, special_elite: spe },
+        deploymentTokens: tok,
+        leaderIndices: leaderSel.map((on, i) => (on ? i : -1)).filter((i) => i >= 0),
+      },
+      `${l.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} ${areaLabel(l.area)} → ${areaLabel(dest)}`,
+    );
+    setOpen(false);
+  };
+
+  const num = (
+    label: string,
+    value: number,
+    max: number,
+    set: (n: number) => void,
+  ) =>
+    max > 0 ? (
+      <label>
+        {label} <span className="hint">/ {max}</span>
+        <input
+          type="number"
+          min={0}
+          max={max}
+          value={value}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => set(clampInt(Number(e.target.value), 0, max))}
+        />
+      </label>
+    ) : null;
+
+  return (
+    <div className="feature-row move-row">
+      <div className="move-row-head">
+        <span className="feature-name">
+          <span className={`faction-pill ${l.faction}`}>{l.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'}</span>{' '}
+          <AreaChip id={l.area} />
+          <span className="feature-sub">{legionSummary(l)}</span>
+        </span>
+        <button type="button" className="add-mini" onClick={open ? () => setOpen(false) : openForm}>
+          {open ? 'Cancel' : 'Move / split'}
+        </button>
+      </div>
+      {open && (
+        <div className="deploy-form move-form">
+          <div className="ed-grid">
+            {num('Reg', reg, l.units.regular, setReg)}
+            {num('Elite', eli, l.units.elite, setEli)}
+            {num('S.Elite', spe, l.units.special_elite, setSpe)}
+            {num('Tokens', tok, l.deploymentTokens, setTok)}
+            <label>
+              To
+              <select value={dest} onChange={(e) => setDest(e.target.value)}>
+                <option value="">— select —</option>
+                {SORTED_AREA_IDS.filter((id) => id !== l.area).map((id) => (
+                  <option key={id} value={id}>{areaLabel(id)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {l.leaders.length > 0 && (
+            <div className="move-leaders">
+              <span className="hint">Leaders:</span>{' '}
+              {l.leaders.map((ld, i) => (
+                <label key={i} className="mini check">
+                  <input
+                    type="checkbox"
+                    checked={leaderSel[i] ?? false}
+                    onChange={(e) => setLeaderSel((sel) => sel.map((v, j) => (j === i ? e.target.checked : v)))}
+                  />
+                  {leaderLabel(ld)}
+                </label>
+              ))}
+            </div>
+          )}
+          {dest && <p className="hint">Destination: <AreaChip id={dest} /></p>}
+          {leaderAlone && <p className="apply-note">A leader can't move alone — include at least 1 unit or token.</p>}
+          <button className="add-mini" disabled={!canMove} onClick={doMove}>
+            Move {movedUnits + movedLeaders || ''} figure{movedUnits + movedLeaders === 1 ? '' : 's'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Move (and optionally split) any legion, for either faction. Splitting leaves the rest behind.
 function MoveLegionPanel({
   s,
-  onPick,
-  pick,
+  onChange,
 }: {
   s: GameState;
-  onPick: (target: PickTarget) => void;
-  pick: PickTarget | null;
+  onChange: (next: GameState, log?: ActionLog) => void;
 }) {
-  const legions = s.legions
-    .map((l, index) => ({ l, index }))
-    .filter(({ l }) => l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens + l.leaders.length > 0);
+  const legions = s.legions.filter(
+    (l) => l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens + l.leaders.length > 0,
+  );
 
   return (
     <section className="panel">
       <h2>Move a legion</h2>
-      <p className="hint">Tap <strong>Move</strong>, then tap the destination area on the board map. Works for both factions.</p>
+      <p className="hint">
+        Choose which figures to move (all by default), then a destination — splitting leaves the rest behind.
+        Works for both factions. The Harkonnen ignore impassable borders; other factions can't cross them without a troop-transport.
+      </p>
       {legions.length === 0 ? (
         <p className="hint">No legions on the board.</p>
       ) : (
         <div className="feature-list">
-          {legions.map(({ l, index }) => (
-            <div key={index} className="feature-row">
-              <span className="feature-name">
-                <span className={`faction-pill ${l.faction}`}>{l.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'}</span>{' '}
-                <AreaChip id={l.area} />
-                <span className="feature-sub">{legionSummary(l)}</span>
-              </span>
-              <button
-                type="button"
-                className={`pick-map-btn${samePick(pick, { kind: 'legion', index }) ? ' active' : ''}`}
-                title="Move this legion — pick the destination on the board map"
-                onClick={() => onPick({ kind: 'legion', index })}
-              >
-                📍 Move
-              </button>
-            </div>
+          {legions.map((l) => (
+            <MoveLegionRow
+              key={`${l.faction}:${l.area}`}
+              l={l}
+              onMove={(to, move, label) =>
+                onChange(moveLegionUnits(s, l.faction, l.area, to, move), { headline: 'Move (manual)', text: label })
+              }
+            />
           ))}
         </div>
       )}
@@ -1564,7 +1683,7 @@ export function App() {
         {inPhase('vehicle_placement') && <VehiclePanel s={s} onChange={commit} editable={false} />}
         {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <VehiclePanel s={s} onChange={commit} editable={true} />}
-        {inPhase('action_resolution') && <MoveLegionPanel s={s} onPick={setPick} pick={pick} />}
+        {inPhase('action_resolution') && <MoveLegionPanel s={s} onChange={commit} />}
         {inPhase('action_resolution') && <BattlePanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <CardPanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <DesertPowerPanel s={s} onChange={setS} onPick={setPick} pick={pick} />}

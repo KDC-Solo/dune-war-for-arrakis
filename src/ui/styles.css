@@ -572,6 +572,30 @@ label.mini.check input {
   background: #2f5d50;
 }
 
+/* Move-a-legion rows: header (identity + toggle) above an optional split form. */
+.move-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+.move-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.move-form {
+  border-top: 1px dashed var(--line);
+  padding-top: 0.5rem;
+}
+.move-leaders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
 .remove {
   align-self: center;
   margin-left: auto;

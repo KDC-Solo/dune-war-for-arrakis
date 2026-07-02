@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyHarkonnenAction, deployFromReserve, isAutoApplied } from './applyAction';
+import { applyHarkonnenAction, deployFromReserve, isAutoApplied, moveLegionUnits } from './applyAction';
 import { emptyLegion, type GameState, type Legion } from './state';
 
 function state(over: Partial<GameState> = {}): GameState {
@@ -62,6 +62,62 @@ describe('applyHarkonnenAction — move', () => {
     const left = r.state.legions.find((l) => l.area === 'carthag');
     expect(left?.deploymentTokens).toBe(2);
     expect(r.state.harkonnenReserve.deploymentTokens).toBe(6); // 8 - 2
+  });
+});
+
+describe('moveLegionUnits — manual split move', () => {
+  it('moves the whole legion by default and clears the source', () => {
+    const s = state({ legions: [hLeg('s1_11', { regular: 3 }, [{ kind: 'named', faction: 'harkonnen', name: 'Beast Rabban' }])] });
+    const src = s.legions[0];
+    const next = moveLegionUnits(s, 'harkonnen', 's1_11', 's1_12', {
+      units: { regular: 3, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [0],
+    });
+    expect(next.legions.find((l) => l.area === 's1_11')).toBeUndefined();
+    const moved = next.legions.find((l) => l.area === 's1_12')!;
+    expect(moved.units.regular).toBe(3);
+    expect(moved.leaders).toEqual(src.leaders);
+  });
+
+  it('splits: moves a subset and leaves the rest behind', () => {
+    const s = state({ legions: [hLeg('s1_11', { regular: 3, elite: 2 }, [{ kind: 'named', faction: 'harkonnen', name: 'Beast Rabban' }])] });
+    const next = moveLegionUnits(s, 'harkonnen', 's1_11', 's1_12', {
+      units: { regular: 1, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [],
+    });
+    const stay = next.legions.find((l) => l.area === 's1_11')!;
+    const moved = next.legions.find((l) => l.area === 's1_12')!;
+    expect(stay.units).toEqual({ regular: 2, elite: 2, special_elite: 0 });
+    expect(stay.leaders).toHaveLength(1); // leader stayed behind (not selected)
+    expect(moved.units).toEqual({ regular: 1, elite: 0, special_elite: 0 });
+    expect(moved.leaders).toHaveLength(0);
+  });
+
+  it('merges the moved subset into a same-faction legion at the destination', () => {
+    const s = state({ legions: [hLeg('s1_11', { regular: 3 }), hLeg('s1_12', { elite: 1 })] });
+    const next = moveLegionUnits(s, 'harkonnen', 's1_11', 's1_12', {
+      units: { regular: 2, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [],
+    });
+    expect(next.legions.filter((l) => l.area === 's1_12')).toHaveLength(1);
+    const dest = next.legions.find((l) => l.area === 's1_12')!;
+    expect(dest.units).toEqual({ regular: 2, elite: 1, special_elite: 0 });
+    expect(next.legions.find((l) => l.area === 's1_11')?.units.regular).toBe(1);
+  });
+
+  it('clamps counts to what is present and is a no-op for from === to', () => {
+    const s = state({ legions: [hLeg('s1_11', { regular: 2 })] });
+    const over = moveLegionUnits(s, 'harkonnen', 's1_11', 's1_12', {
+      units: { regular: 9, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [],
+    });
+    expect(over.legions.find((l) => l.area === 's1_11')).toBeUndefined();
+    expect(over.legions.find((l) => l.area === 's1_12')?.units.regular).toBe(2);
+    expect(moveLegionUnits(s, 'harkonnen', 's1_11', 's1_11', { units: { regular: 1, elite: 0, special_elite: 0 }, deploymentTokens: 0, leaderIndices: [] })).toBe(s);
   });
 });
 

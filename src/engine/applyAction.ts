@@ -133,6 +133,73 @@ export function deployFromReserve(
   return applyDeploy(s, [placement]).state;
 }
 
+// --- manual legion move / split -------------------------------------------
+
+/** A subset of a legion's figures to move (the rest stay behind). Leaders are given by index. */
+export interface MoveUnits {
+  units: Record<UnitType, number>;
+  deploymentTokens: number;
+  /** Indices into the source legion's `leaders` array to move. */
+  leaderIndices: number[];
+}
+
+const legionEmpty = (l: Legion) =>
+  l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens + l.leaders.length === 0;
+
+/**
+ * Move some (or all) of a legion's figures from `from` to `to`, for either faction. Both factions
+ * may split a legion (rulebook: "It is not mandatory to move all figures"). The moved subset merges
+ * into any same-faction legion already at `to`; the remainder stays behind (removed if now empty).
+ * Counts are clamped to what's present. A no-op if there's no such legion or from === to.
+ */
+export function moveLegionUnits(
+  s: GameState,
+  faction: Legion["faction"],
+  from: string,
+  to: string,
+  move: MoveUnits,
+): GameState {
+  if (from === to) return s;
+  const src = s.legions.find((l) => l.faction === faction && l.area === from);
+  if (!src) return s;
+
+  const cap = (n: number, max: number) => Math.max(0, Math.min(Math.floor(n) || 0, max));
+  const moved = {
+    regular: cap(move.units.regular, src.units.regular),
+    elite: cap(move.units.elite, src.units.elite),
+    special_elite: cap(move.units.special_elite, src.units.special_elite),
+  };
+  const movedTokens = cap(move.deploymentTokens, src.deploymentTokens);
+  const idx = new Set(move.leaderIndices);
+  const movedLeaders = src.leaders.filter((_, i) => idx.has(i));
+  const keptLeaders = src.leaders.filter((_, i) => !idx.has(i));
+
+  const remainder: Legion = {
+    ...src,
+    units: {
+      regular: src.units.regular - moved.regular,
+      elite: src.units.elite - moved.elite,
+      special_elite: src.units.special_elite - moved.special_elite,
+    },
+    deploymentTokens: src.deploymentTokens - movedTokens,
+    leaders: keptLeaders,
+  };
+  const movedLegion: Legion = {
+    faction,
+    area: to,
+    units: moved,
+    deploymentTokens: movedTokens,
+    leaders: movedLeaders,
+  };
+  if (legionEmpty(movedLegion)) return s; // nothing selected to move
+
+  let legions = s.legions.filter((l) => l !== src);
+  if (!legionEmpty(remainder)) legions = [...legions, remainder];
+  legions = upsertLegion(legions, movedLegion);
+  return { ...s, legions };
+}
+
+
 // --- house: replace regulars with elites -----------------------------------
 
 function applyHouseReplace(
