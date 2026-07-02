@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionResult, GameState, ImperiumPower, Legion, RoundPhase } from '../engine/state';
 import { resolveAction, type HarkonnenAction } from '../engine/harkonnenActions';
 import { applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
@@ -59,6 +59,22 @@ const DIE_LABEL: Record<ActionResult, string> = {
   deployment: 'Deployment',
   house: 'House',
 };
+
+// A description of an applied change, recorded in the action history (and paired 1:1 with the
+// undo snapshot so Undo pops both). `result` is the Harkonnen die face, when the change came from
+// resolving a turn.
+export interface ActionLog {
+  headline: string;
+  text: string;
+  note?: string;
+  result?: ActionResult;
+}
+
+interface HistoryEntry extends ActionLog {
+  id: number;
+  round: number;
+  time: number;
+}
 
 const HELP_KEY = 'dwfa.helpOpen';
 
@@ -350,7 +366,7 @@ function DirectiveText({ a }: { a: HarkonnenAction }) {
   }
 }
 
-function ResolvePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+function ResolvePanel({ s, onApply }: { s: GameState; onApply: (next: GameState, log?: ActionLog) => void }) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const action = useMemo(() => (result ? resolveAction(s, result) : null), [s, result]);
@@ -365,7 +381,12 @@ function ResolvePanel({ s, onApply }: { s: GameState; onApply: (next: GameState)
     const res = applyHarkonnenAction(s, action);
     setNote(res.note ?? null);
     if (res.applied) {
-      onApply(res.state);
+      onApply(res.state, {
+        headline: actionHeadline(action),
+        text: describeAction(action),
+        note: res.note ?? undefined,
+        result: result ?? undefined,
+      });
       setResult(null); // ready for the next die roll
     }
   };
@@ -409,7 +430,7 @@ const RAGE_SUFFIX: Record<string, string> = {
 };
 const cardLabel = (c: { id: string; name: string }) => c.name + (RAGE_SUFFIX[c.id] ?? '');
 
-function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState, log?: ActionLog) => void }) {
   // Value is prefixed: "card:<id>" or "leader:<name>".
   const [sel, setSel] = useState('');
   const resolution = useMemo(() => {
@@ -421,7 +442,18 @@ function CardPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =>
 
   const apply = () => {
     if (!resolution) return;
-    onApply(applyEffectSteps(s, resolution.steps));
+    let headline = 'Card / leader';
+    let text = sel;
+    if (sel.startsWith('card:')) {
+      const id = sel.slice(5);
+      const card = [...HOUSE_HARKONNEN_CARDS, ...CORRINO_ALLY_CARDS].find((c) => c.id === id);
+      headline = 'Play card';
+      text = card ? cardLabel(card) : id;
+    } else if (sel.startsWith('leader:')) {
+      headline = 'Leader ability';
+      text = sel.slice(7);
+    }
+    onApply(applyEffectSteps(s, resolution.steps), { headline, text });
     setSel(''); // resolved — clear for the next effect
   };
 
@@ -1348,11 +1380,93 @@ function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) 
   );
 }
 
+// Floating action-history overlay (mirrors the board-map FAB). Lists every applied change,
+// newest first, and offers Undo of the most recent one.
+function HistoryPanel({
+  history,
+  open,
+  onOpen,
+  onClose,
+  onUndo,
+  canUndo,
+}: {
+  history: HistoryEntry[];
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onUndo: () => void;
+  canUndo: boolean;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
+  const entries = [...history].reverse(); // newest first
+
+  return (
+    <>
+      {!open && (
+        <button className="history-fab" title="Action history" aria-label="Action history" onClick={onOpen}>
+          📜
+          {history.length > 0 && <span className="history-fab-count">{history.length}</span>}
+        </button>
+      )}
+      {open && (
+        <div className="map-modal-overlay" onClick={onClose}>
+          <div className="map-modal panel" role="dialog" aria-label="Action history" onClick={(e) => e.stopPropagation()}>
+            <div className="map-modal-head">
+              <h2>Action history</h2>
+              <button className="map-close" onClick={onClose} title="Close" aria-label="Close">✕</button>
+            </div>
+            <p className="hint">Every applied action, newest first — useful for reviewing the Harkonnen's automatic moves. Undo reverts the most recent one.</p>
+            <div className="history-actions">
+              <button className="confirm-btn" onClick={onUndo} disabled={!canUndo}>↶ Undo last action</button>
+            </div>
+            {entries.length === 0 ? (
+              <p className="hint">No actions applied yet.</p>
+            ) : (
+              <ol className="history-list">
+                {entries.map((e, i) => (
+                  <li key={e.id} className={`history-item${i === 0 ? ' latest' : ''}`}>
+                    <div className="history-item-head">
+                      <span className="history-round">R{e.round}</span>
+                      {e.result && <span className="history-die">{DIE_LABEL[e.result]}</span>}
+                      <strong>{e.headline}</strong>
+                      <span className="history-time">{new Date(e.time).toLocaleTimeString()}</span>
+                    </div>
+                    {e.text && <div className="history-text">{e.text}</div>}
+                    {e.note && <div className="history-note">{e.note}</div>}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function App() {
   // Load the saved game on first render; fall back to the demo state.
   const [s, setS] = useState<GameState>(() => loadState() ?? sampleState());
   // Snapshots taken before each applied Harkonnen action, for Undo (bounded).
   const [past, setPast] = useState<GameState[]>([]);
+  // Action history (parallel to `past`): a log of every applied change, newest last. Undo pops both.
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const nextLogId = useRef(1);
+  // Whether the floating action-history overlay is open.
+  const [historyOpen, setHistoryOpen] = useState(false);
   // Active "click the map to set this area" request from the editor.
   const [pick, setPick] = useState<PickTarget | null>(null);
   // Active "show this area on the map" request from a locate chip.
@@ -1377,9 +1491,22 @@ export function App() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Apply an AI action: snapshot the current state first so it can be undone.
-  const commit = (next: GameState) => {
+  // Apply an AI action: snapshot the current state first so it can be undone, and log it to the
+  // action history (kept 1:1 with the undo stack). `log` describes the change for the history panel.
+  const commit = (next: GameState, log?: ActionLog) => {
     setPast((p) => [...p.slice(-(UNDO_LIMIT - 1)), s]);
+    setHistory((h) => [
+      ...h.slice(-(UNDO_LIMIT - 1)),
+      {
+        id: nextLogId.current++,
+        round: s.round,
+        time: Date.now(),
+        headline: log?.headline ?? 'Board update',
+        text: log?.text ?? '',
+        note: log?.note,
+        result: log?.result,
+      },
+    ]);
     setS(next);
   };
   const undo = () => {
@@ -1388,18 +1515,20 @@ export function App() {
       setS(p[p.length - 1]);
       return p.slice(0, -1);
     });
+    setHistory((h) => h.slice(0, -1));
   };
 
   // Switching to a different game (import / load / reset) starts a fresh undo history.
   const loadGame = (next: GameState) => {
     setPast([]);
+    setHistory([]);
     setS(next);
   };
   const reset = () => {
     clearState();
     loadGame(sampleState());
   };
-  const startNewGame = () => commit(newGameState()); // snapshot first so Undo can restore the old game
+  const startNewGame = () => commit(newGameState(), { headline: 'New game', text: 'Started a fresh game.' });
 
   // Download the current game as a JSON file the player can back up or share.
   const exportGame = () => {
@@ -1458,6 +1587,14 @@ export function App() {
         onOpen={() => setMapOpen(true)}
         onClose={() => setMapOpen(false)}
         onConfirm={setToast}
+      />
+      <HistoryPanel
+        history={history}
+        open={historyOpen}
+        onOpen={() => setHistoryOpen(true)}
+        onClose={() => setHistoryOpen(false)}
+        onUndo={undo}
+        canUndo={past.length > 0}
       />
       {toast && <div className="toast" role="status">✓ {toast}</div>}
     </div>
