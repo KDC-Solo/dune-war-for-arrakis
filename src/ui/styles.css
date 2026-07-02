@@ -193,7 +193,7 @@ header h1 {
 }
 
 /* Guided setup wizard. */
-.wizard-overlay {
+.map-modal-overlay.wizard-overlay {
   z-index: 80;
 }
 .wizard {
@@ -238,7 +238,7 @@ header h1 {
 }
 
 /* End-of-game overlay. */
-.gameover-overlay {
+.map-modal-overlay.gameover-overlay {
   z-index: 90;
 }
 .gameover {
@@ -1152,7 +1152,7 @@ label.mini.check input {
 .map-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 70;
   background: rgba(30, 20, 10, 0.55);
   display: flex;
   align-items: flex-start;
