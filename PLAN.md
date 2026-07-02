@@ -158,7 +158,8 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       start-in-play named leaders in the reserve pool; Harkonnen settlements empty per the solo
       pool rule). Wired to a "New game" button in the editor (undoable via `commit`).
 - [ ] Sync the few Atreides-side changes the AI depends on
-- [ ] An easy way to move Atreides legion from one area to another
+- [ ] Moving Harkonen legion should respect stacking limit
+- [ ] When moving legion, the area selection should be using the map just like when adding wormsigns. Anything that requires area selection let's use the map. Then limit which areas can be selected should be based on rules including sandriding via sandworms and troop-transport via ornithopter.
 
 ### Phase 4 — Persistence _(✅ DONE 2026-06-27)_
 
