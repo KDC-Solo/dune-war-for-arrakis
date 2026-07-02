@@ -3,6 +3,8 @@
 # extracted from them. To version them anyway, delete these lines (consider git-lfs).
 docs/images/
 *.pdf
+# Local-only text conversions of the reference PDFs (copyrighted; generated with `pdftotext -layout`)
+docs/*.md
 
 # --- Node / build (for the upcoming React+TS app) ---
 node_modules/

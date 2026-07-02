@@ -17,14 +17,24 @@ describe('newGameState', () => {
     expect(s.sietches.every((x) => x.rank === null && !x.revealed && !x.destroyed)).toBe(true);
   });
 
-  it('seeds one Atreides legion (token + Naib) on every sietch, and no Harkonnen on the board', () => {
+  it('seeds one Atreides legion (token + Naib) on every sietch', () => {
     const sietchAreas = AREA_IDS.filter((id) => AREAS[id].sietch);
-    expect(s.legions).toHaveLength(sietchAreas.length);
-    expect(s.legions.every((l) => l.faction === 'atreides')).toBe(true);
     for (const a of sietchAreas) {
-      const leg = s.legions.find((l) => l.area === a)!;
+      const leg = s.legions.find((l) => l.faction === 'atreides' && l.area === a)!;
       expect(leg.deploymentTokens).toBe(1);
       expect(leg.leaders).toEqual([{ kind: 'generic', faction: 'atreides' }]);
+    }
+  });
+
+  it('seeds one Harkonnen legion (2 Starting Deployment tokens) on every settlement', () => {
+    const settlementAreas = AREA_IDS.filter((id) => AREAS[id].settlement != null);
+    const sietchAreas = AREA_IDS.filter((id) => AREAS[id].sietch);
+    expect(s.legions).toHaveLength(sietchAreas.length + settlementAreas.length);
+    for (const a of settlementAreas) {
+      const leg = s.legions.find((l) => l.faction === 'harkonnen' && l.area === a)!;
+      expect(leg.deploymentTokens).toBe(2);
+      expect(leg.units).toEqual({ regular: 0, elite: 0, special_elite: 0 });
+      expect(leg.leaders).toEqual([]);
     }
   });
 

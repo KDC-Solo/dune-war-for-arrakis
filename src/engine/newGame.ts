@@ -6,11 +6,14 @@
 //  • 6 Harkonnen Settlements on their fixed areas (Arrakeen 3, Carthag 2, 4 Pyon Villages 1).
 //  • 8 Sietches on their fixed areas, rank hidden (placed facedown; only Atreides may inspect).
 //  • Each Sietch area holds 1 Atreides legion: 1 Deployment token + 1 Naib (generic) leader.
+//  • Each Harkonnen Settlement holds 1 legion of 2 facedown Starting Deployment tokens (1 of each
+//    type), per the 2-player setup (rulebook p14 step 6) that solo inherits (p37: "set up the game
+//    as in a 2-player game"). Their unit composition is hidden until revealed, so they're modeled
+//    as deployment tokens (combat power 2, counting as 1 unit each), not specific figures.
 //  • The 3 Imperium markers start on the TOP step (best for the Harkonnen → 8 action dice).
 //  • Supremacy & Prescience tracks at 0. Wormsign pool 16, Tactical deck 8.
-//  • Solo: the two sets of Harkonnen Starting Deployment tokens (12) form the reserve POOL — they
-//    are dropped 2-at-a-time when a Harkonnen legion leaves a Settlement, so the settlements start
-//    with no figures and the Harkonnen build out via Deployment actions.
+//  • Solo: the two sets of Harkonnen Starting Deployment tokens (12) also form the replenishment
+//    POOL (rulebook p42) — dropped 2-at-a-time when a Harkonnen legion leaves a Settlement.
 //  • Named leaders "in play at the start" (Beast Rabban, Baron Harkonnen, Captain Aramsham) are set
 //    aside as available-to-deploy (reserve), not pre-placed on the map.
 
@@ -32,6 +35,12 @@ export function newGameState(): GameState {
     leaders: [{ kind: 'generic', faction: 'atreides' }],
   }));
 
+  // One Harkonnen legion per settlement: 2 facedown Starting Deployment tokens (1 of each type).
+  const harkonnenLegions: Legion[] = settlementAreas.map((area) => ({
+    ...emptyLegion('harkonnen', area),
+    deploymentTokens: 2,
+  }));
+
   return {
     round: 1,
     phase: 'start',
@@ -44,7 +53,7 @@ export function newGameState(): GameState {
     sietches: sietchAreas.map((area) => ({ area, rank: null, revealed: false, destroyed: false })),
     testingStations: stationAreas.map((area) => ({ area, revealed: false })),
 
-    legions: atreidesLegions, // Harkonnen settlements start with no figures (deployment-token pool)
+    legions: [...harkonnenLegions, ...atreidesLegions],
     vehicles: [],
     wormsigns: [],
     sandworms: [],
@@ -70,7 +79,7 @@ export function newGameState(): GameState {
 
     harkonnenReserve: {
       units: { regular: 16, elite: 8, special_elite: 8 },
-      deploymentTokens: 12, // the two sets of Harkonnen Starting Deployment tokens (the solo pool)
+      deploymentTokens: 12, // solo replenishment pool (rulebook p42); dropped 2 at a time when a legion leaves a settlement
       bashars: 2,
       namedLeaders: startLeaders,
       regenerationTank: [],
