@@ -157,9 +157,16 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       Atreides legions = token + Naib per sietch; markers at top; 12 starting deployment tokens +
       start-in-play named leaders in the reserve pool; Harkonnen settlements empty per the solo
       pool rule). Wired to a "New game" button in the editor (undoable via `commit`).
-- [ ] Sync the few Atreides-side changes the AI depends on
-- [ ] Moving Harkonen legion should respect stacking limit
-- [ ] When moving legion, the area selection should be using the map just like when adding wormsigns. Anything that requires area selection let's use the map. Then limit which areas can be selected should be based on rules including sandriding via sandworms and troop-transport via ornithopter.
+- [ ] Sync the few Atreides-side changes the AI depends on (see "Next up" §4 — the last big Phase 3 gap)
+- [~] Moving Harkonen legion should respect stacking limit — **AI path done** (`applyMove` splits
+  at the limit; AI move tie-break prefers non-full merges; deployment overflows). **Remaining gap:**
+  the manual map-move (`moveLegionUnits` in `applyAction.ts`) caps only against the source legion,
+  so a hand-entered split move can overstack the destination — clamp it there + in the move form.
+- [~] When moving legion, the area selection should be using the map just like when adding wormsigns. Anything that requires area selection let's use the map. Then limit which areas can be selected should be based on rules including sandriding via sandworms and troop-transport via ornithopter.
+  **Mostly done** (`moveTargets.ts` `legalMoveDestinations`: ground/troop-transport/sandriding,
+  faction-aware, wired into the map pick with dimming + tests). **Remaining:** verify both
+  features in a live game and tick these boxes. (The two curated dropdowns — e.g. the
+  deploy-from-reserve area `<select>` — stay as dropdowns per user decision 2026-07-01.)
 
 ### Phase 4 — Persistence _(✅ DONE 2026-06-27)_
 
@@ -193,15 +200,34 @@ Lower the barrier for a brand-new solo player picking up the app cold.
 
 ## 4. Current status (update me each session)
 
-- **✅ Phase 0 COMPLETE (2026-06-27).** All board data captured & user-verified in `BOARD_VERIFICATION.md`:
-  areas/types/settlements/sietches/`deep` (§1), 101 areas + sectors + positional ids (§2/§2.1/§2.2),
-  full adjacency graph (§3a, area-by-area verified), 11 impassable borders (§4), 8 air zones (§5).
-  Visual map + graph well-formedness check in `BOARD_GRAPH.md` (`scripts/gen_map.py`/`gen_graph.py`).
-- **✅ Phase 1 COMPLETE (2026-06-27).** Typed `board.ts` generated from `BOARD_VERIFICATION.md` via
-  `scripts/gen_board.py`; all 101 areas terrain-typed; graph helpers + Vitest suite. Plus: 6 ecological
-  testing stations added (`Area.testingStation`, §1 `STATIONS` line) — 16 tests pass.
-- **Next action: Phase 2 — headless Harkonnen AI engine.** Start with game-state types (see Phase 2 list),
-  built pure-TS + tests against fan-summary p9 (Mahdi solo). No UI yet.
+- **Phases 0–2 and 4 complete; Phase 3 nearly complete.** 256 tests pass; v0.3.0 shipped
+  2026-07-01 and is being playtested. A full Mahdi-solo round runs end-to-end in the app
+  (dice → actions → cards/leaders → battles → spice → storms → next round), with undo,
+  saves, and the map-first area-picker convention.
+
+### Next up (roadmap, 2026-07-03)
+
+1. **Close out the committed WIP** _(small — do first)_
+   - Enforce the stacking limit in the manual map move: clamp `moveLegionUnits`
+     (`applyAction.ts`) against destination capacity, mirror it in the split-move form
+     (cap the inputs / show "N slots free"), + tests.
+   - Verify both in a live game, then tick the two Phase 3 boxes. (The two curated
+     dropdowns stay — user declined map-first for those on 2026-07-01.)
+2. **Atreides-turn sync panel** _(last unchecked Phase 3 item — biggest playability win)_
+   A compact "Your turn" panel so mid-game state upkeep never needs the StateEditor:
+   record only what the AI depends on — Atreides legion moves (reuse the move tool;
+   sandriding already modeled), battle outcomes (reuse BattlePanel), sietch
+   revealed/destroyed, testing stations, imperium-marker/spice changes, wormsign &
+   sandworm placement/movement. Phase-gated like the Harkonnen panels.
+3. **Game-end completeness.** `tracks.prescience` exists in state but nothing reads it:
+   model the Atreides victory path (prescience/ecological testing per rulebook) alongside
+   the existing supremacy-10 Harkonnen win; detect + announce game end both ways.
+4. **Rules audit vs fan-summary p9.** One sweep of the Mahdi solo rules against the engine
+   to catch anything not yet automated (wormsign movement, mid-round target reselection
+   triggers, imperium-ban edge cases); log gaps as checklist items here.
+5. **Playtest feedback pass → v0.4.0.** Fold in findings from the current v0.3.0 playtest.
+6. **Phase 6 onboarding** — guided physical-setup wizard + teach-solo tutorial (see §3).
+7. **Phase 5 mobile** — Capacitor wrap once the UX has settled.
 
 ## 5. Key references
 
