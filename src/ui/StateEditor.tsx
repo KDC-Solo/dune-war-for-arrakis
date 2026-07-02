@@ -216,7 +216,9 @@ function DeployForm({
         </label>
         {UNIT_TYPES.map(({ key, label }) => (
           <label key={key}>
-            {label} <span className="hint">/ {r.units[key]}</span>
+            <span className="num-label">
+              {label} <span className="hint">/ {r.units[key]}</span>
+            </span>
             <NumInput
               min={0}
               max={r.units[key]}

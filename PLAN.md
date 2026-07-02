@@ -220,14 +220,16 @@ Lower the barrier for a brand-new solo player picking up the app cold.
    revealed/destroyed, testing stations, imperium-marker/spice changes, wormsign &
    sandworm placement/movement. Phase-gated like the Harkonnen panels.
 3. **UX backlog (from the 2026-07-03 UI/UX pass)** — ordered by playability impact:
-   - [ ] **Sticky status strip:** round · phase · supremacy · target sietch · dice, always
-         visible at the top (currently you scroll to This round to see where you are).
-   - [ ] **One round driver:** merge "Begin round / Start next round" (This round) and the
-         phase Prev/Next buttons (Round walkthrough) into a single stepper — at `end` the
-         Next button becomes "Start next round". Two controls in two panels confuses.
-   - [ ] **Attack → Battle handoff:** an attack directive in Resolve Harkonnen turn should
-         offer "Start this battle", jumping into BattlePanel with the pair (and ornithopter
-         surprise, when applicable) preselected — no scrolling + re-finding the pair.
+   - [x] **Sticky status strip** _(DONE 2026-07-03)_: round · phase · supremacy · dice ·
+         target · bans, always visible under the header (`StatusStrip`).
+   - [x] **One round driver** _(DONE 2026-07-03)_: Begin round / Start round N moved into
+         the Round walkthrough's stepper (This round is info-only now).
+   - [x] **Attack → Battle handoff** _(DONE 2026-07-03)_: attack directives offer
+         "⚔ Move attacker & open battle" — applies the attacker's move into the defender's
+         area, scrolls to the Battle panel, and pulses that fight. (Surprise stays a manual
+         checkbox: it's a distinct Leadership option in the rules, not implied by the AI
+         attack.) Also fixed the move/split form layout (one-line "Reg / 3" captions,
+         compact inputs outside the editor, wrapping header row).
    - [ ] **Tap-friendly number entry:** +/− stepper buttons on all NumInputs, and battle/
          storm dice as tap-to-count rows (⚔️/🛡/✴ counters) instead of bare number fields.
    - [ ] **Toast every applied action** (only map picks confirm today) and auto-scroll to

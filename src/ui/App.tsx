@@ -137,10 +137,11 @@ function HelpPanel() {
           jumps here and pulses that area.
         </li>
         <li>
-          <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans. <em>Start next round</em> when done.
+          <strong>This round</strong> — the Harkonnen's dice, vehicles, and active bans, at a glance.
         </li>
         <li>
-          <strong>Round walkthrough</strong> — tracks which phase you're in and what to do; step through it as you play.
+          <strong>Round walkthrough</strong> — tracks which phase you're in and what to do; step through it as you
+          play. The round begins and ends here too (<em>Begin round</em> / <em>Start round N</em>).
         </li>
         <li>
           <strong>Vehicle placement</strong> — where to drop the Harkonnen harvesters/carryalls/ornithopters.
@@ -176,27 +177,14 @@ function HelpPanel() {
   );
 }
 
-function RoundPanel({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
+function RoundPanel({ s }: { s: GameState }) {
   const avail = availability(s.spice.markers);
   const won = s.tracks.supremacy >= SUPREMACY_WIN;
-  // At the 'start' phase (a fresh game's round 1) the current round hasn't been set up yet — just
-  // draw its tactical cards, without ending a round (no supremacy gain, no round increment).
-  const needsSetup = s.phase === 'start';
-
-  const beginRound = () => onChange(setupRound(s));
-  const nextRound = () => {
-    const { state, harkonnenWins } = startNextRound(s);
-    onChange(state);
-    if (harkonnenWins) {
-      // The win banner renders from state; this just surfaces it immediately.
-      setTimeout(() => alert('Harkonnen reach supremacy 10 — Harkonnen victory.'), 0);
-    }
-  };
 
   return (
     <section className="panel">
       <h2>This round</h2>
-      <p className="hint">What the Harkonnen get this round, from the Spice Must Flow markers.</p>
+      <p className="hint">What the Harkonnen get this round, from the Spice Must Flow markers. Begin/advance the round in the Round walkthrough below.</p>
       {won && <div className="win-banner">Harkonnen victory — supremacy {SUPREMACY_WIN} reached.</div>}
       <dl className="kv">
         <dt>Round</dt>
@@ -218,16 +206,32 @@ function RoundPanel({ s, onChange }: { s: GameState; onChange: (next: GameState)
         <dt>Active imperium bans</dt>
         <dd>{s.spice.activeBans.length ? s.spice.activeBans.join(', ') : 'none'}</dd>
       </dl>
-      {needsSetup ? (
-        <button className="confirm-btn" onClick={beginRound}>
-          Begin round {s.round}
-        </button>
-      ) : (
-        <button className="confirm-btn" onClick={nextRound} disabled={won}>
-          Start next round
-        </button>
-      )}
     </section>
+  );
+}
+
+// The sticky strip under the header: where you are at a glance, from anywhere on the page.
+function StatusStrip({ s }: { s: GameState }) {
+  const avail = availability(s.spice.markers);
+  return (
+    <div className="status-strip">
+      <span className="ss-item">
+        <b>R{s.round}</b>
+      </span>
+      <span className="ss-item ss-phase">{PHASE_LABEL[s.phase]}</span>
+      <span className="ss-item">
+        Supremacy <b>{s.tracks.supremacy}</b>/{SUPREMACY_WIN}
+      </span>
+      <span className="ss-item">
+        Dice <b>{avail.diceAvailable}</b>
+      </span>
+      <span className="ss-item ss-target">
+        Target {s.targetSietchId ? <AreaChip id={s.targetSietchId} /> : '—'}
+      </span>
+      {s.spice.activeBans.length > 0 && (
+        <span className="ss-item ss-bans">Bans: {s.spice.activeBans.join(', ')}</span>
+      )}
+    </div>
   );
 }
 
@@ -328,7 +332,9 @@ function MoveLegionRow({
   ) =>
     max > 0 ? (
       <label>
-        {label} <span className="hint">/ {max}</span>
+        <span className="num-label">
+          {label} <span className="hint">/ {max}</span>
+        </span>
         <input
           type="number"
           min={0}
@@ -478,7 +484,16 @@ function DirectiveText({ a }: { a: HarkonnenAction }) {
   }
 }
 
-function ResolvePanel({ s, onApply }: { s: GameState; onApply: (next: GameState, log?: ActionLog) => void }) {
+function ResolvePanel({
+  s,
+  onApply,
+  onStartBattle,
+}: {
+  s: GameState;
+  onApply: (next: GameState, log?: ActionLog) => void;
+  /** Jump to the Battle panel focused on this area (after the attacker is moved in). */
+  onStartBattle: (area: string) => void;
+}) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const action = useMemo(() => (result ? resolveAction(s, result) : null), [s, result]);
@@ -503,6 +518,28 @@ function ResolvePanel({ s, onApply }: { s: GameState; onApply: (next: GameState,
     }
   };
 
+  // An attack directive: move the attacking legion onto the defender (app + physical board stay
+  // in sync) and hand off to the Battle panel, already focused on that fight.
+  const attackBattle = () => {
+    if (!action || (action.kind !== 'attack_sietch' && action.kind !== 'attack_legion')) return;
+    const defArea = action.kind === 'attack_sietch' ? action.sietch : action.defender;
+    const atk = s.legions.find((l) => l.faction === 'harkonnen' && l.area === action.attacker);
+    if (!atk) return;
+    const next = moveLegionUnits(s, 'harkonnen', action.attacker, defArea, {
+      units: atk.units,
+      deploymentTokens: atk.deploymentTokens,
+      leaderIndices: atk.leaders.map((_, i) => i),
+    });
+    onApply(next, {
+      headline: actionHeadline(action),
+      text: describeAction(action),
+      note: "Attacker moved into the defender's area — resolve the battle in the Battle panel.",
+      result: result ?? undefined,
+    });
+    setResult(null);
+    onStartBattle(defArea);
+  };
+
   return (
     <section className="panel">
       <h2>Resolve Harkonnen turn</h2>
@@ -523,6 +560,15 @@ function ResolvePanel({ s, onApply }: { s: GameState; onApply: (next: GameState,
               <button className="confirm-btn" onClick={confirm}>
                 Confirm &amp; apply
               </button>
+            ) : action.kind === 'attack_sietch' || action.kind === 'attack_legion' ? (
+              <>
+                <button className="confirm-btn" onClick={attackBattle}>
+                  ⚔ Move attacker &amp; open battle
+                </button>
+                <span className="manual-note">
+                  Make the same move on the physical board, then enter the battle dice below.
+                </span>
+              </>
             ) : action.kind === 'none' ? null : (
               <span className="manual-note">Resolve this on the board, then update the state below.</span>
             )}
@@ -1261,22 +1307,25 @@ const PHASE_LABEL: Record<RoundPhase, string> = {
 };
 
 const PHASE_GUIDE: Record<RoundPhase, string> = {
-  start: 'Round setup: draw planning + prescience cards and the harvesting-sector & target-sietch tactical cards. "Begin round" in This round draws the tactical cards for you (no supremacy gain — that comes at the end of the round).',
+  start: 'Round setup: draw planning + prescience cards and the harvesting-sector & target-sietch tactical cards. "Begin round" below draws the tactical cards for you (no supremacy gain — that comes at the end of the round).',
   vehicle_placement: 'Place the Harkonnen vehicles — see the Vehicle placement panel.',
   action_resolution: 'Alternate turns. Roll the Harkonnen action die and resolve it (Resolve Harkonnen turn), playing cards/leader abilities as they come up. Resolve any battles in the Battle panel.',
   desert_hazards: 'Place & resolve wormsigns, then roll Coriolis storms for exposed Harkonnen legions (Coriolis Storms panel).',
   spice_harvesting: 'Collect spice and advance the imperium markers in the Spice Must Flow panel.',
-  end: 'Advance supremacy and reshuffle the tactical deck — use "Start next round" in This round.',
+  end: 'Advance supremacy and reshuffle the tactical deck — use "Start round" below.',
 };
 
 function PhasePanel({
   s,
   onChange,
+  onCommit,
   showAll,
   onToggleShowAll,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
+  /** Undoable apply, for the round-boundary steps (begin round / start next round). */
+  onCommit: (next: GameState, log?: ActionLog) => void;
   showAll: boolean;
   onToggleShowAll: (next: boolean) => void;
 }) {
@@ -1284,11 +1333,28 @@ function PhasePanel({
   const i = PHASE_ORDER.indexOf(phase);
   const prev = i > 0 ? PHASE_ORDER[i - 1] : null;
   const next = nextPhase(phase);
+  const won = s.tracks.supremacy >= SUPREMACY_WIN;
+
+  // The one round driver: 'start' sets up the current round, 'end' rolls into the next one, and
+  // everything in between just steps the phase.
+  const beginRound = () =>
+    onCommit(setupRound(s), {
+      headline: 'Begin round',
+      text: `Round ${s.round} set up — tactical cards drawn, vehicles placed.`,
+    });
+  const nextRound = () => {
+    const { state, harkonnenWins } = startNextRound(s);
+    onCommit(state, { headline: 'Next round', text: `Round ${state.round} begun.` });
+    if (harkonnenWins) {
+      // The win banner renders from state; this just surfaces it immediately.
+      setTimeout(() => alert('Harkonnen reach supremacy 10 — Harkonnen victory.'), 0);
+    }
+  };
 
   return (
     <section className="panel">
       <h2>Round walkthrough</h2>
-      <p className="hint">Where you are in the round. Advance as you finish each phase.</p>
+      <p className="hint">Where you are in the round. Advance as you finish each phase; the round begins and ends here too.</p>
       <ol className="phase-steps">
         {PHASE_ORDER.map((p) => (
           <li key={p} className={p === phase ? 'phase-step current' : 'phase-step'}>
@@ -1301,9 +1367,19 @@ function PhasePanel({
         <button className="die" disabled={!prev} onClick={() => prev && onChange({ ...s, phase: prev })}>
           ← {prev ? PHASE_LABEL[prev] : 'Back'}
         </button>
-        <button className="confirm-btn" disabled={!next} onClick={() => next && onChange({ ...s, phase: next })}>
-          {next ? `Next: ${PHASE_LABEL[next]} →` : 'Round complete'}
-        </button>
+        {phase === 'start' ? (
+          <button className="confirm-btn" onClick={beginRound}>
+            Begin round {s.round}
+          </button>
+        ) : phase === 'end' ? (
+          <button className="confirm-btn" onClick={nextRound} disabled={won}>
+            Start round {s.round + 1} →
+          </button>
+        ) : (
+          <button className="confirm-btn" disabled={!next} onClick={() => next && onChange({ ...s, phase: next })}>
+            {next ? `Next: ${PHASE_LABEL[next]} →` : 'Round complete'}
+          </button>
+        )}
       </div>
       <label className="check phase-showall">
         <input type="checkbox" checked={showAll} onChange={(e) => onToggleShowAll(e.target.checked)} />
@@ -1342,7 +1418,18 @@ const OUTCOME_LABEL: Record<Exclude<BattleSession['status'], 'ongoing'>, string>
   attacker_eliminated: 'Harkonnen attackers wiped out.',
 };
 
-function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) => void }) {
+function BattlePanel({
+  s,
+  onApply,
+  focus,
+  onFocusDone,
+}: {
+  s: GameState;
+  onApply: (next: GameState) => void;
+  /** Scroll here and pulse the fight at this area (set by the attack → battle handoff). */
+  focus: string | null;
+  onFocusDone: () => void;
+}) {
   const pairs = useMemo<BattlePair[]>(() => {
     const out: BattlePair[] = [];
     for (const atk of s.legions) {
@@ -1355,6 +1442,17 @@ function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) 
 
   const [surprise, setSurprise] = useState(false);
   const [session, setSession] = useState<BattleSession | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [pulse, setPulse] = useState<string | null>(null);
+  useEffect(() => {
+    if (!focus) return;
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setPulse(focus);
+    onFocusDone();
+    const t = setTimeout(() => setPulse(null), 3000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus]);
   const [att, setAtt] = useState<RawRoll>(emptyRaw);
   const [def, setDef] = useState<RawRoll>(emptyRaw);
   // Pending token reveal: a battle whose legions still have facedown deployment tokens. The
@@ -1463,7 +1561,7 @@ function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) 
   );
 
   return (
-    <section className="panel">
+    <section className="panel" ref={sectionRef}>
       <h2>Battle</h2>
       <p className="hint">Resolve a Harkonnen attack on an Atreides legion sharing an area. Enter each round's physical dice; the Harkonnen casualties, reserve, and any destroyed sietch are applied for you.</p>
 
@@ -1494,7 +1592,7 @@ function BattlePanel({ s, onApply }: { s: GameState; onApply: (next: GameState) 
             </label>
             <ul className="legion-list">
               {pairs.map((p) => (
-                <li key={p.area} className="legion-row">
+                <li key={p.area} className={`legion-row${p.area === pulse ? ' battle-pulse' : ''}`}>
                   <span>
                     <strong><AreaChip id={p.area} /></strong> — Harkonnen ({legionSummary(p.attacker)}) vs Atreides ({legionSummary(p.defender)})
                   </span>
@@ -1652,6 +1750,8 @@ export function App() {
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
   // The deploy-from-reserve destination, picked on the board map ('deploy' pick).
   const [deployTo, setDeployTo] = useState<string | null>(null);
+  // Attack → battle handoff: scroll the Battle panel to this area's fight.
+  const [battleFocus, setBattleFocus] = useState<string | null>(null);
   // Whether the floating board-map overlay is open.
   const [mapOpen, setMapOpen] = useState(false);
   // Transient confirmation toast (e.g. after placing a wormsign via the map).
@@ -1742,17 +1842,20 @@ export function App() {
           </button>
         </div>
       </header>
+      <StatusStrip s={s} />
       <main>
         <HelpPanel />
         <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
         <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} deployTo={deployTo} />
-        <RoundPanel s={s} onChange={commit} />
-        <PhasePanel s={s} onChange={setS} showAll={showAllPanels} onToggleShowAll={setShowAllPanels} />
+        <RoundPanel s={s} />
+        <PhasePanel s={s} onChange={setS} onCommit={commit} showAll={showAllPanels} onToggleShowAll={setShowAllPanels} />
         {inPhase('vehicle_placement') && <VehiclePanel s={s} onChange={commit} editable={false} />}
-        {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} />}
+        {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} onStartBattle={setBattleFocus} />}
         {inPhase('action_resolution') && <VehiclePanel s={s} onChange={commit} editable={true} />}
         {inPhase('action_resolution') && <MoveLegionPanel s={s} onStartMapMove={startMapMove} />}
-        {inPhase('action_resolution') && <BattlePanel s={s} onApply={commit} />}
+        {inPhase('action_resolution') && (
+          <BattlePanel s={s} onApply={commit} focus={battleFocus} onFocusDone={() => setBattleFocus(null)} />
+        )}
         {inPhase('action_resolution') && <CardPanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <DesertPowerPanel s={s} onChange={setS} onPick={setPick} pick={pick} />}
         {inPhase('desert_hazards') && <WormsignPanel s={s} onApply={commit} />}

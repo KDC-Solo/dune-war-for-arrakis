@@ -57,6 +57,53 @@ header h1 {
   cursor: pointer;
 }
 
+/* Sticky at-a-glance strip: round · phase · supremacy · dice · target, visible from anywhere. */
+.status-strip {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.9rem;
+  margin: 0 -0.25rem 0.9rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(43, 33, 23, 0.12);
+  font-size: 0.82rem;
+  color: #5a4a32;
+}
+.status-strip b {
+  color: var(--ink);
+}
+.ss-phase {
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+.ss-bans {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Attack → battle handoff: briefly pulse the fight the player was sent to. */
+.battle-pulse {
+  animation: battle-pulse 1s ease-in-out 3;
+}
+@keyframes battle-pulse {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: 0 0 0 3px var(--gold);
+  }
+}
+
 .undo-btn:hover:not(:disabled) {
   background: #f3e7d6;
 }
@@ -410,6 +457,24 @@ footer {
   gap: 0.15rem;
 }
 
+/* Keep a label's caption ("Reg / 3") on one line above its input. */
+.ed-grid .num-label {
+  white-space: nowrap;
+}
+
+/* The move/split form lives outside the editor — give its inputs the same compact styling. */
+.move-form input[type='number'] {
+  width: 3.4rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #fff;
+}
+.move-form .ed-grid {
+  align-items: flex-end;
+}
+
 .editor input,
 .editor select {
   padding: 0.3rem 0.4rem;
@@ -582,7 +647,11 @@ label.mini.check input {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.5rem;
+}
+.move-row-head .feature-name {
+  min-width: 0;
 }
 .move-form {
   border-top: 1px dashed var(--line);
