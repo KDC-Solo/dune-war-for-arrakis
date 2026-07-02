@@ -37,6 +37,15 @@ export function stackingLimit(activeBans: readonly ImperiumPower[]): number {
   return activeBans.includes('choam') ? CHOAM_STACKING_LIMIT : BASE_STACKING_LIMIT;
 }
 
+/** Per-faction stacking limit: the Imperium Ban cards bind the Harkonnen ("Your Legion stacking
+ * limit..."), so the Atreides always use the base limit. */
+export function stackingLimitFor(
+  faction: 'harkonnen' | 'atreides',
+  activeBans: readonly ImperiumPower[],
+): number {
+  return faction === 'harkonnen' ? stackingLimit(activeBans) : BASE_STACKING_LIMIT;
+}
+
 /** Whether scouting is forbidden (Spacing Guild ban). */
 export function scoutingBanned(activeBans: readonly ImperiumPower[]): boolean {
   return activeBans.includes('spacing_guild');

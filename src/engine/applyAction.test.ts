@@ -4,6 +4,7 @@ import {
   deployFromReserve,
   isAutoApplied,
   moveLegionUnits,
+  reserveDeployAreas,
 } from "./applyAction";
 import { emptyLegion, type GameState, type Legion } from "./state";
 
@@ -188,6 +189,107 @@ describe("moveLegionUnits — manual split move", () => {
         leaderIndices: [],
       }),
     ).toBe(s);
+  });
+
+  it("clamps the moved units to the destination's stacking room (highest value first)", () => {
+    const s = state({
+      legions: [
+        hLeg("s1_11", { regular: 3, special_elite: 1 }),
+        hLeg("s1_12", { regular: 4 }),
+      ],
+    });
+    // Destination holds 4 of 6 → room for 2: the Sardaukar + 1 regular move, 2 regulars stay.
+    const next = moveLegionUnits(s, "harkonnen", "s1_11", "s1_12", {
+      units: { regular: 3, elite: 0, special_elite: 1 },
+      deploymentTokens: 0,
+      leaderIndices: [],
+    });
+    const dest = next.legions.find((l) => l.area === "s1_12")!;
+    expect(dest.units).toEqual({ regular: 5, elite: 0, special_elite: 1 });
+    expect(next.legions.find((l) => l.area === "s1_11")!.units.regular).toBe(2);
+  });
+
+  it("is a no-op (leaders stay too) when the destination has no stacking room", () => {
+    const s = state({
+      legions: [
+        hLeg("s1_11", { regular: 2 }, [
+          { kind: "named", faction: "harkonnen", name: "Beast Rabban" },
+        ]),
+        hLeg("s1_12", { regular: 6 }),
+      ],
+    });
+    const next = moveLegionUnits(s, "harkonnen", "s1_11", "s1_12", {
+      units: { regular: 2, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [0],
+    });
+    const stay = next.legions.find((l) => l.area === "s1_11")!;
+    expect(stay.units.regular).toBe(2);
+    expect(stay.leaders).toHaveLength(1);
+    expect(next.legions.find((l) => l.area === "s1_12")!.units.regular).toBe(6);
+  });
+
+  it("the CHOAM ban lowers the Harkonnen limit to 5 but not the Atreides limit", () => {
+    const banned = state({
+      spice: {
+        markers: { choam: 5, spacing_guild: 3, landsraad: 3 },
+        activeBans: ["choam"],
+        spiceReserve: 0,
+      },
+    });
+    const hk = moveLegionUnits(
+      { ...banned, legions: [hLeg("s1_11", { regular: 3 }), hLeg("s1_12", { regular: 4 })] },
+      "harkonnen",
+      "s1_11",
+      "s1_12",
+      { units: { regular: 3, elite: 0, special_elite: 0 }, deploymentTokens: 0, leaderIndices: [] },
+    );
+    expect(hk.legions.find((l) => l.area === "s1_12")!.units.regular).toBe(5);
+
+    const aLeg = (area: string, regular: number): Legion => ({
+      ...emptyLegion("atreides", area),
+      units: { regular, elite: 0, special_elite: 0 },
+    });
+    const at = moveLegionUnits(
+      { ...banned, legions: [aLeg("s1_11", 3), aLeg("s1_12", 4)] },
+      "atreides",
+      "s1_11",
+      "s1_12",
+      { units: { regular: 3, elite: 0, special_elite: 0 }, deploymentTokens: 0, leaderIndices: [] },
+    );
+    expect(at.legions.find((l) => l.area === "s1_12")!.units.regular).toBe(6);
+  });
+});
+
+describe("reserveDeployAreas", () => {
+  it("offers live settlements and Harkonnen-legion areas, excluding destroyed/enemy/full ones", () => {
+    const s = state({
+      settlements: [
+        { area: "arrakeen", rank: 3, destroyed: false },
+        { area: "carthag", rank: 2, destroyed: true },
+      ],
+      legions: [
+        hLeg("s1_11", { regular: 2 }),
+        hLeg("s1_12", { regular: 6 }), // at the stacking limit — no room
+        { ...emptyLegion("atreides", "arsunt"), units: { regular: 1, elite: 0, special_elite: 0 } },
+      ],
+    });
+    const areas = reserveDeployAreas(s);
+    expect(areas.has("arrakeen")).toBe(true); // live settlement
+    expect(areas.has("s1_11")).toBe(true); // Harkonnen legion with room
+    expect(areas.has("carthag")).toBe(false); // destroyed settlement
+    expect(areas.has("s1_12")).toBe(false); // full stack
+    expect(areas.has("arsunt")).toBe(false); // Atreides-held
+  });
+
+  it("excludes a live settlement occupied by an Atreides legion", () => {
+    const s = state({
+      settlements: [{ area: "arrakeen", rank: 3, destroyed: false }],
+      legions: [
+        { ...emptyLegion("atreides", "arrakeen"), units: { regular: 2, elite: 0, special_elite: 0 } },
+      ],
+    });
+    expect(reserveDeployAreas(s).has("arrakeen")).toBe(false);
   });
 });
 

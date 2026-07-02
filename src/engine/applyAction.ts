@@ -7,7 +7,7 @@ import type { GameState, Legion, UnitType } from "./state";
 import { emptyLegion, unitCount } from "./state";
 import type { DeployPlacement, HarkonnenAction } from "./harkonnenActions";
 import { placeHarvesters, placeOrnithopters } from "./vehiclePlacement";
-import { stackingLimit } from "./imperiumBans";
+import { stackingLimit, stackingLimitFor } from "./imperiumBans";
 
 export interface ApplyResult {
   state: GameState;
@@ -184,6 +184,28 @@ export function deployFromReserve(
   return applyDeploy(s, [placement]).state;
 }
 
+/**
+ * Areas the deploy-from-reserve form may target: a live Harkonnen settlement or any area already
+ * holding a Harkonnen legion — excluding areas with an Atreides legion (can't deploy onto the
+ * enemy) and areas whose Harkonnen legion is already at the stacking limit (no room).
+ */
+export function reserveDeployAreas(s: GameState): Set<string> {
+  const limit = stackingLimit(s.spice.activeBans);
+  const atreides = new Set(
+    s.legions
+      .filter((l) => l.faction === "atreides" && unitCount(l) + l.leaders.length > 0)
+      .map((l) => l.area),
+  );
+  const out = new Set<string>();
+  for (const st of s.settlements) if (!st.destroyed) out.add(st.area);
+  for (const l of s.legions) if (l.faction === "harkonnen") out.add(l.area);
+  for (const id of [...out]) {
+    const h = s.legions.find((l) => l.faction === "harkonnen" && l.area === id);
+    if (atreides.has(id) || (h && unitCount(h) >= limit)) out.delete(id);
+  }
+  return out;
+}
+
 // --- manual legion move / split -------------------------------------------
 
 /** A subset of a legion's figures to move (the rest stay behind). Leaders are given by index. */
@@ -206,7 +228,9 @@ const legionEmpty = (l: Legion) =>
  * Move some (or all) of a legion's figures from `from` to `to`, for either faction. Both factions
  * may split a legion (rulebook: "It is not mandatory to move all figures"). The moved subset merges
  * into any same-faction legion already at `to`; the remainder stays behind (removed if now empty).
- * Counts are clamped to what's present. A no-op if there's no such legion or from === to.
+ * Counts are clamped to what's present AND to the room left under the destination's stacking limit
+ * (highest-value units kept first, like the AI move); leaders don't count toward the limit but
+ * can't travel without a unit/token. A no-op if there's no such legion, no room, or from === to.
  */
 export function moveLegionUnits(
   s: GameState,
@@ -221,15 +245,28 @@ export function moveLegionUnits(
 
   const cap = (n: number, max: number) =>
     Math.max(0, Math.min(Math.floor(n) || 0, max));
-  const moved = {
-    regular: cap(move.units.regular, src.units.regular),
-    elite: cap(move.units.elite, src.units.elite),
-    special_elite: cap(move.units.special_elite, src.units.special_elite),
+  const dest = s.legions.find((l) => l.faction === faction && l.area === to);
+  const limit = stackingLimitFor(faction, s.spice.activeBans);
+  let room = Math.max(0, limit - (dest ? unitCount(dest) : 0));
+  const fit = (n: number, max: number) => {
+    const k = Math.min(cap(n, max), room);
+    room -= k;
+    return k;
   };
-  const movedTokens = cap(move.deploymentTokens, src.deploymentTokens);
+  const moved = {
+    special_elite: fit(move.units.special_elite, src.units.special_elite),
+    elite: fit(move.units.elite, src.units.elite),
+    regular: fit(move.units.regular, src.units.regular),
+  };
+  const movedTokens = fit(move.deploymentTokens, src.deploymentTokens);
+  const movedUnitCount =
+    moved.regular + moved.elite + moved.special_elite + movedTokens;
   const idx = new Set(move.leaderIndices);
-  const movedLeaders = src.leaders.filter((_, i) => idx.has(i));
-  const keptLeaders = src.leaders.filter((_, i) => !idx.has(i));
+  // Leaders can't travel alone — they only ride along when at least 1 unit/token moves.
+  const movedLeaders =
+    movedUnitCount > 0 ? src.leaders.filter((_, i) => idx.has(i)) : [];
+  const keptLeaders =
+    movedUnitCount > 0 ? src.leaders.filter((_, i) => !idx.has(i)) : src.leaders;
 
   const remainder: Legion = {
     ...src,

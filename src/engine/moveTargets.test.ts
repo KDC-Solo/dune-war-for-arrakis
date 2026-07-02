@@ -130,4 +130,33 @@ describe("legalMoveDestinations", () => {
       legalMoveDestinations(gs(), leg("harkonnen", "broken_land")).size,
     ).toBe(0);
   });
+
+  it("excludes a destination whose friendly legion is at the stacking limit", () => {
+    const mover = leg("harkonnen", "s1_11", { regular: 2 });
+    const room = legalMoveDestinations(
+      gs({ legions: [mover, leg("harkonnen", "s1_12", { regular: 5 })] }),
+      mover,
+    );
+    expect(room.has("s1_12")).toBe(true); // 5 of 6 — room to merge
+
+    const full = legalMoveDestinations(
+      gs({ legions: [mover, leg("harkonnen", "s1_12", { regular: 6 })] }),
+      mover,
+    );
+    expect(full.has("s1_12")).toBe(false); // at the limit — no room
+
+    // CHOAM ban drops the Harkonnen limit to 5, so 5 units now block too.
+    const banned = legalMoveDestinations(
+      gs({
+        legions: [mover, leg("harkonnen", "s1_12", { regular: 5 })],
+        spice: {
+          markers: { choam: 5, spacing_guild: 1, landsraad: 1 },
+          activeBans: ["choam"],
+          spiceReserve: 0,
+        },
+      }),
+      mover,
+    );
+    expect(banned.has("s1_12")).toBe(false);
+  });
 });

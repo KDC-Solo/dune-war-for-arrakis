@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { AREA_IDS, type SectorId } from '../engine/board';
 import { activeBans } from '../engine/spiceMustFlow';
-import { deployFromReserve } from '../engine/applyAction';
+import { deployFromReserve, reserveDeployAreas } from '../engine/applyAction';
 import { harkonnenFigureTally } from '../engine/figureBudget';
 import {
   emptyLegion,
@@ -162,28 +162,36 @@ function setGenericLeaders(l: Legion, generic: number): Leader[] {
 /**
  * Move units + an optional leader from the Harkonnen reserve onto the board, drawing them down
  * from the pool so board and reserve totals stay in sync (instead of editing a legion's counts by
- * hand, which leaves the reserve untouched). Drops into a live Harkonnen settlement or any area
- * that already holds a Harkonnen legion, merging into it.
+ * hand, which leaves the reserve untouched). The destination is picked on the board map — only a
+ * live Harkonnen settlement or an area already holding a Harkonnen legion (with room under the
+ * stacking limit) is selectable; the moved figures merge into any legion there.
  */
-function DeployForm({ s, onChange }: { s: GameState; onChange: (next: GameState) => void }) {
+function DeployForm({
+  s,
+  onChange,
+  deployTo,
+  onPick,
+  pick,
+}: {
+  s: GameState;
+  onChange: (next: GameState) => void;
+  deployTo: string | null;
+  onPick?: (target: PickTarget) => void;
+  pick?: PickTarget | null;
+}) {
   const r = s.harkonnenReserve;
-  const areaSet = new Set<string>();
-  for (const st of s.settlements) if (!st.destroyed) areaSet.add(st.area);
-  for (const l of s.legions) if (l.faction === 'harkonnen') areaSet.add(l.area);
-  const areaList = [...areaSet].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
   const leaderOptions = [...(r.bashars > 0 ? ['Bashar'] : []), ...r.namedLeaders];
 
-  const [area, setArea] = useState('');
   const [units, setUnits] = useState<Record<UnitType, number>>({ regular: 0, elite: 0, special_elite: 0 });
   const [leader, setLeader] = useState('');
 
-  const dropArea = areaList.includes(area) ? area : areaList[0] ?? '';
+  const validArea = !!deployTo && reserveDeployAreas(s).has(deployTo);
   const total = units.regular + units.elite + units.special_elite + (leader ? 1 : 0);
-  const canDeploy = !!dropArea && total > 0;
+  const canDeploy = validArea && total > 0;
 
   const deploy = () => {
-    if (!canDeploy) return;
-    onChange(deployFromReserve(s, { settlement: dropArea, units, leader: leader || null }));
+    if (!canDeploy || !deployTo) return;
+    onChange(deployFromReserve(s, { settlement: deployTo, units, leader: leader || null }));
     setUnits({ regular: 0, elite: 0, special_elite: 0 });
     setLeader('');
   };
@@ -193,14 +201,18 @@ function DeployForm({ s, onChange }: { s: GameState; onChange: (next: GameState)
       <div className="ed-grid">
         <label>
           Into
-          <select value={dropArea} onChange={(e) => setArea(e.target.value)}>
-            {areaList.length === 0 && <option value="">— no Harkonnen area —</option>}
-            {areaList.map((id) => (
-              <option key={id} value={id}>
-                {areaLabel(id)}
-              </option>
-            ))}
-          </select>
+          {onPick ? (
+            <button
+              type="button"
+              className={`area-field${samePick(pick ?? null, { kind: 'deploy' }) ? ' active' : ''}`}
+              title="Pick the deploy destination on the board map"
+              onClick={() => onPick({ kind: 'deploy' })}
+            >
+              📍 {validArea && deployTo ? areaLabel(deployTo) : '— pick on map —'}
+            </button>
+          ) : (
+            <span className="area-field static">{deployTo ? areaLabel(deployTo) : '—'}</span>
+          )}
         </label>
         {UNIT_TYPES.map(({ key, label }) => (
           <label key={key}>
@@ -237,6 +249,7 @@ export function StateEditor({
   onChange,
   onPick,
   pick,
+  deployTo,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
@@ -244,19 +257,9 @@ export function StateEditor({
   onPick?: (target: PickTarget) => void;
   /** The pick target currently active (for button highlight). */
   pick?: PickTarget | null;
+  /** The deploy-from-reserve destination last picked on the map (held by App). */
+  deployTo?: string | null;
 }) {
-  // A 📍 button that asks the map to set `target`'s area; highlighted while that pick is active.
-  const pickBtn = (target: PickTarget) =>
-    onPick ? (
-      <button
-        type="button"
-        className={`pick-map-btn${samePick(pick ?? null, target) ? ' active' : ''}`}
-        title="Pick this area on the board map"
-        onClick={() => onPick(target)}
-      >
-        📍
-      </button>
-    ) : null;
   // The primary area control: a labelled button showing the current area that opens the board map
   // to set it by tapping (much clearer than a dropdown of names for the many unnamed areas). Falls
   // back to a plain label if the map picker isn't wired up.
@@ -342,18 +345,28 @@ export function StateEditor({
         <label>
           Target sietch
           <span className="pick-field">
-            <select
-              value={s.targetSietchId ?? 'none'}
-              onChange={(e) => onChange({ ...s, targetSietchId: e.target.value === 'none' ? null : e.target.value })}
-            >
-              <option value="none">—</option>
-              {liveSietches.map((si) => (
-                <option key={si.area} value={si.area}>
-                  {areaLabel(si.area)} (rank {si.rank ?? '?'})
-                </option>
-              ))}
-            </select>
-            {pickBtn({ kind: 'target' })}
+            {onPick ? (
+              <button
+                type="button"
+                className={`area-field${samePick(pick ?? null, { kind: 'target' }) ? ' active' : ''}`}
+                title="Pick the target sietch on the board map"
+                onClick={() => onPick({ kind: 'target' })}
+              >
+                📍 {s.targetSietchId ? `${areaLabel(s.targetSietchId)} (rank ${liveSietches.find((si) => si.area === s.targetSietchId)?.rank ?? '?'})` : '— pick on map —'}
+              </button>
+            ) : (
+              <span className="area-field static">{s.targetSietchId ? areaLabel(s.targetSietchId) : '—'}</span>
+            )}
+            {s.targetSietchId && (
+              <button
+                type="button"
+                className="remove"
+                title="Clear the target sietch"
+                onClick={() => onChange({ ...s, targetSietchId: null })}
+              >
+                ✕
+              </button>
+            )}
           </span>
         </label>
       </div>
@@ -489,7 +502,7 @@ export function StateEditor({
       </div>
 
       <h3>Deploy from reserve <span className="hint">(moves units onto the board, drawing down the pool)</span></h3>
-      <DeployForm s={s} onChange={onChange} />
+      <DeployForm s={s} onChange={onChange} deployTo={deployTo ?? null} onPick={onPick} pick={pick} />
 
       <h3>Wormsigns &amp; sandworms</h3>
       <div className="ed-grid">

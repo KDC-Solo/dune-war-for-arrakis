@@ -5,10 +5,11 @@ export type PickTarget =
   | { kind: "wormsign"; index: number }
   | { kind: "sandworm"; index: number }
   | { kind: "target" }
-  | { kind: "move" };
+  | { kind: "move" }
+  | { kind: "deploy" };
 
 export function samePick(a: PickTarget | null, b: PickTarget | null): boolean {
   if (!a || !b || a.kind !== b.kind) return false;
-  if (a.kind === "target" || a.kind === "move") return true;
+  if (!("index" in a)) return true;
   return a.index === (b as { index: number }).index;
 }

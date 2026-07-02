@@ -23,7 +23,8 @@ solo player (playing Atreides) doesn't have to execute the Harkonnen priority ru
   Spacing Guild [note: incompatible with Mahdi solo], Possible Futures).
 - **Engine is headless & pure-TS**, decoupled from the UI, so it can be unit-tested against
   the rulebook's priority lists before any UI exists.
-- **Mobile** (Capacitor/React Native wrapper) is a future goal, not now.
+- **Mobile:** native wrapping (Capacitor/React Native) is **scrapped (2026-07-03)** — the app
+  stays a responsive web app. If installable/offline is ever wanted, do a PWA pass instead.
 
 ## 3. Build phases
 
@@ -158,15 +159,16 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
       start-in-play named leaders in the reserve pool; Harkonnen settlements empty per the solo
       pool rule). Wired to a "New game" button in the editor (undoable via `commit`).
 - [ ] Sync the few Atreides-side changes the AI depends on (see "Next up" §4 — the last big Phase 3 gap)
-- [~] Moving Harkonen legion should respect stacking limit — **AI path done** (`applyMove` splits
-  at the limit; AI move tie-break prefers non-full merges; deployment overflows). **Remaining gap:**
-  the manual map-move (`moveLegionUnits` in `applyAction.ts`) caps only against the source legion,
-  so a hand-entered split move can overstack the destination — clamp it there + in the move form.
-- [~] When moving legion, the area selection should be using the map just like when adding wormsigns. Anything that requires area selection let's use the map. Then limit which areas can be selected should be based on rules including sandriding via sandworms and troop-transport via ornithopter.
-  **Mostly done** (`moveTargets.ts` `legalMoveDestinations`: ground/troop-transport/sandriding,
-  faction-aware, wired into the map pick with dimming + tests). **Remaining:** verify both
-  features in a live game and tick these boxes. (The two curated dropdowns — e.g. the
-  deploy-from-reserve area `<select>` — stay as dropdowns per user decision 2026-07-01.)
+- [x] Moving Harkonen legion should respect stacking limit — **DONE (2026-07-03):** AI path
+  (`applyMove` splits at the limit, move tie-break prefers non-full merges, deployment overflows)
+  AND the manual map-move (`moveLegionUnits` clamps to destination room, highest-value units first,
+  faction-aware limit via `stackingLimitFor`: CHOAM ban binds Harkonnen only).
+- [x] When moving legion, the area selection should be using the map just like when adding wormsigns. Anything that requires area selection let's use the map. Then limit which areas can be selected should be based on rules including sandriding via sandworms and troop-transport via ornithopter.
+  **DONE (2026-07-03):** `moveTargets.ts` `legalMoveDestinations` (ground/troop-transport/
+  sandriding, faction-aware, excludes full friendly stacks) drives the map pick; and **every**
+  area input is now map-first + rule-filtered — target sietch (live sietches) and deploy-from-
+  reserve (`reserveDeployAreas`: live settlements / Harkonnen areas with stacking room, no
+  Atreides) converted from dropdowns per user decision 2026-07-03 (reversing 2026-07-01).
 
 ### Phase 4 — Persistence _(✅ DONE 2026-06-27)_
 
@@ -181,7 +183,8 @@ Pure TS + tests, no UI. Model the round and the priority cascades from fan-summa
 
 - [~] UX polish: **Undo** (header button, bounded 20-deep history) reverts the last applied
   Harkonnen action — resolve/card/leader/next-round apply through `commit` (snapshots first);
-  import/named-load/reset start a fresh history via `loadGame`. TODO: more polish, then Capacitor.
+  import/named-load/reset start a fresh history via `loadGame`. See the UX backlog in §4.
+  (Capacitor mobile wrap scrapped 2026-07-03.)
 
 ### Phase 6 — Onboarding & teaching _(future)_
 
@@ -207,27 +210,47 @@ Lower the barrier for a brand-new solo player picking up the app cold.
 
 ### Next up (roadmap, 2026-07-03)
 
-1. **Close out the committed WIP** _(small — do first)_
-   - Enforce the stacking limit in the manual map move: clamp `moveLegionUnits`
-     (`applyAction.ts`) against destination capacity, mirror it in the split-move form
-     (cap the inputs / show "N slots free"), + tests.
-   - Verify both in a live game, then tick the two Phase 3 boxes. (The two curated
-     dropdowns stay — user declined map-first for those on 2026-07-01.)
+1. ~~Close out the committed WIP~~ **✅ DONE 2026-07-03:** manual move clamped to the
+   destination's stacking room; every area input map-first + rule-filtered (target sietch,
+   deploy-from-reserve); 262 tests.
 2. **Atreides-turn sync panel** _(last unchecked Phase 3 item — biggest playability win)_
    A compact "Your turn" panel so mid-game state upkeep never needs the StateEditor:
    record only what the AI depends on — Atreides legion moves (reuse the move tool;
    sandriding already modeled), battle outcomes (reuse BattlePanel), sietch
    revealed/destroyed, testing stations, imperium-marker/spice changes, wormsign &
    sandworm placement/movement. Phase-gated like the Harkonnen panels.
-3. **Game-end completeness.** `tracks.prescience` exists in state but nothing reads it:
+3. **UX backlog (from the 2026-07-03 UI/UX pass)** — ordered by playability impact:
+   - [ ] **Sticky status strip:** round · phase · supremacy · target sietch · dice, always
+         visible at the top (currently you scroll to This round to see where you are).
+   - [ ] **One round driver:** merge "Begin round / Start next round" (This round) and the
+         phase Prev/Next buttons (Round walkthrough) into a single stepper — at `end` the
+         Next button becomes "Start next round". Two controls in two panels confuses.
+   - [ ] **Attack → Battle handoff:** an attack directive in Resolve Harkonnen turn should
+         offer "Start this battle", jumping into BattlePanel with the pair (and ornithopter
+         surprise, when applicable) preselected — no scrolling + re-finding the pair.
+   - [ ] **Tap-friendly number entry:** +/− stepper buttons on all NumInputs, and battle/
+         storm dice as tap-to-count rows (⚔️/🛡/✴ counters) instead of bare number fields.
+   - [ ] **Toast every applied action** (only map picks confirm today) and auto-scroll to
+         the directive when a die face is tapped.
+   - [ ] **Proper game-end screen:** replace the `alert()` on supremacy 10 with a real
+         end-of-game banner/dialog (extends to the Atreides win once modeled — see item 4).
+   - [ ] **Capacity feedback:** the move/deploy forms show "N slots free" at the chosen
+         destination (engine already clamps; tell the player before they pick).
+   - [ ] **Manual Harkonnen settlement-exit rule:** manually moving the last Harkonnen
+         figures out of a settlement should offer the "leave 2 deployment tokens" garrison
+         drop the AI move already applies.
+   - [ ] **Group setup panels:** collapse Games + Edit game state into a "Setup" section
+         during play (the Atreides-turn panel replaces mid-game editor digging).
+   - [ ] **PWA pass** (replaces the scrapped Capacitor plan): manifest + service worker →
+         installable on the phone/tablet at the table, works offline.
+4. **Game-end completeness.** `tracks.prescience` exists in state but nothing reads it:
    model the Atreides victory path (prescience/ecological testing per rulebook) alongside
    the existing supremacy-10 Harkonnen win; detect + announce game end both ways.
-4. **Rules audit vs fan-summary p9.** One sweep of the Mahdi solo rules against the engine
+5. **Rules audit vs fan-summary p9.** One sweep of the Mahdi solo rules against the engine
    to catch anything not yet automated (wormsign movement, mid-round target reselection
    triggers, imperium-ban edge cases); log gaps as checklist items here.
-5. **Playtest feedback pass → v0.4.0.** Fold in findings from the current v0.3.0 playtest.
-6. **Phase 6 onboarding** — guided physical-setup wizard + teach-solo tutorial (see §3).
-7. **Phase 5 mobile** — Capacitor wrap once the UX has settled.
+6. **Playtest feedback pass → v0.4.0.** Fold in findings from the current v0.3.0 playtest.
+7. **Phase 6 onboarding** — guided physical-setup wizard + teach-solo tutorial (see §3).
 
 ## 5. Key references
 

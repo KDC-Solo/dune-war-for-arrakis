@@ -3,7 +3,8 @@
 //
 // Rules modeled (rulebook p22-23):
 //  - Ground move: to an adjacent FREE area (no enemy Units/Settlements, no Sandworms; harvesters
-//    and ecological stations do not block). Impassable borders block a ground move — EXCEPT the
+//    and ecological stations do not block). A friendly legion already at the stacking limit also
+//    blocks (no room to merge into). Impassable borders block a ground move — EXCEPT the
 //    solo Harkonnen "ignore impassable borders" simplification, so Harkonnen use their expanded
 //    adjacency and other factions use the standard (white-border) adjacency.
 //  - Troop-Transport (Harkonnen only): using 1 ornithopter in an air zone connected to the
@@ -17,6 +18,7 @@ import { ADJACENCY, AREAS } from "./board";
 import type { GameState, Legion } from "./state";
 import { unitCount } from "./state";
 import { harkonnenNeighbors, canTroopTransport } from "./movement";
+import { stackingLimitFor } from "./imperiumBans";
 
 /** Standard ground neighbours (white borders only — areas across an impassable border are excluded). */
 export function standardNeighbors(id: string): readonly string[] {
@@ -69,7 +71,18 @@ export function legalMoveDestinations(
 
   const from = legion.area;
   const faction = legion.faction;
-  const blocked = blockedForMove(s, faction);
+  const enemyOrWorm = blockedForMove(s, faction);
+
+  // A friendly legion already at the faction's stacking limit leaves no room to merge into.
+  const limit = stackingLimitFor(faction, s.spice.activeBans);
+  const friendlyAt = new Map(
+    s.legions.filter((l) => l.faction === faction).map((l) => [l.area, l] as const),
+  );
+  const blocked = (area: string): boolean => {
+    if (enemyOrWorm(area)) return true;
+    const f = friendlyAt.get(area);
+    return !!f && unitCount(f) >= limit;
+  };
 
   // 1. Ground move to an adjacent free area.
   const groundNbrs =

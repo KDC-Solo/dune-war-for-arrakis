@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionResult, GameState, ImperiumPower, Leader, Legion, RoundPhase } from '../engine/state';
 import { resolveAction, type HarkonnenAction } from '../engine/harkonnenActions';
-import { applyHarkonnenAction, isAutoApplied, moveLegionUnits, type MoveUnits } from '../engine/applyAction';
+import { applyHarkonnenAction, isAutoApplied, moveLegionUnits, reserveDeployAreas, type MoveUnits } from '../engine/applyAction';
 import { legalMoveDestinations } from '../engine/moveTargets';
 import {
   availability,
@@ -977,6 +977,8 @@ function describePicked(p: PickTarget, id: string): string {
       return `Target sietch set to ${label}`;
     case 'move':
       return `Moved to ${label}`;
+    case 'deploy':
+      return `Deploy destination set to ${label}`;
   }
 }
 
@@ -997,6 +999,8 @@ function BoardMapPanel({
   onOpen,
   onClose,
   onConfirm,
+  deployTo,
+  onDeployPick,
 }: {
   s: GameState;
   onChange: (next: GameState) => void;
@@ -1011,6 +1015,9 @@ function BoardMapPanel({
   onOpen: () => void;
   onClose: () => void;
   onConfirm: (msg: string) => void;
+  /** The deploy-from-reserve destination (held by App; set by a 'deploy' pick). */
+  deployTo: string | null;
+  onDeployPick: (id: string) => void;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -1050,6 +1057,9 @@ function BoardMapPanel({
       pickWhat = pendingMove
         ? `the move destination for the ${pendingMove.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion at ${areaLabel(pendingMove.from)}`
         : 'the move destination';
+    } else if (pick.kind === 'deploy') {
+      pickArea = deployTo;
+      pickWhat = 'the deploy-from-reserve destination';
     } else {
       pickArea = s.targetSietchId;
       pickWhat = 'the target sietch';
@@ -1097,8 +1107,10 @@ function BoardMapPanel({
   };
 
   // Some picks restrict which areas are valid: wormsigns/sandworms by terrain + occupancy, the
-  // target sietch must be a live sietch, and a move must be a legal destination. Rest dim.
+  // target sietch must be a live sietch, a move must be a legal destination, and a reserve deploy
+  // must land in a live settlement / Harkonnen area with stacking room. Rest dim.
   const wormPick = pick?.kind === 'wormsign' || pick?.kind === 'sandworm';
+  const deployAreas = pick?.kind === 'deploy' ? reserveDeployAreas(s) : null;
   const selectable =
     pick?.kind === 'wormsign'
       ? (id: string) => canPlaceWormsign(s, id)
@@ -1108,7 +1120,9 @@ function BoardMapPanel({
           ? (id: string) => s.sietches.some((si) => si.area === id && !si.destroyed)
           : pick?.kind === 'move'
             ? (id: string) => moveDestinations.has(id)
-            : undefined;
+            : deployAreas
+              ? (id: string) => deployAreas.has(id)
+              : undefined;
   // Hint shown in the pick banner describing what's selectable.
   const pickHint = wormPick
     ? ' Only valid Desert areas are highlighted; the rest are dimmed.'
@@ -1116,9 +1130,11 @@ function BoardMapPanel({
       ? ' Only sietches (not destroyed) are selectable; the rest are dimmed.'
       : pick?.kind === 'move'
         ? moveDestinations.size > 0
-          ? ' Only legal move destinations are highlighted (ground, troop-transport, or sandriding); the rest are dimmed.'
+          ? ' Only legal move destinations are highlighted (ground, troop-transport, or sandriding, with stacking room); the rest are dimmed.'
           : ' This legion has no legal move — close to cancel.'
-        : '';
+        : pick?.kind === 'deploy'
+          ? ' Only live Harkonnen settlements and areas with a Harkonnen legion below the stacking limit are selectable.'
+          : '';
 
   const onMapSelect = (id: string) => {
     if (!pick) {
@@ -1136,6 +1152,14 @@ function BoardMapPanel({
         onConfirm(`Moved: ${label}`);
       }
       clearPendingMove();
+      clearPick();
+      onClose();
+      return;
+    }
+    if (pick.kind === 'deploy') {
+      onDeployPick(id);
+      setPicked(id);
+      onConfirm(describePicked(pick, id));
       clearPick();
       onClose();
       return;
@@ -1626,6 +1650,8 @@ export function App() {
   const [locate, setLocate] = useState<string | null>(null);
   // A legion move awaiting a destination pick on the board map.
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
+  // The deploy-from-reserve destination, picked on the board map ('deploy' pick).
+  const [deployTo, setDeployTo] = useState<string | null>(null);
   // Whether the floating board-map overlay is open.
   const [mapOpen, setMapOpen] = useState(false);
   // Transient confirmation toast (e.g. after placing a wormsign via the map).
@@ -1719,7 +1745,7 @@ export function App() {
       <main>
         <HelpPanel />
         <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
-        <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} />
+        <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} deployTo={deployTo} />
         <RoundPanel s={s} onChange={commit} />
         <PhasePanel s={s} onChange={setS} showAll={showAllPanels} onToggleShowAll={setShowAllPanels} />
         {inPhase('vehicle_placement') && <VehiclePanel s={s} onChange={commit} editable={false} />}
@@ -1751,6 +1777,8 @@ export function App() {
         onOpen={() => setMapOpen(true)}
         onClose={() => setMapOpen(false)}
         onConfirm={setToast}
+        deployTo={deployTo}
+        onDeployPick={setDeployTo}
       />
       <HistoryPanel
         history={history}
