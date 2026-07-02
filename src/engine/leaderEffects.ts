@@ -18,7 +18,9 @@ const LEADER_STEPS: Record<string, StepFn[]> = {
     () => manual('Move the Legion containing Beast Rabban, then move that Legion again to an adjacent Area.'),
   ],
   'Baron Harkonnen': [() => manual('Replace 3 Regular Units on the board with 3 Elite Units.')],
-  'Gaius Helen Mohiam': [() => draw('corrino_ally', 2), () => manual('Then play 1 Planning card.')],
+  // Solo override (fan-summary p9): "Draw 3 Corrino Ally planning cards and play them
+  // immediately" — replaces the base card's draw-2-then-play-1.
+  'Gaius Helen Mohiam': [() => draw('corrino_ally', 3)],
   'Captain Aramsham': [
     () => manual('Deploy 2 Regular Units, 1 Sardaukar Unit, and 1 Leader (Bashar or Named) in one or more Settlements.'),
   ],

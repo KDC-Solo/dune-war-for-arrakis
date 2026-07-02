@@ -109,6 +109,8 @@ export function newGameState(): GameState {
 
     beneGesserit: { atreides: 0, reserve: 5 },
 
+    atreidesObjective: null,
+
     harkonnenUnusedDice: 0,
     atreidesUnusedDice: 0,
   };

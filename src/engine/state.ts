@@ -258,6 +258,14 @@ export interface GameState {
   /** Bene Gesserit tokens: held by Atreides + the shared reserve (5 total at start). */
   beneGesserit: { atreides: number; reserve: number };
 
+  /**
+   * The Secret Objective card's 3 target scores (same order as `tracks.prescience`: Kwisatz
+   * Haderach / Sand Dwellers / Jihad). The card is physical and secret, so the player enters it;
+   * the Atreides win when every marker reaches its target. Optional for save-compatibility —
+   * absent/null means "not entered yet".
+   */
+  atreidesObjective?: [number, number, number] | null;
+
   // Action-die pools (counts; faces are assigned as dice are rolled/placed).
   harkonnenUnusedDice: number;
   atreidesUnusedDice: number;
