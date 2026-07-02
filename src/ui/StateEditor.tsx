@@ -10,6 +10,7 @@ import { deployFromReserve, reserveDeployAreas } from '../engine/applyAction';
 import { harkonnenFigureTally } from '../engine/figureBudget';
 import {
   emptyLegion,
+  unitCount,
   type Faction,
   type GameState,
   type Leader,
@@ -18,6 +19,7 @@ import {
   type SettlementState,
   type UnitType,
 } from '../engine/state';
+import { stackingLimit } from '../engine/imperiumBans';
 import { areaLabel } from './describeAction';
 import { isDesertArea } from '../engine/describeArea';
 import { canPlaceWormsign, canPlaceSandworm } from '../engine/wormsigns';
@@ -186,6 +188,14 @@ function DeployForm({
   const [leader, setLeader] = useState('');
 
   const validArea = !!deployTo && reserveDeployAreas(s).has(deployTo);
+  // Room under the stacking limit at the chosen destination ("N slots free").
+  const roomAt = validArea
+    ? stackingLimit(s.spice.activeBans) -
+      unitCount(
+        s.legions.find((l) => l.faction === 'harkonnen' && l.area === deployTo) ??
+          emptyLegion('harkonnen', deployTo!),
+      )
+    : null;
   const total = units.regular + units.elite + units.special_elite + (leader ? 1 : 0);
   const canDeploy = validArea && total > 0;
 
@@ -212,6 +222,9 @@ function DeployForm({
             </button>
           ) : (
             <span className="area-field static">{deployTo ? areaLabel(deployTo) : '—'}</span>
+          )}
+          {roomAt !== null && (
+            <span className="hint">{roomAt} slot{roomAt === 1 ? '' : 's'} free</span>
           )}
         </label>
         {UNIT_TYPES.map(({ key, label }) => (

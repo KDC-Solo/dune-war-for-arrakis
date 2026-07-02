@@ -281,7 +281,11 @@ export function moveLegionUnits(
   const movedLegion: Legion = {
     faction,
     area: to,
-    units: moved,
+    units: {
+      regular: moved.regular,
+      elite: moved.elite,
+      special_elite: moved.special_elite,
+    },
     deploymentTokens: movedTokens,
     leaders: movedLeaders,
   };
@@ -290,7 +294,25 @@ export function moveLegionUnits(
   let legions = s.legions.filter((l) => l !== src);
   if (!legionEmpty(remainder)) legions = [...legions, remainder];
   legions = upsertLegion(legions, movedLegion);
-  return { ...s, legions };
+
+  // Solo garrison rule (fan-summary p9): when a Harkonnen legion fully leaves a live settlement,
+  // place 2 deployment tokens there from the pool (mirrors the AI move in applyMove).
+  let reserve = s.harkonnenReserve;
+  if (
+    faction === "harkonnen" &&
+    legionEmpty(remainder) &&
+    s.settlements.some((st) => st.area === from && !st.destroyed)
+  ) {
+    const dropped = Math.min(2, reserve.deploymentTokens);
+    if (dropped > 0) {
+      legions = upsertLegion(legions, {
+        ...emptyLegion("harkonnen", from),
+        deploymentTokens: dropped,
+      });
+      reserve = { ...reserve, deploymentTokens: reserve.deploymentTokens - dropped };
+    }
+  }
+  return { ...s, legions, harkonnenReserve: reserve };
 }
 
 // --- house: replace regulars with elites -----------------------------------

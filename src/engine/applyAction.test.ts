@@ -191,6 +191,31 @@ describe("moveLegionUnits — manual split move", () => {
     ).toBe(s);
   });
 
+  it("drops 2 garrison tokens when a Harkonnen legion fully leaves a live settlement", () => {
+    const s = state({
+      settlements: [{ area: "carthag", rank: 2, destroyed: false }],
+      legions: [hLeg("carthag", { regular: 2 })],
+    });
+    const next = moveLegionUnits(s, "harkonnen", "carthag", "arsunt", {
+      units: { regular: 2, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [],
+    });
+    const garrison = next.legions.find((l) => l.area === "carthag")!;
+    expect(garrison.deploymentTokens).toBe(2);
+    expect(next.harkonnenReserve.deploymentTokens).toBe(
+      s.harkonnenReserve.deploymentTokens - 2,
+    );
+    // A split (units remain) leaves no garrison drop.
+    const split = moveLegionUnits(s, "harkonnen", "carthag", "arsunt", {
+      units: { regular: 1, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaderIndices: [],
+    });
+    expect(split.legions.find((l) => l.area === "carthag")!.deploymentTokens).toBe(0);
+    expect(split.harkonnenReserve.deploymentTokens).toBe(s.harkonnenReserve.deploymentTokens);
+  });
+
   it("clamps the moved units to the destination's stacking room (highest value first)", () => {
     const s = state({
       legions: [

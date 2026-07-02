@@ -44,6 +44,8 @@ import {
   placeWormsigns,
 } from '../engine/wormsigns';
 import { isDesertArea } from '../engine/describeArea';
+import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
+import { AtreidesPanel } from './AtreidesPanel';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
 import { LocateContext, AreaChip, AreaChips, AirZoneChip, AirZoneChips } from './locate';
@@ -179,13 +181,17 @@ function HelpPanel() {
 
 function RoundPanel({ s }: { s: GameState }) {
   const avail = availability(s.spice.markers);
-  const won = s.tracks.supremacy >= SUPREMACY_WIN;
+  const outcome = gameOutcome(s);
 
   return (
     <section className="panel">
       <h2>This round</h2>
       <p className="hint">What the Harkonnen get this round, from the Spice Must Flow markers. Begin/advance the round in the Round walkthrough below.</p>
-      {won && <div className="win-banner">Harkonnen victory — supremacy {SUPREMACY_WIN} reached.</div>}
+      {outcome.winner && (
+        <div className="win-banner">
+          {outcome.winner === 'harkonnen' ? 'Harkonnen' : 'Atreides'} victory — {outcome.reason}
+        </div>
+      )}
       <dl className="kv">
         <dt>Round</dt>
         <dd>{s.round}</dd>
@@ -227,6 +233,12 @@ function StatusStrip({ s }: { s: GameState }) {
       </span>
       <span className="ss-item ss-target">
         Target {s.targetSietchId ? <AreaChip id={s.targetSietchId} /> : '—'}
+      </span>
+      <span
+        className="ss-item"
+        title={PRESCIENCE_MARKERS.map((m, i) => `${m.label}: ${s.tracks.prescience[i]}`).join(' · ')}
+      >
+        Prescience <b>{s.tracks.prescience.join('·')}</b>
       </span>
       {s.spice.activeBans.length > 0 && (
         <span className="ss-item ss-bans">Bans: {s.spice.activeBans.join(', ')}</span>
@@ -279,6 +291,36 @@ function VehiclePanel({
 
 const clampInt = (n: number, lo: number, hi: number) =>
   Math.max(lo, Math.min(hi, Math.floor(Number.isFinite(n) ? n : lo)));
+
+// Tap-friendly count entry: big −/+ buttons around the value (dice results, token reveals).
+function Counter({
+  label,
+  value,
+  onChange,
+  min = 0,
+  max = 99,
+}: {
+  label: string;
+  value: number;
+  onChange: (n: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <label className="mini counter">
+      {label}
+      <span className="mini-stepper">
+        <button type="button" aria-label={`${label} −1`} disabled={value <= min} onClick={() => onChange(value - 1)}>
+          −
+        </button>
+        <b>{value}</b>
+        <button type="button" aria-label={`${label} +1`} disabled={value >= max} onClick={() => onChange(value + 1)}>
+          +
+        </button>
+      </span>
+    </label>
+  );
+}
 
 const leaderLabel = (ld: Leader) =>
   ld.kind === 'named' ? ld.name : ld.faction === 'harkonnen' ? 'Bashar' : 'Naib';
@@ -497,6 +539,11 @@ function ResolvePanel({
   const [result, setResult] = useState<ActionResult | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const action = useMemo(() => (result ? resolveAction(s, result) : null), [s, result]);
+  // Bring the directive into view when a die face is tapped (it renders below the fold on phones).
+  const directiveRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (action) directiveRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [action]);
 
   const pick = (r: ActionResult) => {
     setResult(r);
@@ -552,7 +599,7 @@ function ResolvePanel({
         ))}
       </div>
       {action && (
-        <div className="directive">
+        <div className="directive" ref={directiveRef}>
           <div className="directive-head">{actionHeadline(action)}</div>
           <p className="directive-text"><DirectiveText a={action} /></p>
           <div className="directive-actions">
@@ -787,26 +834,18 @@ function StormPanel({ s, onApply }: { s: GameState; onApply: (next: GameState) =
                     {t.deep ? 'deep desert' : t.terrain} · special = {t.specialHitValue} hit{t.specialHitValue === 1 ? '' : 's'}
                   </span>
                 </div>
-                <label className="mini">
-                  Swords
-                  <input
-                    type="number"
-                    min={0}
-                    max={2}
-                    value={d.swords}
-                    onChange={(e) => set(t.legionIndex, { swords: Math.max(0, Math.min(2, Number(e.target.value))) })}
-                  />
-                </label>
-                <label className="mini">
-                  Specials
-                  <input
-                    type="number"
-                    min={0}
-                    max={2}
-                    value={d.specials}
-                    onChange={(e) => set(t.legionIndex, { specials: Math.max(0, Math.min(2, Number(e.target.value))) })}
-                  />
-                </label>
+                <Counter
+                  label="Swords"
+                  value={d.swords}
+                  max={2}
+                  onChange={(n) => set(t.legionIndex, { swords: n })}
+                />
+                <Counter
+                  label="Specials"
+                  value={d.specials}
+                  max={2}
+                  onChange={(n) => set(t.legionIndex, { specials: n })}
+                />
                 <span className={`storm-hits ${hits > 0 ? 'hot' : ''}`}>
                   {hits} hit{hits === 1 ? '' : 's'}
                 </span>
@@ -1343,12 +1382,9 @@ function PhasePanel({
       text: `Round ${s.round} set up — tactical cards drawn, vehicles placed.`,
     });
   const nextRound = () => {
-    const { state, harkonnenWins } = startNextRound(s);
+    // A Harkonnen supremacy win surfaces via the game-over overlay (rendered from state).
+    const { state } = startNextRound(s);
     onCommit(state, { headline: 'Next round', text: `Round ${state.round} begun.` });
-    if (harkonnenWins) {
-      // The win banner renders from state; this just surfaces it immediately.
-      setTimeout(() => alert('Harkonnen reach supremacy 10 — Harkonnen victory.'), 0);
-    }
   };
 
   return (
@@ -1528,15 +1564,12 @@ function BattlePanel({
         <strong>{label}</strong>
       </div>
       {(['regular', 'elite', 'special_elite'] as const).map((k) => (
-        <label key={k} className="mini">
-          {k === 'regular' ? 'Regular' : k === 'elite' ? 'Elite' : 'Sardaukar'}
-          <input
-            type="number"
-            min={0}
-            value={u[k]}
-            onChange={(e) => setU({ ...u, [k]: Math.max(0, Number(e.target.value)) })}
-          />
-        </label>
+        <Counter
+          key={k}
+          label={k === 'regular' ? 'Regular' : k === 'elite' ? 'Elite' : 'Sardaukar'}
+          value={u[k]}
+          onChange={(n) => setU({ ...u, [k]: n })}
+        />
       ))}
     </div>
   );
@@ -1547,15 +1580,13 @@ function BattlePanel({
         <strong>{label}</strong>
       </div>
       {(['hits', 'shields', 'specials'] as const).map((k) => (
-        <label key={k} className="mini">
-          {k === 'hits' ? 'Swords' : k === 'shields' ? 'Shields' : 'Specials'}
-          <input
-            type="number"
-            min={0}
-            value={raw[k]}
-            onChange={(e) => setRaw({ ...raw, [k]: Math.max(0, Number(e.target.value)) })}
-          />
-        </label>
+        <Counter
+          key={k}
+          label={k === 'hits' ? 'Swords' : k === 'shields' ? 'Shields' : 'Specials'}
+          value={raw[k]}
+          max={8}
+          onChange={(n) => setRaw({ ...raw, [k]: n })}
+        />
       ))}
     </div>
   );
@@ -1652,6 +1683,46 @@ function BattlePanel({
         </>
       )}
     </section>
+  );
+}
+
+// Full-screen end-of-game overlay: shown when either victory condition is met. Dismissible (to
+// keep reviewing the board); Undo also naturally un-wins by reverting the state.
+function GameOverOverlay({
+  s,
+  onNewGame,
+  dismissed,
+  onDismiss,
+}: {
+  s: GameState;
+  onNewGame: () => void;
+  dismissed: boolean;
+  onDismiss: () => void;
+}) {
+  const outcome = gameOutcome(s);
+  if (!outcome.winner || dismissed) return null;
+  const atreides = outcome.winner === 'atreides';
+  return (
+    <div className="map-modal-overlay gameover-overlay">
+      <div className={`map-modal panel gameover ${outcome.winner}`} role="dialog" aria-label="Game over">
+        <h2>{atreides ? '☀ Atreides victory' : '☠ Harkonnen victory'}</h2>
+        <p className="gameover-reason">{outcome.reason}</p>
+        <p className="hint">
+          {atreides
+            ? 'The Sleeper has awakened — your Secret Objective is fulfilled.'
+            : 'The Baron tightens his grip on Arrakis.'}{' '}
+          Round {s.round} · supremacy {s.tracks.supremacy}/{SUPREMACY_WIN} · prescience {s.tracks.prescience.join('·')}.
+        </p>
+        <div className="directive-actions">
+          <button className="confirm-btn" onClick={onNewGame}>
+            Start a new game
+          </button>
+          <button className="die" onClick={onDismiss}>
+            Keep reviewing the board
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1752,6 +1823,13 @@ export function App() {
   const [deployTo, setDeployTo] = useState<string | null>(null);
   // Attack → battle handoff: scroll the Battle panel to this area's fight.
   const [battleFocus, setBattleFocus] = useState<string | null>(null);
+  // Game-over overlay dismissal (so the player can keep reviewing the final board).
+  const [gameOverDismissed, setGameOverDismissed] = useState(false);
+  // Setup section (games + editor) starts open only before round 1 is set up.
+  const [setupOpen, setSetupOpen] = useState(() => s.phase === 'start');
+  useEffect(() => {
+    if (s.phase === 'start') setSetupOpen(true); // a fresh game re-opens setup
+  }, [s.phase]);
   // Whether the floating board-map overlay is open.
   const [mapOpen, setMapOpen] = useState(false);
   // Transient confirmation toast (e.g. after placing a wormsign via the map).
@@ -1764,6 +1842,12 @@ export function App() {
   useEffect(() => {
     saveState(s);
   }, [s]);
+
+  // Re-arm the game-over overlay whenever the outcome clears (undo, new game, state edit).
+  const winner = gameOutcome(s).winner;
+  useEffect(() => {
+    if (!winner) setGameOverDismissed(false);
+  }, [winner]);
 
   // Auto-dismiss the confirmation toast.
   useEffect(() => {
@@ -1789,6 +1873,8 @@ export function App() {
       },
     ]);
     setS(next);
+    // Every applied action confirms itself (Undo reverts it).
+    if (log?.headline) setToast(`${log.headline} applied`);
   };
   const undo = () => {
     setPast((p) => {
@@ -1845,13 +1931,21 @@ export function App() {
       <StatusStrip s={s} />
       <main>
         <HelpPanel />
-        <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
-        <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} deployTo={deployTo} />
+        <details
+          className="setup-group"
+          open={setupOpen}
+          onToggle={(e) => setSetupOpen(e.currentTarget.open)}
+        >
+          <summary className="setup-summary">Setup — games, saves &amp; board editor</summary>
+          <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} />
+          <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} deployTo={deployTo} />
+        </details>
         <RoundPanel s={s} />
         <PhasePanel s={s} onChange={setS} onCommit={commit} showAll={showAllPanels} onToggleShowAll={setShowAllPanels} />
         {inPhase('vehicle_placement') && <VehiclePanel s={s} onChange={commit} editable={false} />}
         {inPhase('action_resolution') && <ResolvePanel s={s} onApply={commit} onStartBattle={setBattleFocus} />}
         {inPhase('action_resolution') && <VehiclePanel s={s} onChange={commit} editable={true} />}
+        {inPhase('action_resolution') && <AtreidesPanel s={s} onApply={commit} />}
         {inPhase('action_resolution') && <MoveLegionPanel s={s} onStartMapMove={startMapMove} />}
         {inPhase('action_resolution') && (
           <BattlePanel s={s} onApply={commit} focus={battleFocus} onFocusDone={() => setBattleFocus(null)} />
@@ -1890,6 +1984,15 @@ export function App() {
         onClose={() => setHistoryOpen(false)}
         onUndo={undo}
         canUndo={past.length > 0}
+      />
+      <GameOverOverlay
+        s={s}
+        onNewGame={() => {
+          setGameOverDismissed(false);
+          startNewGame();
+        }}
+        dismissed={gameOverDismissed}
+        onDismiss={() => setGameOverDismissed(true)}
       />
       {toast && <div className="toast" role="status">✓ {toast}</div>}
     </div>
