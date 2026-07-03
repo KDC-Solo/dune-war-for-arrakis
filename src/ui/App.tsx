@@ -54,6 +54,7 @@ import { LocateContext, AreaChip, AreaChips, AirZoneChip, AirZoneChips } from '.
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 const DESERT_AREA_IDS = SORTED_AREA_IDS.filter(isDesertArea);
 import { loadState, saveState, exportState } from './persistence';
+import { play, soundEnabled, setSoundEnabled } from './sound';
 
 const DIE_RESULTS: ActionResult[] = ['leadership', 'strategy', 'mentat', 'deployment', 'house'];
 const DIE_LABEL: Record<ActionResult, string> = {
@@ -1849,6 +1850,23 @@ export function App() {
   const [gameOverDismissed, setGameOverDismissed] = useState(false);
   // Guided physical-setup walkthrough (ends by starting a fresh game).
   const [wizardOpen, setWizardOpen] = useState(false);
+  // Theme ("night on Arrakis") + sound cues, both persisted per browser.
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      return localStorage.getItem('dwfa.theme') === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem('dwfa.theme', theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+  const [sound, setSound] = useState(soundEnabled());
   // Setup section (games + editor) starts open only before round 1 is set up.
   const [setupOpen, setSetupOpen] = useState(() => s.phase === 'start');
   useEffect(() => {
@@ -1871,6 +1889,7 @@ export function App() {
   const winner = gameOutcome(s).winner;
   useEffect(() => {
     if (!winner) setGameOverDismissed(false);
+    else play('win');
   }, [winner]);
 
   // Auto-dismiss the confirmation toast.
@@ -1898,7 +1917,10 @@ export function App() {
     ]);
     setS(next);
     // Every applied action confirms itself (Undo reverts it).
-    if (log?.headline) setToast(`${log.headline} applied`);
+    if (log?.headline) {
+      setToast(`${log.headline} applied`);
+      play('apply');
+    }
   };
   const undo = () => {
     setPast((p) => {
@@ -1943,9 +1965,30 @@ export function App() {
             <h1>Dune: War for Arrakis</h1>
             <p className="subtitle">Mahdi solo companion — Harkonnen AI</p>
           </div>
-          <button className="undo-btn" onClick={undo} disabled={past.length === 0} title="Undo the last applied Harkonnen action">
-            ↶ Undo
-          </button>
+          <div className="header-btns">
+            <button
+              className="icon-btn"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              title={theme === 'dark' ? 'Switch to day theme' : 'Switch to night theme'}
+              aria-label="Toggle dark theme"
+            >
+              {theme === 'dark' ? '☀' : '🌙'}
+            </button>
+            <button
+              className="icon-btn"
+              onClick={() => {
+                setSoundEnabled(!sound);
+                setSound(!sound);
+              }}
+              title={sound ? 'Mute sound cues' : 'Enable sound cues'}
+              aria-label="Toggle sound"
+            >
+              {sound ? '🔊' : '🔇'}
+            </button>
+            <button className="undo-btn" onClick={undo} disabled={past.length === 0} title="Undo the last applied Harkonnen action">
+              ↶ Undo
+            </button>
+          </div>
         </div>
       </header>
       <StatusStrip s={s} />
@@ -1978,6 +2021,10 @@ export function App() {
       </main>
       <footer>
         <small>State auto-saves to this browser. Use Undo to revert an applied action, or the editor's named saves to keep multiple games.</small>
+        <small className="disclaimer">
+          Unofficial fan companion for solo play. Not affiliated with or endorsed by CMON, Gale Force Nine, or Herbert
+          Properties LLC. No game art or components are reproduced — you need your own copy of the game.
+        </small>
       </footer>
 
       <BoardMapPanel

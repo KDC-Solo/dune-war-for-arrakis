@@ -45,6 +45,25 @@ header h1 {
   gap: 1rem;
 }
 
+.header-btns {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.icon-btn {
+  margin-top: 0.2rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: #f3e7d6;
+}
+
 .undo-btn {
   flex: 0 0 auto;
   margin-top: 0.2rem;
@@ -1648,4 +1667,112 @@ label.mini.smf-collected input {
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 0.05rem 0.3rem;
+}
+
+
+.disclaimer {
+  display: block;
+  margin-top: 0.5rem;
+  opacity: 0.75;
+}
+
+/* ---------------------------------------------------------------------------
+   "Night on Arrakis" dark theme. The board map keeps its printed-board palette
+   (a lit table in a dark room); the chrome around it goes dark.
+--------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  --sand: #6b5535;
+  --ink: #ecdfc8;
+  --panel: #251c11;
+  --accent: #d05a6e;
+  --gold: #d3a53f;
+  --line: #4a3a26;
+}
+[data-theme='dark'] body {
+  background: linear-gradient(160deg, #14100a, #241a10);
+  color: var(--ink);
+}
+[data-theme='dark'] .subtitle,
+[data-theme='dark'] .hint,
+[data-theme='dark'] .kv dt,
+[data-theme='dark'] .ed-grid label,
+[data-theme='dark'] .legion-row label.mini,
+[data-theme='dark'] .pm-label,
+[data-theme='dark'] .pm-objective,
+[data-theme='dark'] .figure-tally .hint,
+[data-theme='dark'] .reserve-leaders-label,
+[data-theme='dark'] .status-strip,
+[data-theme='dark'] .setup-summary {
+  color: #c2ab84;
+}
+[data-theme='dark'] .editor input,
+[data-theme='dark'] .editor select,
+[data-theme='dark'] .move-form input[type='number'],
+[data-theme='dark'] .pm-objective input,
+[data-theme='dark'] .card-select,
+[data-theme='dark'] .map-pick select,
+[data-theme='dark'] .save-row input,
+[data-theme='dark'] input[type='number'],
+[data-theme='dark'] select {
+  background: #322718;
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme='dark'] .die,
+[data-theme='dark'] .undo-btn,
+[data-theme='dark'] .icon-btn,
+[data-theme='dark'] .reset,
+[data-theme='dark'] .add-mini,
+[data-theme='dark'] .mini-stepper button,
+[data-theme='dark'] .leader-chip,
+[data-theme='dark'] .area-field,
+[data-theme='dark'] .pick-map-btn,
+[data-theme='dark'] .wizard-dot,
+[data-theme='dark'] .remove {
+  background: #322718;
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme='dark'] .die:hover,
+[data-theme='dark'] .icon-btn:hover,
+[data-theme='dark'] .undo-btn:hover:not(:disabled),
+[data-theme='dark'] .add-mini:hover,
+[data-theme='dark'] .reset:hover {
+  background: #3d2f1c;
+}
+[data-theme='dark'] .die.selected,
+[data-theme='dark'] .leader-chip.on,
+[data-theme='dark'] .wizard-dot.current {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+[data-theme='dark'] .directive,
+[data-theme='dark'] .feature-row,
+[data-theme='dark'] .legion-row,
+[data-theme='dark'] .prescience-marker,
+[data-theme='dark'] .station-take,
+[data-theme='dark'] .worm-row,
+[data-theme='dark'] .area-card,
+[data-theme='dark'] .history-item,
+[data-theme='dark'] .smf-table th,
+[data-theme='dark'] .smf-table td {
+  background: #2b2114;
+  border-color: var(--line);
+  color: var(--ink);
+}
+[data-theme='dark'] .directive-text,
+[data-theme='dark'] .manual-note,
+[data-theme='dark'] .feature-name {
+  color: var(--ink);
+}
+[data-theme='dark'] header h1 {
+  color: var(--accent);
+}
+[data-theme='dark'] .map-modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+[data-theme='dark'] .toast {
+  background: #3d2f1c;
+  color: var(--ink);
 }

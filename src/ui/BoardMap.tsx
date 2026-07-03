@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AREAS, AIR_ZONES, IMPASSABLE } from '../engine/board';
+import { unitCount } from '../engine/state';
 import type { Terrain } from '../engine/board';
 import { AREA_POSITIONS } from '../engine/boardPositions';
 import { AREA_SHAPES, AIR_ZONE_DOTS } from '../engine/boardShapes';
@@ -79,14 +80,27 @@ const GEO = (() => {
     }
     return m;
   };
-  // shared border of two areas: the longest run of a's outline vertices that lie on b's outline
+  // Subdivide a closed outline so every segment is ≤ step px (denser vertices → smoother,
+  // fuller shared-border traces than the raw polygon corners give).
+  const densify = (poly: [number, number][], step = 9): [number, number][] => {
+    const out: [number, number][] = [];
+    for (let i = 0; i < poly.length - 1; i++) {
+      const a = poly[i], b = poly[i + 1];
+      const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const k = Math.max(1, Math.ceil(L / step));
+      for (let j = 0; j < k; j++) out.push([a[0] + ((b[0] - a[0]) * j) / k, a[1] + ((b[1] - a[1]) * j) / k]);
+    }
+    out.push(poly[poly.length - 1]);
+    return out;
+  };
+  // shared border of two areas: the longest run of a's (densified) outline points on b's outline
   const sharedBorder = (a: string, b: string): string | null => {
     const A = polyOf[a], B = polyOf[b];
     if (!A || !B) return null;
-    const U = A.slice(0, -1); // unique vertices (outline is closed: last == first)
+    const U = densify(A).slice(0, -1); // unique vertices (outline is closed: last == first)
     const n = U.length;
     if (n < 2) return null;
-    const near = U.map((p) => distToPoly(p, B) < 11);
+    const near = U.map((p) => distToPoly(p, B) < 12);
     let bestStart = -1, bestLen = 0;
     for (let s = 0; s < n; s++) {
       if (!near[s] || (near[(s - 1 + n) % n] && bestStart !== -1)) continue;
@@ -94,7 +108,7 @@ const GEO = (() => {
       while (len < n && near[(s + len) % n]) len++;
       if (len > bestLen) { bestLen = len; bestStart = s; }
     }
-    if (bestLen < 2) return null;
+    if (bestLen < 3) return null;
     const pts: [number, number][] = [];
     for (let i = 0; i < bestLen; i++) pts.push(U[(bestStart + i) % n]);
     return 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L');
@@ -276,15 +290,28 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
   // Dots only fire onSelect for taps, not at the end of a pan.
   const tap = (id: string) => { if (moved.current <= DRAG_THRESHOLD) onSelect?.(id); };
 
-  const legionByArea = new Map<string, { h: boolean; a: boolean }>();
+  const legionByArea = new Map<string, { h: number; a: number }>();
   for (const l of state?.legions ?? []) {
-    const en = legionByArea.get(l.area) ?? { h: false, a: false };
-    if (l.faction === 'harkonnen') en.h = true;
-    else en.a = true;
+    const en = legionByArea.get(l.area) ?? { h: 0, a: 0 };
+    const n = Math.max(1, unitCount(l) + l.leaders.length);
+    if (l.faction === 'harkonnen') en.h += n;
+    else en.a += n;
     legionByArea.set(l.area, en);
   }
   const sietchByArea = new Map(state?.sietches.map((s) => [s.area, s]) ?? []);
   const settlementByArea = new Map(state?.settlements.map((s) => [s.area, s]) ?? []);
+  const harvesterByArea = new Map<string, number>();
+  const zoneVehicles = new Map<string, { o: number; c: number }>();
+  for (const v of state?.vehicles ?? []) {
+    if (v.type === 'harvester') harvesterByArea.set(v.location, (harvesterByArea.get(v.location) ?? 0) + 1);
+    else {
+      const zv = zoneVehicles.get(v.location) ?? { o: 0, c: 0 };
+      if (v.type === 'ornithopter') zv.o += 1;
+      else zv.c += 1;
+      zoneVehicles.set(v.location, zv);
+    }
+  }
+  const sandwormAreas = new Set((state?.sandworms ?? []).map((w) => w.area));
   const wormAreas = new Set([
     ...(state?.wormsigns ?? []).map((w) => w.area),
     ...(state?.sandworms ?? []).map((w) => w.area),
@@ -344,6 +371,15 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
         onPointerCancel={onPointerUp}
         onWheel={onWheel}
       >
+        <defs>
+          <filter id="sand-grain" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" stitchTiles="stitch" result="n" />
+            <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.30  0 0 0 0 0.22  0 0 0 0 0.10  0 0 0 0.55 0" />
+          </filter>
+          <pattern id="deep-ripples" width="14" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
+            <path d="M0,5 Q3.5,2.4 7,5 T14,5" fill="none" stroke="#8a5c1e" strokeWidth="1.1" opacity="0.5" />
+          </pattern>
+        </defs>
         <rect x={0} y={0} width={W} height={H} rx={10} fill="#f3e2bd" stroke="#d8c9aa" />
         <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
           {/* Each area is its traced outline from the board (boardShapes.ts), filled by terrain — or
@@ -372,6 +408,16 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             );
           })}
 
+          {/* Self-made sand texture: deep-desert ripple stipple, then a whisper of grain over
+              everything (terrain view only — the sector view stays flat and readable). */}
+          {colorBy === 'terrain' &&
+            GEO.cells.map(({ id, d }) =>
+              AREAS[id]?.deep ? <path key={`dd-${id}`} d={d} fill="url(#deep-ripples)" pointerEvents="none" /> : null,
+            )}
+          {colorBy === 'terrain' && (
+            <rect x={0} y={0} width={W} height={H} filter="url(#sand-grain)" opacity={0.16} pointerEvents="none" />
+          )}
+
           {/* Selected / located area — highlight the whole polygon (gold), not just a dot. An air
               zone (no polygon) pulses a gold ring around its circle instead. */}
           {(() => {
@@ -397,8 +443,9 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
           {/* Impassable borders — a bold red mark (white-cased) along the two areas' shared edge. */}
           {GEO.impassable.map((b, i) => (
             <g key={`imp-${i}`} pointerEvents="none" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path d={b.d} stroke="#fff" strokeWidth={6} vectorEffect="non-scaling-stroke" />
-              <path d={b.d} stroke="#c0182a" strokeWidth={3.5} vectorEffect="non-scaling-stroke" />
+              <path d={b.d} stroke="#fff" strokeWidth={7} vectorEffect="non-scaling-stroke" />
+              <path d={b.d} stroke="#c0182a" strokeWidth={5} vectorEffect="non-scaling-stroke" />
+              <path d={b.d} stroke="#fbf1df" strokeWidth={1.6} vectorEffect="non-scaling-stroke" />
             </g>
           ))}
 
@@ -419,6 +466,27 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
               <title>Air zone {z.id}</title>
             </circle>
           ))}
+          {/* Ornithopters / carryalls in an air zone — own-drawn wing chevrons on the circle. */}
+          {GEO.airZones.map((z) => {
+            const zv = zoneVehicles.get(z.id);
+            if (!zv || (zv.o === 0 && zv.c === 0)) return null;
+            return (
+              <g key={`zv-${z.id}`} transform={`translate(${z.x} ${z.y})`} pointerEvents="none">
+                {zv.o > 0 && (
+                  <g transform="translate(0 -3)">
+                    <path d="M-4,1.6 L0,-2.2 L4,1.6 M0,-2.2 V2.6" fill="none" stroke="#fff" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+                    {zv.o > 1 && <text x={5.4} y={3} fontSize={6.5} fontWeight={700} fill="#fff">{zv.o}</text>}
+                  </g>
+                )}
+                {zv.c > 0 && (
+                  <g transform="translate(0 5)">
+                    <path d="M-3.6,0 h7.2 M-2.4,-1.8 h4.8" fill="none" stroke="#ffe9a8" strokeWidth={1.5} strokeLinecap="round" />
+                    {zv.c > 1 && <text x={5.4} y={2.4} fontSize={6.5} fontWeight={700} fill="#ffe9a8">{zv.c}</text>}
+                  </g>
+                )}
+              </g>
+            );
+          })}
 
           {/* Target sietch halo (under markers) */}
           {target && AREA_POSITIONS[target] && (() => {
@@ -446,7 +514,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             );
           })}
 
-          {/* Sietch & settlement markers */}
+          {/* Sietch (rock arch) & settlement (crenellated keep) — own-drawn silhouettes. */}
           {ids.map((id) => {
             const [cx, cy] = xy(id);
             const si = sietchByArea.get(id);
@@ -455,36 +523,75 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             return (
               <g key={`m-${id}`} pointerEvents="none">
                 {si && (
-                  <g opacity={si.destroyed ? 0.4 : 1}>
-                    <path d={`M ${cx} ${cy - 14} L ${cx + 7} ${cy - 6} L ${cx - 7} ${cy - 6} Z`} fill={si.destroyed ? '#888' : '#2f5d50'} stroke="#1a2e29" strokeWidth={0.7} />
-                    {si.destroyed && <line x1={cx - 8} y1={cy - 15} x2={cx + 8} y2={cy - 5} stroke="#7a1d12" strokeWidth={1.8} />}
+                  <g transform={`translate(${cx} ${cy - 9})`} opacity={si.destroyed ? 0.4 : 1}>
+                    <path d="M-7,4 V0 Q-7,-5.5 0,-6.5 Q7,-5.5 7,0 V4 Z" fill={si.destroyed ? '#888' : '#2f5d50'} stroke="#1a2e29" strokeWidth={0.8} />
+                    <path d="M-1.8,4 v-2.6 a1.8,2 0 0 1 3.6,0 V4 Z" fill="#12211d" />
+                    {si.destroyed && <line x1={-8} y1={-6} x2={8} y2={4} stroke="#7a1d12" strokeWidth={1.8} />}
                   </g>
                 )}
                 {st && (
-                  <g opacity={st.destroyed ? 0.4 : 1}>
-                    <rect x={cx - 6} y={cy - 15} width={12} height={10} rx={1.5} fill={st.destroyed ? '#888' : '#8b1f30'} stroke="#3a120c" strokeWidth={0.7} />
-                    <text x={cx} y={cy - 7} fontSize={8} fill="#fff" textAnchor="middle" fontWeight={700}>{st.rank}</text>
+                  <g transform={`translate(${cx} ${cy - 10})`} opacity={st.destroyed ? 0.4 : 1}>
+                    <path d="M-6,5 V-3 h2.2 v-2 h2.2 v2 h3.2 v-2 h2.2 v2 h2.2 V5 Z" fill={st.destroyed ? '#888' : '#8b1f30'} stroke="#3a120c" strokeWidth={0.8} />
+                    <text x={0} y={3.6} fontSize={7} fill="#fff" textAnchor="middle" fontWeight={700}>{st.rank}</text>
+                    {st.destroyed && <line x1={-7} y1={-5} x2={7} y2={5} stroke="#2b2117" strokeWidth={1.8} />}
                   </g>
                 )}
               </g>
             );
           })}
 
-          {/* Legion markers (red = Harkonnen, green = Atreides) */}
+          {/* Legions — own-drawn trooper silhouettes (maroon = Harkonnen, green = Atreides),
+              with the stack's figure count beside the helmet. */}
           {[...legionByArea.entries()].map(([id, e]) => {
             const [cx, cy] = xy(id);
+            const trooper = (dx: number, fill: string, n: number, key: string) => (
+              <g key={key} transform={`translate(${cx + dx} ${cy + 12})`}>
+                <circle cy={-4.4} r={2.3} fill={fill} stroke="#fff" strokeWidth={1} />
+                <path d="M-3.4,4.6 V0.8 Q-3.4,-1.8 -1.4,-2.4 h2.8 Q3.4,-1.8 3.4,0.8 V4.6 Z" fill={fill} stroke="#fff" strokeWidth={1} />
+                {n > 1 && (
+                  <text x={4.6} y={4.4} fontSize={7} fontWeight={700} fill={fill} stroke="#fff" strokeWidth={2.2} paintOrder="stroke">{n}</text>
+                )}
+              </g>
+            );
             return (
               <g key={`lg-${id}`} pointerEvents="none">
-                {e.h && <circle cx={e.a ? cx - 5 : cx} cy={cy + 12} r={5} fill="#9e2436" stroke="#fff" strokeWidth={1.2} />}
-                {e.a && <circle cx={e.h ? cx + 5 : cx} cy={cy + 12} r={5} fill="#2f7d3a" stroke="#fff" strokeWidth={1.2} />}
+                {e.h > 0 && trooper(e.a > 0 ? -7 : 0, '#9e2436', e.h, 'h')}
+                {e.a > 0 && trooper(e.h > 0 ? 7 : 0, '#2f7d3a', e.a, 'a')}
               </g>
             );
           })}
 
-          {/* Wormsign / sandworm dots */}
+          {/* Harvesters — own-drawn tracked-crawler silhouette with its spice chute. */}
+          {[...harvesterByArea.entries()].map(([id, n]) => {
+            const [cx, cy] = xy(id);
+            return (
+              <g key={`hv-${id}`} transform={`translate(${cx - 11} ${cy - 2})`} pointerEvents="none">
+                <rect x={-5} y={-3.4} width={10} height={5} rx={1} fill="#a67c2e" stroke="#5c4415" strokeWidth={0.9} />
+                <path d="M5,-2.2 l3.2,-1.8 v3 L5,0 Z" fill="#5c4415" />
+                <line x1={-5} y1={2.6} x2={5} y2={2.6} stroke="#3c2c0e" strokeWidth={2.2} strokeLinecap="round" />
+                {n > 1 && (
+                  <text x={0} y={-5} fontSize={6.5} fontWeight={700} fill="#5c4415" stroke="#fff" strokeWidth={2} paintOrder="stroke" textAnchor="middle">{n}</text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Wormsigns (sand ripple) & sandworms (open-maw coil) — own-drawn. */}
           {[...wormAreas].map((id) => {
             const [cx, cy] = xy(id);
-            return <circle key={`w-${id}`} cx={cx + 10} cy={cy - 3} r={3} fill="#5b3b1a" pointerEvents="none" />;
+            if (sandwormAreas.has(id)) {
+              return (
+                <g key={`w-${id}`} transform={`translate(${cx + 11} ${cy - 4})`} pointerEvents="none">
+                  <path d="M4.5,-2.6 A5,5 0 1 0 4.5,2.6 L0.8,0 Z" fill="#6b4a23" stroke="#3c2a12" strokeWidth={1} strokeLinejoin="round" />
+                  <circle cx={-1.4} cy={-1.8} r={0.8} fill="#f4e3c2" />
+                </g>
+              );
+            }
+            return (
+              <g key={`w-${id}`} transform={`translate(${cx + 11} ${cy - 4})`} pointerEvents="none">
+                <path d="M-4.5,1.6 Q-2.2,-2.6 0,0 T4.5,-1.6" fill="none" stroke="#6b4a23" strokeWidth={2} strokeLinecap="round" />
+              </g>
+            );
           })}
 
           {/* Strong locate emphasis: dim the rest of the board and label the located area (the gold

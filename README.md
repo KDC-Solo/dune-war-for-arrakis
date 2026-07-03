@@ -129,3 +129,10 @@ and conventions (game rules live in the tested pure‑TS engine; the UI stays ru
 ## Status
 
 The Mahdi‑solo engine and UI are feature‑complete and shipped. See `PLAN.md` for the roadmap.
+
+## Disclaimer
+
+This is an **unofficial fan companion** for solo play of *Dune: War for Arrakis*. It is not
+affiliated with or endorsed by CMON, Gale Force Nine, or Herbert Properties LLC. No game art,
+card scans, or components are reproduced — the board map is an original schematic and all rules
+references are paraphrased for personal play. You need your own copy of the physical game.
