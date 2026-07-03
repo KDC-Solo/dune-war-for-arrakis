@@ -23,7 +23,8 @@ async function seed(page: Page, state: GameState) {
 }
 
 async function open(page: Page) {
-  await page.goto('/');
+  // v2 branch: this suite validates the v1 (classic) UI until the v2 spec replaces it at M2+.
+  await page.goto('/?classic');
   // Collapse the help panel so panel headings are near the viewport.
   const help = page.locator('details.help[open] summary');
   if (await help.count()) await help.click();

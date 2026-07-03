@@ -1,0 +1,358 @@
+/* v2 shell — mobile-first: ribbon / stage / dock, guide bar floating over the stage.
+   Everything themable via tokens.css; motion uses the drift/sweep vocabulary. */
+
+html[data-ui='v2'],
+html[data-ui='v2'] body {
+  margin: 0;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+.ui2 {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: linear-gradient(165deg, var(--sand-0), var(--sand-1));
+}
+
+/* Ambient dunes — two slow-drifting ridge lines behind everything ("reduce atmosphere" toggle). */
+.dunes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(120% 55% at 15% 108%, var(--sand-2) 0 38%, transparent 39%),
+    radial-gradient(130% 48% at 90% 112%, var(--sand-1) 0 42%, transparent 43%);
+  animation: dune-drift 60s ease-in-out infinite alternate;
+}
+@keyframes dune-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 4% 1.5%, -3% 1%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dunes { animation: none; }
+}
+
+/* --- status ribbon --------------------------------------------------------- */
+.ribbon {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 0.85rem calc(0.5rem);
+  padding-top: calc(0.5rem + env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--sand-0) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+.rb-round {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--harkonnen);
+  letter-spacing: 0.04em;
+}
+.rb-phases {
+  display: flex;
+  gap: 0.55rem;
+  flex: 1;
+  overflow: hidden;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.rb-phase { opacity: 0.55; white-space: nowrap; }
+.rb-phase.done { opacity: 0.3; text-decoration: line-through; }
+.rb-phase.on {
+  opacity: 1;
+  color: var(--spice);
+  font-weight: 700;
+}
+.rb-tracks {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rb-tracks > span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+/* --- stage ----------------------------------------------------------------- */
+.stage {
+  position: relative;
+  min-height: 0;
+  min-width: 0; /* let the grid item shrink below the map's intrinsic width */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.4rem 0;
+}
+.stage > :first-child {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Area peek card */
+.area-peek {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(92%, 26rem);
+  background: color-mix(in srgb, var(--sand-0) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow);
+  padding: 0.55rem 0.75rem;
+  animation: drift-in var(--t-drift) both;
+}
+.ap-head { display: flex; align-items: center; gap: 0.45rem; font-family: var(--font-display); }
+.ap-head strong { font-size: 1.02rem; letter-spacing: 0.03em; }
+.ap-close {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  cursor: pointer;
+  min-width: 2rem;
+  min-height: 2rem;
+}
+.ap-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--fs-small);
+  color: var(--ink-soft);
+  margin-top: 0.2rem;
+}
+.ap-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border-radius: var(--r-pill);
+  padding: 0.14rem 0.55rem;
+  font-weight: 600;
+  color: var(--bone);
+}
+.ap-tag.harkonnen { background: var(--harkonnen); }
+.ap-tag.atreides { background: var(--atreides); }
+.ap-tag.target { background: var(--fremen); }
+
+/* --- guide bar --------------------------------------------------------------- */
+.guide {
+  position: relative;
+  z-index: 4;
+  margin: 0.5rem auto 0.65rem;
+  width: min(100%, 34rem);
+  background: color-mix(in srgb, var(--sand-0) 92%, transparent);
+  border: 1.5px solid var(--spice);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow), 0 0 0 4px var(--spice-soft);
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  animation: drift-in var(--t-drift) both;
+}
+.g-text { display: flex; flex-direction: column; gap: 0.1rem; }
+.g-now {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-title);
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+.g-detail { font-size: var(--fs-small); color: var(--ink-soft); }
+.g-primary {
+  align-self: flex-end;
+  min-height: var(--tap);
+  padding: 0.55rem 1.3rem;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--spice);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { box-shadow: 0 0 0 0 var(--spice-soft); }
+  50% { box-shadow: 0 0 0 7px var(--spice-soft); }
+}
+.g-dice {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.g-die {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 0.45rem 0.1rem;
+  border: 1px solid var(--harkonnen);
+  border-radius: var(--r-card);
+  background: transparent;
+  color: var(--harkonnen);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.58rem;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.g-die span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-die:disabled { opacity: 0.55; cursor: default; }
+.guide.won { border-color: var(--fremen); box-shadow: var(--shadow); }
+
+/* --- dock ---------------------------------------------------------------------- */
+.dock {
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem calc(0.4rem + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--sand-0) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+}
+.dock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-height: var(--tap);
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--r-card);
+}
+.dock-btn.on { color: var(--spice); background: var(--spice-soft); }
+
+/* --- bottom sheets ---------------------------------------------------------------- */
+.sheet-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(14, 23, 34, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.sheet {
+  width: min(100%, 40rem);
+  max-height: 72vh;
+  overflow-y: auto;
+  background: var(--sand-0);
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  box-shadow: var(--shadow);
+  padding: 0.5rem 1.1rem calc(1rem + env(safe-area-inset-bottom));
+  animation: drift-up var(--t-drift) both;
+}
+.sheet-grip {
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  margin: 0.25rem auto 0.7rem;
+}
+.sheet h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid var(--fremen);
+  padding-bottom: 0.4rem;
+}
+.sheet-hint { color: var(--ink-soft); font-size: var(--fs-small); }
+.kv2 {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.2rem;
+  align-items: center;
+}
+.kv2 span { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--ink-soft); }
+.presc-dials { display: flex; gap: 0.7rem; }
+.dial {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--fremen);
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--sand-0) 60%, var(--sand-1));
+  padding: 0.6rem 0.4rem;
+}
+.dial.green { border-top-color: var(--atreides); }
+.dial.orange { border-top-color: var(--fremen); }
+.dial.red { border-top-color: var(--harkonnen); }
+.dial b { font-family: var(--font-display); font-size: 1.6rem; line-height: 1; }
+.dial span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); text-align: center; }
+.dial em { font-size: 0.72rem; color: var(--ink-soft); font-style: normal; }
+.more-rows { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.8rem; }
+.more-rows button,
+.more-rows a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--tap);
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--sand-0) 60%, var(--sand-1));
+  color: var(--ink);
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@keyframes drift-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.area-peek { animation-name: drift-in-x; }
+@keyframes drift-in-x {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes drift-up {
+  from { transform: translateY(24px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Tablet/desktop: the Turn rail can persist right of the stage (M0 keeps sheets; rails in M1+). */
+@media (min-width: 768px) {
+  .guide { margin-bottom: 1rem; }
+}

@@ -1,0 +1,67 @@
+/* v2 design tokens — "sand & spice" (PRD §5). All values live here; components never hard-code
+   color. Day is the default; night overrides via [data-theme='dark'] on <html>. */
+
+:root {
+  /* Surfaces & dunes */
+  --sand-0: #f4e7c8;
+  --sand-1: #e4cd9e;
+  --sand-2: #c9a66b;
+  /* The one accent that means "your next action" — nothing else may use it. */
+  --spice: #e0731d;
+  --spice-soft: rgba(224, 115, 29, 0.16);
+  /* Deep backgrounds (battle, overlays) */
+  --night: #1b2a3a;
+  /* Factions & domains */
+  --harkonnen: #8b1f30;
+  --atreides: #2f5d50;
+  --fremen: #b7783a;
+  /* Text */
+  --bone: #fbf6ec;
+  --ink: #2b2117;
+  --ink-soft: #6a583c;
+  /* Lines & shadow */
+  --line: #d8c9aa;
+  --shadow: 0 4px 18px rgba(43, 33, 23, 0.18);
+
+  /* Typography */
+  --font-display: 'Rajdhani', system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-body: 1rem;
+  --fs-small: 0.85rem;
+  --fs-title: 1.35rem;
+  --fs-hero: 1.8rem;
+
+  /* Shape & rhythm */
+  --r-sheet: 18px;
+  --r-card: 12px;
+  --r-pill: 999px;
+  --tap: 44px; /* minimum touch target */
+
+  /* Motion vocabulary (PRD §5.4): drift / shimmer / tremor / sweep */
+  --t-drift: 220ms cubic-bezier(0.25, 0.9, 0.3, 1);
+  --t-sweep: 420ms cubic-bezier(0.6, 0, 0.2, 1);
+}
+
+[data-theme='dark'] {
+  --sand-0: #2a2115;
+  --sand-1: #37291a;
+  --sand-2: #4a3826;
+  --spice: #f08a33;
+  --spice-soft: rgba(240, 138, 51, 0.2);
+  --night: #0e1722;
+  --harkonnen: #c03a44;
+  --atreides: #3f8a72;
+  --fremen: #d3a53f;
+  --bone: #ecdfc8;
+  --ink: #ecdfc8;
+  --ink-soft: #b9a37f;
+  --line: #4a3a26;
+  --shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-drift: 0ms;
+    --t-sweep: 0ms;
+  }
+}
