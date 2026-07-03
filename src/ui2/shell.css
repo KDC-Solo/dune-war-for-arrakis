@@ -356,3 +356,96 @@ html[data-ui='v2'] body {
 @media (min-width: 768px) {
   .guide { margin-bottom: 1rem; }
 }
+
+/* --- stage fill: the map covers the stage like a camera (v2 `fill` mode) --- */
+.stage .map-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.stage .board-map.fill {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-card);
+}
+.stage .map-toolbar {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* --- area sheet ------------------------------------------------------------- */
+.as-terrain { margin-left: auto; font-size: 0.75rem; color: var(--ink-soft); text-transform: capitalize; font-weight: 400; }
+.as-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem; }
+.as-legion {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--sand-0) 55%, var(--sand-1));
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 0.55rem;
+}
+.as-legion.harkonnen { border-left-color: var(--harkonnen); }
+.as-legion.atreides { border-left-color: var(--atreides); }
+.as-legion-head { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.as-legion.harkonnen .as-legion-head > svg { color: var(--harkonnen); }
+.as-legion.atreides .as-legion-head > svg { color: var(--atreides); }
+.as-sub { color: var(--ink-soft); font-size: 0.82rem; }
+.as-named { font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.25rem; font-style: italic; }
+.as-actions { margin-left: auto; display: flex; gap: 0.4rem; }
+.as-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.2rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sand-0);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.as-btn:disabled { opacity: 0.45; cursor: default; }
+.as-edit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed var(--line);
+}
+.as-edit label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.as-step { justify-content: flex-start; }
+.as-tools { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.6rem; }
+.as-battle { align-self: stretch; width: 100%; margin-top: 0.4rem; animation: none; }
+
+/* --- chronicle ------------------------------------------------------------------- */
+.chron { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.chron li { display: flex; gap: 0.6rem; border-bottom: 1px dashed var(--line); padding-bottom: 0.45rem; }
+.chron-round { font-family: var(--font-display); font-weight: 700; color: var(--harkonnen); min-width: 2rem; }
+.chron-text { font-size: 0.88rem; }
+.chron-note { font-size: 0.8rem; color: var(--fremen); }
+
+/* --- toast --------------------------------------------------------------------------- */
+.toast2 {
+  position: fixed;
+  left: 50%;
+  bottom: calc(4.4rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--night);
+  color: var(--bone);
+  border-radius: var(--r-pill);
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  animation: drift-in var(--t-drift) both;
+}

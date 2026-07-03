@@ -168,11 +168,15 @@ export interface BoardMapProps {
   state?: GameState;
   /** When true, dots show a "pick" cursor (map is acting as an area picker). */
   picking?: boolean;
+  /** v2 stage mode: svg covers its container (crop + pan instead of letterbox). */
+  fill?: boolean;
+  /** v2: areas to outline in spice (directive targets / legal picks). */
+  glow?: readonly string[];
   /** When picking, which areas are valid targets (others are dimmed and not clickable). */
   selectable?: (id: string) => boolean;
 }
 
-export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, selectable }: BoardMapProps) {
+export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, selectable, fill, glow }: BoardMapProps) {
   const [hover, setHover] = useState<string | null>(null);
   const [view, setView] = useState<View>({ k: 1, tx: 0, ty: 0 });
   // Area to emphasize STRONGLY (veil + label) right after a locate/find — cleared on first
@@ -361,7 +365,8 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
       </div>
       <svg
         ref={svgRef}
-        className={`board-map${picking ? ' picking' : ''}`}
+        className={`board-map${picking ? ' picking' : ''}${fill ? ' fill' : ''}`}
+        preserveAspectRatio={fill ? 'xMidYMid slice' : 'xMidYMid meet'}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
         aria-label="Board map"
@@ -448,6 +453,24 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
               <path d={b.d} stroke="#fbf1df" strokeWidth={1.6} vectorEffect="non-scaling-stroke" />
             </g>
           ))}
+
+          {/* v2 glow: spice outline on directive-target / legal-pick areas. */}
+          {glow?.map((id) => {
+            const cell = GEO.cells.find((c) => c.id === id);
+            return cell ? (
+              <path
+                key={`glow-${id}`}
+                d={cell.d}
+                fill="rgba(224, 115, 29, 0.18)"
+                stroke="#e0731d"
+                strokeWidth={2.6}
+                vectorEffect="non-scaling-stroke"
+                pointerEvents="none"
+              >
+                <animate attributeName="stroke-opacity" values="1;0.45;1" dur="1.6s" repeatCount="indefinite" />
+              </path>
+            ) : null;
+          })}
 
           {/* Air zones (ornithopter / carryall) — blue circles matching the board's size/position. */}
           {GEO.airZones.map((z) => (

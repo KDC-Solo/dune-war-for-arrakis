@@ -1,26 +1,27 @@
-// v2 app shell (M0): status ribbon · board stage · guide bar · dock with bottom sheets.
-// The stage hosts the existing BoardMap (extracted & upgraded in M1); the guide bar runs the
-// round skeleton (die resolution lands in M2). Design tokens in tokens.css; PRD.md is the spec.
+// v2 app shell: status ribbon · board stage (camera-fill) · guide bar · dock sheets.
+// M1: area sheet with quick edits + rule-filtered move flow. PRD.md is the spec.
 
 import { useEffect, useMemo, useState } from 'react';
 import '@fontsource/rajdhani/500.css';
 import '@fontsource/rajdhani/700.css';
-// v1 stylesheet still powers BoardMap internals (M1 extracts the stage + its styles into ui2);
+// v1 stylesheet still powers BoardMap internals (extracted fully before M7);
 // imported FIRST so ui2 tokens/shell win any shared selector or custom-property collisions.
 import '../ui/styles.css';
 import './tokens.css';
 import './shell.css';
 import type { ActionResult, GameState } from '../engine/state';
-import { newGameState } from '../engine/newGame';
 import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } from '../engine/round';
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
-import { loadState, saveState } from '../ui/persistence';
+import { legalMoveDestinations } from '../engine/moveTargets';
+import { moveLegionUnits } from '../engine/applyAction';
 import { areaLabel } from '../ui/describeAction';
 import { BoardMap } from '../ui/BoardMap';
-import { AREAS } from '../engine/board';
 import { Icon, type IconName } from './icons';
 import { guideFor } from './flow';
+import { useGame } from './useGame';
+import { AreaSheet, type MovePick } from './AreaSheet';
+import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
 const DIE: { face: ActionResult; icon: IconName; label: string }[] = [
   { face: 'leadership', icon: 'leadership', label: 'Leadership' },
@@ -42,9 +43,11 @@ const PHASE_SHORT: Record<GameState['phase'], string> = {
 };
 
 export function App2() {
-  const [s, setS] = useState<GameState>(() => loadState() ?? newGameState());
+  const game = useGame();
+  const { s, commit, undo, canUndo, toast, setToast, startNew } = game;
   const [sheet, setSheet] = useState<SheetId>(null);
-  const [inspect, setInspect] = useState<string | null>(null);
+  const [areaOpen, setAreaOpen] = useState<string | null>(null);
+  const [movePick, setMovePick] = useState<MovePick | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       return localStorage.getItem('dwfa.theme') === 'dark' ? 'dark' : 'light';
@@ -59,6 +62,7 @@ export function App2() {
       return true;
     }
   });
+  const [sound, setSound] = useState(soundEnabled());
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -75,18 +79,39 @@ export function App2() {
       /* ignore */
     }
   }, [atmosphere]);
-  useEffect(() => saveState(s), [s]);
 
   const guide = useMemo(() => guideFor(s), [s]);
   const avail = useMemo(() => availability(s.spice.markers), [s.spice.markers]);
   const outcome = gameOutcome(s);
 
+  // Move flow: legal destinations glow; tapping one applies the move.
+  const moveDests = useMemo(() => {
+    if (!movePick) return null;
+    const legion = s.legions.find((l) => l.faction === movePick.faction && l.area === movePick.from);
+    return legion ? legalMoveDestinations(s, legion) : new Set<string>();
+  }, [movePick, s]);
+
+  const onStageSelect = (id: string) => {
+    if (movePick && moveDests) {
+      if (!moveDests.has(id)) return;
+      commit(moveLegionUnits(s, movePick.faction, movePick.from, id, movePick.move), {
+        headline: 'Legion moved',
+        text: `${movePick.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'}: ${areaLabel(movePick.from)} → ${areaLabel(id)}`,
+      });
+      setMovePick(null);
+      return;
+    }
+    setAreaOpen(id);
+  };
+
   const onGuideAction = () => {
-    if (guide.action === 'begin-round') setS(setupRound(s));
+    if (guide.action === 'begin-round') commit(setupRound(s), { headline: `Round ${s.round} begun` });
     else if (guide.action === 'next-phase') {
       const n = nextPhase(s.phase);
-      if (n) setS({ ...s, phase: n });
-    } else if (guide.action === 'next-round') setS(startNextRound(s).state);
+      if (n) game.edit({ ...s, phase: n });
+    } else if (guide.action === 'next-round') {
+      commit(startNextRound(s).state, { headline: `Round ${s.round + 1} begun` });
+    }
   };
 
   const phaseIndex = PHASE_ORDER.indexOf(s.phase);
@@ -95,7 +120,6 @@ export function App2() {
     <div className="ui2">
       {atmosphere && <div className="dunes" aria-hidden />}
 
-      {/* Status ribbon — where you are, at a glance (tap items to open the Turn sheet). */}
       <header className="ribbon" onClick={() => setSheet('turn')}>
         <span className="rb-round">R{s.round}</span>
         <span className="rb-phases">
@@ -115,65 +139,80 @@ export function App2() {
         </span>
       </header>
 
-      {/* Board stage — the app's canvas. */}
       <main className="stage">
         <BoardMap
           state={s}
-          highlight={inspect}
-          onSelect={(id) => setInspect((cur) => (cur === id ? null : id))}
+          fill
+          highlight={areaOpen}
+          glow={moveDests ? [...moveDests] : undefined}
+          picking={!!movePick}
+          selectable={moveDests ? (id) => moveDests.has(id) : undefined}
+          onSelect={onStageSelect}
         />
 
-        {/* Area sheet (M0: inspection; contextual actions land in M1). */}
-        {inspect && (
-          <div className="area-peek" role="dialog" aria-label={areaLabel(inspect)}>
-            <div className="ap-head">
-              <Icon name={AREAS[inspect]?.sietch ? 'sietch' : AREAS[inspect]?.settlement ? 'settlement' : 'map'} size={18} />
-              <strong>{areaLabel(inspect)}</strong>
-              <button className="ap-close" onClick={() => setInspect(null)} aria-label="Close">✕</button>
-            </div>
-            <div className="ap-body">
-              {AREAS[inspect]?.deep ? 'Deep desert' : AREAS[inspect]?.terrain}
-              {s.legions.filter((l) => l.area === inspect).map((l, i) => (
-                <span key={i} className={`ap-tag ${l.faction}`}>
-                  <Icon name="trooper" size={14} /> {l.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'}
-                </span>
-              ))}
-              {s.targetSietchId === inspect && <span className="ap-tag target"><Icon name="objective" size={14} /> Target</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Guide bar — the one next action, always (spice-colored). */}
+        {/* Guide bar — during a move pick it narrates the pick; otherwise the flow step. */}
         <div className={`guide${outcome.winner ? ' won' : ''}`}>
-          <div className="g-text">
-            <span className="g-now">{guide.now}</span>
-            {guide.detail && <span className="g-detail">{guide.detail}</span>}
-          </div>
-          {guide.showDice && (
-            <div className="g-dice" role="group" aria-label="Harkonnen die result">
-              {DIE.map((d) => (
-                <button key={d.face} className="g-die" title={`${d.label} — directive cards arrive in M2`} disabled>
-                  <Icon name={d.icon} size={20} />
-                  <span>{d.label}</span>
+          {movePick ? (
+            <>
+              <div className="g-text">
+                <span className="g-now">Choose a destination</span>
+                <span className="g-detail">
+                  Glowing areas are the legal moves for the {movePick.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion at{' '}
+                  {areaLabel(movePick.from)} (ground, transport or sandride, with stacking room).
+                </span>
+              </div>
+              <button className="g-primary" onClick={() => setMovePick(null)}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="g-text">
+                <span className="g-now">{guide.now}</span>
+                {guide.detail && <span className="g-detail">{guide.detail}</span>}
+              </div>
+              {guide.showDice && (
+                <div className="g-dice" role="group" aria-label="Harkonnen die result">
+                  {DIE.map((d) => (
+                    <button key={d.face} className="g-die" title={`${d.label} — directive cards arrive in M2`} disabled>
+                      <Icon name={d.icon} size={20} />
+                      <span>{d.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {guide.action && (
+                <button className="g-primary" onClick={onGuideAction}>
+                  {guide.actionLabel}
                 </button>
-              ))}
-            </div>
-          )}
-          {guide.action && (
-            <button className="g-primary" onClick={onGuideAction}>
-              {guide.actionLabel}
-            </button>
+              )}
+            </>
           )}
         </div>
       </main>
 
-      {/* Dock — four fixed entries opening bottom sheets. */}
       <nav className="dock">
         <DockBtn icon="leadership" label="Turn" on={sheet === 'turn'} onClick={() => setSheet(sheet === 'turn' ? null : 'turn')} />
         <DockBtn icon="prescience" label="You" on={sheet === 'you'} onClick={() => setSheet(sheet === 'you' ? null : 'you')} />
         <DockBtn icon="log" label="Log" on={sheet === 'log'} onClick={() => setSheet(sheet === 'log' ? null : 'log')} />
         <DockBtn icon="settings" label="More" on={sheet === 'more'} onClick={() => setSheet(sheet === 'more' ? null : 'more')} />
       </nav>
+
+      {areaOpen && (
+        <AreaSheet
+          game={game}
+          area={areaOpen}
+          onClose={() => setAreaOpen(null)}
+          onStartMove={(pick) => {
+            setAreaOpen(null);
+            setMovePick(pick);
+          }}
+          onBattleHere={() => {
+            setAreaOpen(null);
+            setToast('The battle screen lands in M3');
+          }}
+        />
+      )}
 
       {sheet && (
         <div className="sheet-veil" onClick={() => setSheet(null)}>
@@ -212,7 +251,25 @@ export function App2() {
             {sheet === 'log' && (
               <>
                 <h2><Icon name="log" size={18} /> Chronicle</h2>
-                <p className="sheet-hint">The action timeline with Undo arrives with the directive flow (M2).</p>
+                <button className="as-btn" disabled={!canUndo} onClick={undo}>
+                  <Icon name="undo" size={15} /> Undo last
+                </button>
+                {game.log.length === 0 ? (
+                  <p className="sheet-hint">Nothing applied yet.</p>
+                ) : (
+                  <ol className="chron">
+                    {[...game.log].reverse().map((e) => (
+                      <li key={e.id}>
+                        <span className="chron-round">R{e.round}</span>
+                        <div>
+                          <strong>{e.headline}</strong>
+                          {e.text && <div className="chron-text">{e.text}</div>}
+                          {e.note && <div className="chron-note">{e.note}</div>}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </>
             )}
             {sheet === 'more' && (
@@ -222,10 +279,13 @@ export function App2() {
                   <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                     {theme === 'dark' ? '☀' : '🌙'} {theme === 'dark' ? 'Day theme' : 'Night on Arrakis'}
                   </button>
+                  <button onClick={() => { setSoundEnabled(!sound); setSound(!sound); }}>
+                    <Icon name="sound" size={16} /> Sound {sound ? 'on' : 'off'}
+                  </button>
                   <button onClick={() => setAtmosphere(!atmosphere)}>
                     <Icon name="wormsign" size={16} /> Atmosphere {atmosphere ? 'on' : 'off'}
                   </button>
-                  <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) setS(newGameState()); }}>
+                  <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) startNew(); }}>
                     <Icon name="objective" size={16} /> New game
                   </button>
                   <a href="?classic">↩ Classic interface (v1)</a>
@@ -239,6 +299,8 @@ export function App2() {
           </section>
         </div>
       )}
+
+      {toast && <div className="toast2" role="status">✓ {toast}</div>}
     </div>
   );
 }
