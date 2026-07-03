@@ -587,3 +587,29 @@ html[data-ui='v2'] body {
 .vc-stats span { display: inline-flex; align-items: center; gap: 0.35rem; }
 .vc-actions { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.6rem; }
 .vc-review { background: transparent; color: var(--bone); border-color: rgba(251,246,236,0.4); justify-content: center; }
+
+/* --- phase panels in the guide slot ---------------------------------------------- */
+.pp { display: flex; flex-direction: column; gap: 0.55rem; max-height: 34vh; overflow-y: auto; }
+.pp-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; flex-wrap: wrap; }
+.pp-row > svg { flex: none; color: var(--fremen); }
+.pp .g-primary { align-self: flex-end; }
+.pp-storm { display: flex; align-items: flex-end; gap: 0.6rem; flex-wrap: wrap; border-left: 3px solid var(--fremen); padding-left: 0.5rem; }
+.pp-storm-name { font-size: 0.85rem; min-width: 8rem; }
+.pp-storm-name em { display: block; font-style: normal; font-size: 0.72rem; color: var(--ink-soft); }
+.pp-hits { font-weight: 700; color: var(--ink-soft); }
+.pp-hits.hot { color: var(--harkonnen); }
+.pp-spice { flex: none; }
+.pp-markers { display: flex; gap: 0.6rem; flex-wrap: wrap; font-size: 0.8rem; font-family: var(--font-display); }
+.pp-marker.ban { color: var(--harkonnen); font-weight: 700; }
+
+/* --- turn sheet ------------------------------------------------------------------- */
+.ts-select { width: 100%; min-height: var(--tap); padding: 0.4rem 0.6rem; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--sand-0); color: var(--ink); font-size: 0.95rem; }
+.ts-steps { margin: 0.6rem 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.9rem; }
+.ts-badge { display: inline-block; margin-right: 0.4rem; border-radius: var(--r-pill); padding: 0.05rem 0.5rem; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; background: var(--spice-soft); color: var(--spice); }
+.ts-steps li.manual .ts-badge { background: color-mix(in srgb, var(--atreides) 18%, transparent); color: var(--atreides); }
+
+/* --- more sheet extras ---------------------------------------------------------------- */
+.more-import { position: relative; overflow: hidden; }
+.more-import input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.more-save { display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line); border-radius: var(--r-card); padding: 0.4rem 0.7rem; background: color-mix(in srgb, var(--sand-0) 60%, var(--sand-1)); }
+.more-save span { flex: 1; font-weight: 600; }

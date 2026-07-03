@@ -11,7 +11,6 @@ import './tokens.css';
 import './shell.css';
 import type { ActionResult, GameState } from '../engine/state';
 import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } from '../engine/round';
-import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
 import { moveLegionUnits, applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
@@ -26,6 +25,9 @@ import { AreaSheet, type MovePick } from './AreaSheet';
 import { BattleScreen } from './BattleScreen';
 import { YouSheet } from './YouSheet';
 import { VictoryScene } from './VictoryScene';
+import { TurnSheet } from './TurnSheet';
+import { VehiclesPanel, HazardsPanel, SpicePanel } from './PhasePanels';
+import { exportState, importState, listSaves, saveNamedGame, loadNamedGame, deleteNamedGame } from '../ui/persistence';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
 const DIE: { face: ActionResult; icon: IconName; label: string }[] = [
@@ -91,7 +93,6 @@ export function App2() {
   useEffect(() => {
     if (!gameOutcome(s).winner) setSceneDismissed(false);
   }, [s]);
-  const avail = useMemo(() => availability(s.spice.markers), [s.spice.markers]);
   const outcome = gameOutcome(s);
 
   // Move flow: legal destinations glow; tapping one applies the move.
@@ -251,6 +252,9 @@ export function App2() {
                 <span className="g-now">{guide.now}</span>
                 {guide.detail && <span className="g-detail">{guide.detail}</span>}
               </div>
+              {s.phase === 'vehicle_placement' && <VehiclesPanel game={game} />}
+              {s.phase === 'desert_hazards' && <HazardsPanel game={game} />}
+              {s.phase === 'spice_harvesting' && <SpicePanel game={game} />}
               {guide.showDice && (
                 <div className="g-dice" role="group" aria-label="Harkonnen die result">
                   {DIE.map((d) => (
@@ -298,21 +302,7 @@ export function App2() {
         <div className="sheet-veil" onClick={() => setSheet(null)}>
           <section className="sheet" role="dialog" onClick={(e) => e.stopPropagation()}>
             <div className="sheet-grip" />
-            {sheet === 'turn' && (
-              <>
-                <h2><Icon name="leadership" size={18} /> This round</h2>
-                <div className="kv2">
-                  <span><Icon name="mentat" size={16} /> Dice</span><b>{avail.diceAvailable}</b>
-                  <span><Icon name="harvester" size={16} /> Harvesters</span><b>{avail.harvesters}</b>
-                  <span><Icon name="ornithopter" size={16} /> Ornithopters</span><b>{avail.ornithopters}</b>
-                  <span><Icon name="carryall" size={16} /> Carryalls</span><b>{avail.carryalls}</b>
-                  <span><Icon name="objective" size={16} /> Target</span>
-                  <b>{s.targetSietchId ? areaLabel(s.targetSietchId) : '—'}</b>
-                  <span><Icon name="ban" size={16} /> Bans</span>
-                  <b>{s.spice.activeBans.length ? s.spice.activeBans.join(', ') : 'none'}</b>
-                </div>
-              </>
-            )}
+            {sheet === 'turn' && <TurnSheet game={game} />}
             {sheet === 'you' && <YouSheet game={game} />}
             {sheet === 'log' && (
               <>
@@ -351,10 +341,84 @@ export function App2() {
                   <button onClick={() => setAtmosphere(!atmosphere)}>
                     <Icon name="wormsign" size={16} /> Atmosphere {atmosphere ? 'on' : 'off'}
                   </button>
-                  <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) startNew(); }}>
+                  <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) { startNew(); setSheet(null); } }}>
                     <Icon name="objective" size={16} /> New game
                   </button>
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([exportState(s)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `dwfa-round${s.round}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    <Icon name="map" size={16} /> Export game
+                  </button>
+                  <label className="more-import">
+                    <Icon name="deployment" size={16} /> Import game
+                    <input
+                      type="file"
+                      accept="application/json,.json"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        e.target.value = '';
+                        if (!f) return;
+                        const next = importState(await f.text());
+                        if (next) {
+                          game.loadGame(next);
+                          setSheet(null);
+                        } else alert('Not a valid saved game.');
+                      }}
+                    />
+                  </label>
                   <a href="?classic">↩ Classic interface (v1)</a>
+                </div>
+                <h3 className="ys-h"><Icon name="log" size={15} /> Named saves</h3>
+                <div className="more-rows">
+                  <button
+                    onClick={() => {
+                      const name = prompt('Save as…', `Round ${s.round}`);
+                      if (name?.trim()) {
+                        saveNamedGame(name.trim(), s);
+                        setToast(`Saved "${name.trim()}"`);
+                        setSheet(null);
+                      }
+                    }}
+                  >
+                    + Save current game
+                  </button>
+                  {listSaves().map((sv) => (
+                    <div key={sv.name} className="more-save">
+                      <span>{sv.name}</span>
+                      <button
+                        className="as-btn"
+                        onClick={() => {
+                          const st = loadNamedGame(sv.name);
+                          if (st) {
+                            game.loadGame(st);
+                            setSheet(null);
+                          }
+                        }}
+                      >
+                        Load
+                      </button>
+                      <button
+                        className="as-btn ys-danger"
+                        onClick={() => {
+                          if (confirm(`Delete "${sv.name}"?`)) {
+                            deleteNamedGame(sv.name);
+                            setToast('Deleted');
+                            setSheet(null);
+                          }
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
                 <p className="sheet-hint">
                   Unofficial fan companion — not affiliated with CMON, Gale Force Nine, or Herbert
