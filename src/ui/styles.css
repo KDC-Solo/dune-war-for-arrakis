@@ -1776,3 +1776,65 @@ label.mini.smf-collected input {
   background: #3d2f1c;
   color: var(--ink);
 }
+
+/* Dark theme — completion sweep: all remaining light-background surfaces… */
+[data-theme='dark'] .storm-row,
+[data-theme='dark'] .save-item,
+[data-theme='dark'] .add-row button,
+[data-theme='dark'] .add-row .import-btn,
+[data-theme='dark'] .map-zoom button,
+[data-theme='dark'] .map-colorby button {
+  background: #2b2114;
+  border-color: var(--line);
+  color: var(--ink);
+}
+/* …and all remaining brown label/hint text, lightened for contrast on the dark surfaces. */
+[data-theme='dark'] .storm-row label.mini,
+[data-theme='dark'] label.mini.check,
+[data-theme='dark'] label.mini.smf-collected,
+[data-theme='dark'] .storm-hits,
+[data-theme='dark'] .manual-note,
+[data-theme='dark'] .feature-sub,
+[data-theme='dark'] .editor h3,
+[data-theme='dark'] .map-legend,
+[data-theme='dark'] .map-pick,
+[data-theme='dark'] .phase-showall,
+[data-theme='dark'] .area-card-meta,
+[data-theme='dark'] .area-card-adj,
+[data-theme='dark'] .area-card-id,
+[data-theme='dark'] .area-card.empty,
+[data-theme='dark'] .card-steps li.manual,
+[data-theme='dark'] .add-row .reset,
+[data-theme='dark'] .smf-table th,
+[data-theme='dark'] footer {
+  color: #c2ab84;
+}
+[data-theme='dark'] .storm-area strong,
+[data-theme='dark'] .area-card-title,
+[data-theme='dark'] .kv dd,
+[data-theme='dark'] .save-item {
+  color: var(--ink);
+}
+[data-theme='dark'] .storm-row label.mini input,
+[data-theme='dark'] label.mini.smf-collected input {
+  background: #322718;
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme='dark'] .storm-hits.hot {
+  color: var(--accent);
+}
+[data-theme='dark'] .area-card .atag {
+  background: #322718;
+  color: #c2ab84;
+  border-color: var(--line);
+}
+[data-theme='dark'] .win-banner {
+  background: #3a2416;
+  color: var(--ink);
+  border-color: var(--gold);
+}
+[data-theme='dark'] .apply-note,
+[data-theme='dark'] .cross-impassable {
+  color: #d3a53f;
+}
