@@ -53,7 +53,7 @@ import { LocateContext, AreaChip, AreaChips, AirZoneChip, AirZoneChips } from '.
 
 const SORTED_AREA_IDS = [...AREA_IDS].sort((a, b) => areaLabel(a).localeCompare(areaLabel(b)));
 const DESERT_AREA_IDS = SORTED_AREA_IDS.filter(isDesertArea);
-import { loadState, saveState, clearState, exportState } from './persistence';
+import { loadState, saveState, exportState } from './persistence';
 
 const DIE_RESULTS: ActionResult[] = ['leadership', 'strategy', 'mentat', 'deployment', 'house'];
 const DIE_LABEL: Record<ActionResult, string> = {
@@ -135,7 +135,7 @@ function HelpPanel({ onGuidedSetup }: { onGuidedSetup: () => void }) {
       </p>
       <ul className="help-list">
         <li>
-          <strong>Games</strong> — new game, export/import a backup, reset, and your named saves (load/delete).
+          <strong>Games</strong> — new game (or 🧭 guided setup), export/import a backup, and your named saves (load/delete).
         </li>
         <li>
           <strong>Board map</strong> — open it anytime with the floating <strong>🗺</strong> button (bottom-right). Every
@@ -1909,15 +1909,11 @@ export function App() {
     setHistory((h) => h.slice(0, -1));
   };
 
-  // Switching to a different game (import / load / reset) starts a fresh undo history.
+  // Switching to a different game (import / load) starts a fresh undo history.
   const loadGame = (next: GameState) => {
     setPast([]);
     setHistory([]);
     setS(next);
-  };
-  const reset = () => {
-    clearState();
-    loadGame(sampleState());
   };
   const startNewGame = () => commit(newGameState(), { headline: 'New game', text: 'Started a fresh game.' });
 
@@ -1961,7 +1957,7 @@ export function App() {
           onToggle={(e) => setSetupOpen(e.currentTarget.open)}
         >
           <summary className="setup-summary">Setup — games, saves &amp; board editor</summary>
-          <GamesPanel s={s} onReset={reset} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} onGuidedSetup={() => setWizardOpen(true)} />
+          <GamesPanel s={s} onNewGame={startNewGame} onExport={exportGame} onImport={loadGame} onGuidedSetup={() => setWizardOpen(true)} />
           <StateEditor s={s} onChange={setS} onPick={setPick} pick={pick} deployTo={deployTo} />
         </details>
         <RoundPanel s={s} />

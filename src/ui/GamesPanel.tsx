@@ -8,14 +8,12 @@ import { importState, listSaves, saveNamedGame, loadNamedGame, deleteNamedGame, 
 
 export function GamesPanel({
   s,
-  onReset,
   onNewGame,
   onExport,
   onImport,
   onGuidedSetup,
 }: {
   s: GameState;
-  onReset: () => void;
   onNewGame: () => void;
   onExport: () => void;
   onImport: (next: GameState) => void;
@@ -74,14 +72,6 @@ export function GamesPanel({
           Import
           <input type="file" accept="application/json,.json" onChange={pickFile} />
         </label>
-        <button
-          className="reset"
-          onClick={() => {
-            if (confirm('Reset to the demo state and clear the saved game?')) onReset();
-          }}
-        >
-          Reset
-        </button>
       </div>
 
       <h3>Saved games</h3>

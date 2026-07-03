@@ -192,9 +192,11 @@ header h1 {
   margin-bottom: 0.8rem;
 }
 
-/* Guided setup wizard. */
+/* Guided setup wizard. Sits ABOVE the status strip (60) but BELOW the board map (70), so
+   tapping an 📍 area chip in a wizard step brings the map up on top; closing it returns you
+   to the wizard. */
 .map-modal-overlay.wizard-overlay {
-  z-index: 80;
+  z-index: 65;
 }
 .wizard {
   max-width: 34rem;
@@ -232,6 +234,12 @@ header h1 {
 }
 .wizard-nav {
   justify-content: space-between;
+  gap: 1rem;
+}
+.wizard-nav button {
+  min-width: 8rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
 }
 .help-cta {
   margin: 0.4rem 0;
@@ -377,6 +385,10 @@ header h1 {
 
 .directive-actions {
   margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .confirm-btn {
