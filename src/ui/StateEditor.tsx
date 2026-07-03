@@ -24,25 +24,28 @@ import { areaLabel } from './describeAction';
 import { isDesertArea } from '../engine/describeArea';
 import { canPlaceWormsign, canPlaceSandworm } from '../engine/wormsigns';
 import { NAMED_LEADERS } from '../engine/leaders';
+import { ATREIDES_LEADER_NAMES } from '../engine/atreidesLeaders';
 import type { PickTarget } from './pick';
 import { samePick } from './pick';
 import { AreaChip } from './locate';
 
 const NAMED_LEADER_NAMES: readonly string[] = NAMED_LEADERS.map((l) => l.name);
 
-/** Toggle chips for picking named Harkonnen leaders (unique, by name) — all visible at once. */
+/** Toggle chips for picking named leaders (unique, by name) — all visible at once. */
 function LeaderPicker({
   selected,
   onChange,
+  names = NAMED_LEADER_NAMES,
 }: {
   selected: readonly string[];
   onChange: (next: string[]) => void;
+  names?: readonly string[];
 }) {
   const toggle = (name: string, on: boolean) =>
     onChange(on ? [...selected, name] : selected.filter((n) => n !== name));
   return (
     <div className="leader-chips">
-      {NAMED_LEADER_NAMES.map((name) => {
+      {names.map((name) => {
         const on = selected.includes(name);
         return (
           <button
@@ -139,12 +142,6 @@ function defenderSummary(l: Legion | undefined): string {
 /** Named-leader names present on a legion (placeholder/blank names dropped). */
 function namedLeaderNames(l: Legion): string[] {
   return l.leaders.filter((x) => x.kind === 'named' && x.name && x.name !== 'Named').map((x) => x.name as string);
-}
-function makeLeaders(faction: Faction, generic: number, named: number): Leader[] {
-  const out: Leader[] = [];
-  for (let i = 0; i < generic; i++) out.push({ kind: 'generic', faction });
-  for (let i = 0; i < named; i++) out.push({ kind: 'named', faction, name: 'Named' });
-  return out;
 }
 /** Build a legion's leaders from a generic count plus specific named-leader names. */
 function makeNamedLeaders(faction: Faction, generic: number, names: readonly string[]): Leader[] {
@@ -590,13 +587,12 @@ export function StateEditor({
                   />
                 </label>
               ) : (
-                <label className="mini">
+                <label className="mini grow">
                   Named
-                  <NumInput
-                    min={0}
-                    max={4}
-                    value={lead.named}
-                    onChange={(n) => updateLegion(i, { ...l, leaders: makeLeaders(l.faction, lead.generic, n) })}
+                  <LeaderPicker
+                    names={ATREIDES_LEADER_NAMES}
+                    selected={namedLeaderNames(l)}
+                    onChange={(names) => updateLegion(i, { ...l, leaders: makeNamedLeaders(l.faction, lead.generic, names) })}
                   />
                 </label>
               )}

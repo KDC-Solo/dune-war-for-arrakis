@@ -8,6 +8,7 @@
 import type { Leader } from './state';
 import type { RollResult } from './combat';
 import { leaderByName, GENERIC_LEADER_COMBAT } from './leaders';
+import { atreidesLeaderByName } from './atreidesLeaders';
 
 /** Raw faces from a combat roll: plain hits, plain shields, and special results. */
 export interface RawRoll {
@@ -19,7 +20,11 @@ export interface RawRoll {
 /** The combat ability a leader applies when it converts one Special result. */
 function leaderAbility(leader: Leader): { hits: number; shields: number } {
   if (leader.kind === 'named' && leader.name) {
-    return leaderByName(leader.name)?.combatAbility ?? GENERIC_LEADER_COMBAT;
+    return (
+      leaderByName(leader.name)?.combatAbility ??
+      atreidesLeaderByName(leader.name)?.combatAbility ??
+      GENERIC_LEADER_COMBAT
+    );
   }
   return GENERIC_LEADER_COMBAT; // generic Bashar / Naib
 }

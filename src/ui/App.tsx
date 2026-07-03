@@ -1580,7 +1580,7 @@ function BattlePanel({
     setSession(null);
   };
 
-  const unitInputs = (label: string, u: Legion['units'], setU: (u: Legion['units']) => void) => (
+  const unitInputs = (label: string, faction: Legion['faction'], u: Legion['units'], setU: (u: Legion['units']) => void) => (
     <div className="storm-row">
       <div className="storm-area">
         <strong>{label}</strong>
@@ -1588,7 +1588,7 @@ function BattlePanel({
       {(['regular', 'elite', 'special_elite'] as const).map((k) => (
         <Counter
           key={k}
-          label={k === 'regular' ? 'Regular' : k === 'elite' ? 'Elite' : 'Sardaukar'}
+          label={k === 'regular' ? 'Regular' : k === 'elite' ? 'Elite' : faction === 'harkonnen' ? 'Sardaukar' : 'Fedaykin'}
           value={u[k]}
           onChange={(n) => setU({ ...u, [k]: n })}
         />
@@ -1624,9 +1624,9 @@ function BattlePanel({
             Flip the facedown deployment tokens at <strong><AreaChip id={reveal.pair.area} /></strong> and enter the units they reveal — they fight (and can be lost) as those units this battle.
           </p>
           {reveal.pair.attacker.deploymentTokens > 0 &&
-            unitInputs(`Harkonnen ${reveal.pair.attacker.deploymentTokens} token${reveal.pair.attacker.deploymentTokens === 1 ? '' : 's'} reveal`, reveal.atk, (u) => setReveal({ ...reveal, atk: u }))}
+            unitInputs(`Harkonnen ${reveal.pair.attacker.deploymentTokens} token${reveal.pair.attacker.deploymentTokens === 1 ? '' : 's'} reveal`, 'harkonnen', reveal.atk, (u) => setReveal({ ...reveal, atk: u }))}
           {reveal.pair.defender.deploymentTokens > 0 &&
-            unitInputs(`Atreides ${reveal.pair.defender.deploymentTokens} token${reveal.pair.defender.deploymentTokens === 1 ? '' : 's'} reveal`, reveal.def, (u) => setReveal({ ...reveal, def: u }))}
+            unitInputs(`Atreides ${reveal.pair.defender.deploymentTokens} token${reveal.pair.defender.deploymentTokens === 1 ? '' : 's'} reveal`, 'atreides', reveal.def, (u) => setReveal({ ...reveal, def: u }))}
           <div className="directive-actions">
             <button className="confirm-btn" onClick={confirmReveal}>Reveal &amp; begin battle</button>
             <button className="die" onClick={() => setReveal(null)}>Cancel</button>
