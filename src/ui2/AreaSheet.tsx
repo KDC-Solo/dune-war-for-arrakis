@@ -7,6 +7,7 @@ import type { GameState, Legion, UnitType } from '../engine/state';
 import { emptyLegion, unitCount } from '../engine/state';
 import { AREAS } from '../engine/board';
 import { canPlaceSandworm, canPlaceWormsign } from '../engine/wormsigns';
+import { harkonnenNeighbors } from '../engine/movement';
 import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
 import type { Game } from './useGame';
@@ -56,7 +57,8 @@ export function AreaSheet({
   area: string;
   onClose: () => void;
   onStartMove: (pick: MovePick) => void;
-  onBattleHere: (area: string) => void;
+  /** Start a battle: attacker's area (adjacent, or here for legacy states) vs this area. */
+  onBattleHere: (attackerArea: string, defenderArea: string) => void;
 }) {
   const { s, commit, edit } = game;
   const [editing, setEditing] = useState<Legion['faction'] | null>(null);
@@ -182,11 +184,19 @@ export function AreaSheet({
         </div>
 
         {legions.length === 0 ? <p className="sheet-hint">No legions here.</p> : legions.map(legionRow)}
-        {hk && at && (
-          <button type="button" className="g-primary as-battle" onClick={() => onBattleHere(area)}>
-            ⚔ Battle here
-          </button>
-        )}
+        {at && (() => {
+          // Battles come from adjacent Harkonnen legions (solo adjacency ignores impassable);
+          // a co-located attacker (legacy states) fights in place.
+          const nbrs = new Set(harkonnenNeighbors(area));
+          const attackers = s.legions.filter(
+            (l) => l.faction === 'harkonnen' && unitCount(l) > 0 && (l.area === area || nbrs.has(l.area)),
+          );
+          return attackers.map((l) => (
+            <button key={l.area} type="button" className="g-primary as-battle" onClick={() => onBattleHere(l.area, area)}>
+              ⚔ Battle — Harkonnen attack from {l.area === area ? 'here' : areaLabel(l.area)}
+            </button>
+          ));
+        })()}
 
         <div className="as-tools">
           {!hk && (

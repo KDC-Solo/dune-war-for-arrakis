@@ -5,6 +5,7 @@
 // Pure: returns a new state. Combat rules live in combat.ts; this only maps the result onto state.
 
 import type { GameState, Legion } from './state';
+import { emptyLegion } from './state';
 import { battleReserveDelta, type BattleSession } from './combat';
 import { applyReserveDelta } from './reserve';
 import { areaLabel } from './describeArea';
@@ -45,6 +46,28 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
 
   const defenderWiped = isEmpty(session.defender);
 
+  // Battles are fought from adjacent areas (rulebook p26): on a cease, "the surviving figures of
+  // both players remain in the Areas where they were at the start of the battle" — the attacker
+  // only ADVANCES into the defender's area after a victory. (When ctx areas are equal — legacy
+  // co-located flows — the advance is a no-op.)
+  const advanceNotes: string[] = [];
+  if (session.status === 'attacker_won' && atk.area !== def.area && !isEmpty(session.attacker)) {
+    legions = legions.map((l) =>
+      l.faction === atk.faction && l.area === atk.area ? { ...l, area: def.area } : l,
+    );
+    // Solo garrison rule: fully leaving a live settlement drops 2 deployment tokens there.
+    if (s.settlements.some((st) => st.area === atk.area && !st.destroyed)) {
+      const dropped = Math.min(2, s.harkonnenReserve.deploymentTokens);
+      if (dropped > 0) {
+        legions = [...legions, { ...emptyLegion(atk.faction, atk.area), deploymentTokens: dropped }];
+        advanceNotes.push(`${dropped} garrison token${dropped === 1 ? '' : 's'} left in ${areaLabel(atk.area)}.`);
+      }
+    }
+    if (s.wormsigns.some((w) => w.area === def.area)) {
+      advanceNotes.push('The advance enters a Wormsign — reveal and resolve it.');
+    }
+  }
+
   let sietches = s.sietches;
   let targetSietchId = s.targetSietchId;
   let destroyedSietch = false;
@@ -56,7 +79,16 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
   }
 
   const reservedReinforcements = Math.max(0, (s.decks.reinforcements ?? 0) - session.reinforcementsUsed);
-  const harkonnenReserve = applyReserveDelta(s.harkonnenReserve, battleReserveDelta(session));
+  let harkonnenReserve = applyReserveDelta(s.harkonnenReserve, battleReserveDelta(session));
+  const garrisonDropped = advanceNotes.some((n) => n.includes('garrison'))
+    ? Math.min(2, s.harkonnenReserve.deploymentTokens)
+    : 0;
+  if (garrisonDropped > 0) {
+    harkonnenReserve = {
+      ...harkonnenReserve,
+      deploymentTokens: Math.max(0, harkonnenReserve.deploymentTokens - garrisonDropped),
+    };
+  }
 
   const where = areaLabel(def.area);
   const notes: string[] = [];
@@ -64,6 +96,7 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
   else if (session.status === 'attacker_eliminated') notes.push(`Harkonnen attack on ${where} wiped out.`);
   else notes.push(`Harkonnen ceased the attack on ${where}.`);
   if (session.reinforcementsUsed > 0) notes.push(`${session.reinforcementsUsed} reinforcement card(s) spent.`);
+  notes.push(...advanceNotes);
 
   return {
     state: {

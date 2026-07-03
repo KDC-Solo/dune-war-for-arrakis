@@ -139,25 +139,15 @@ export function App2() {
     setDirective(null);
   };
 
-  // An attack directive: move the attacker onto the defender (board mirrors it) and open battle.
+  // An attack directive: battles are fought from the attacker's area (rulebook) — no pre-move.
+  // Survivors stay put on a cease; the engine advances the victor.
   const directiveToBattle = () => {
     if (!directive || (directive.kind !== 'attack_sietch' && directive.kind !== 'attack_legion')) return;
     const defArea = directive.kind === 'attack_sietch' ? directive.sietch : directive.defender;
-    const atk = s.legions.find((l) => l.faction === 'harkonnen' && l.area === directive.attacker);
-    if (atk) {
-      commit(
-        moveLegionUnits(s, 'harkonnen', directive.attacker, defArea, {
-          units: atk.units,
-          deploymentTokens: atk.deploymentTokens,
-          leaderIndices: atk.leaders.map((_, i) => i),
-        }),
-        { headline: actionHeadline(directive), text: describeAction(directive), note: 'Attacker moved in — resolve the battle.' },
-      );
-      setBattleArea(defArea);
-    }
+    setBattlePair({ atk: directive.attacker, def: defArea });
     setDirective(null);
   };
-  const [battleArea, setBattleArea] = useState<string | null>(null);
+  const [battlePair, setBattlePair] = useState<{ atk: string; def: string } | null>(null);
   const [sceneDismissed, setSceneDismissed] = useState(false);
   // One-shot stage focus (pan + pulse) driven by location chips anywhere in the UI.
   const [stageFocus, setStageFocus] = useState<{ id: string; nonce: number } | null>(null);
@@ -338,9 +328,9 @@ export function App2() {
             setAreaOpen(null);
             setMovePick(pick);
           }}
-          onBattleHere={(a) => {
+          onBattleHere={(atk, def) => {
             setAreaOpen(null);
-            setBattleArea(a);
+            setBattlePair({ atk, def });
           }}
         />
       )}
@@ -480,7 +470,9 @@ export function App2() {
         </div>
       )}
 
-      {battleArea && <BattleScreen game={game} area={battleArea} onClose={() => setBattleArea(null)} />}
+      {battlePair && (
+        <BattleScreen game={game} attackerArea={battlePair.atk} area={battlePair.def} onClose={() => setBattlePair(null)} />
+      )}
 
       <SetupWizard
         open={wizardOpen}

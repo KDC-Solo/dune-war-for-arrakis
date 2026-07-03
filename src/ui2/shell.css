@@ -658,3 +658,5 @@ html[data-ui='v2'] .wizard .wizard-dot.done { background: var(--fremen); border-
 
 .bs-rankrow { display: flex; gap: 0.6rem; }
 .bs-rank { flex: 1; animation: none; }
+
+.bs-from { font-size: 0.75em; opacity: 0.75; font-weight: 500; }

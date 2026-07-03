@@ -54,9 +54,21 @@ function LegionCol({ l, side }: { l: Legion; side: 'harkonnen' | 'atreides' }) {
   );
 }
 
-export function BattleScreen({ game, area, onClose }: { game: Game; area: string; onClose: () => void }) {
+export function BattleScreen({
+  game,
+  attackerArea,
+  area,
+  onClose,
+}: {
+  game: Game;
+  /** Where the Harkonnen attack FROM (adjacent per the rules; equal to `area` only for legacy
+   *  co-located states). Survivors return here on a cease; victors advance into `area`. */
+  attackerArea: string;
+  area: string;
+  onClose: () => void;
+}) {
   const { s, commit } = game;
-  const attacker = s.legions.find((l) => l.faction === 'harkonnen' && l.area === area);
+  const attacker = s.legions.find((l) => l.faction === 'harkonnen' && l.area === attackerArea);
   const defender = s.legions.find((l) => l.faction === 'atreides' && l.area === area);
 
   const needReveal = (attacker?.deploymentTokens ?? 0) > 0 || (defender?.deploymentTokens ?? 0) > 0;
@@ -101,10 +113,10 @@ export function BattleScreen({ game, area, onClose }: { game: Game; area: string
   const confirmReveal = () => {
     if (!reveal || !attacker || !defender) return;
     let next = s;
-    if (attacker.deploymentTokens > 0) next = revealDeploymentTokens(next, area, 'harkonnen', reveal.atk);
+    if (attacker.deploymentTokens > 0) next = revealDeploymentTokens(next, attackerArea, 'harkonnen', reveal.atk);
     if (defender.deploymentTokens > 0) next = revealDeploymentTokens(next, area, 'atreides', reveal.def);
     commit(next, { headline: 'Tokens revealed', text: areaLabel(area) });
-    const a = next.legions.find((l) => l.faction === 'harkonnen' && l.area === area)!;
+    const a = next.legions.find((l) => l.faction === 'harkonnen' && l.area === attackerArea)!;
     const d = next.legions.find((l) => l.faction === 'atreides' && l.area === area)!;
     setReveal(null);
     start(a, d);
@@ -140,12 +152,15 @@ export function BattleScreen({ game, area, onClose }: { game: Game; area: string
     <div className="battle-screen" role="dialog" aria-label={`Battle at ${areaLabel(area)}`}>
       <header className="bs-head">
         <Icon name="strategy" size={20} />
-        <h2>Battle — {areaLabel(area)}</h2>
+        <h2>
+          Battle — {areaLabel(area)}
+          {attackerArea !== area && <span className="bs-from"> ⚔ from {areaLabel(attackerArea)}</span>}
+        </h2>
         <button className="ap-close bs-close" onClick={onClose} aria-label="Close">✕</button>
       </header>
 
       {!attacker || !defender ? (
-        <p className="bs-note">Both a Harkonnen and an Atreides legion must be here to fight.</p>
+        <p className="bs-note">The attacking Harkonnen legion or the Atreides defenders are missing.</p>
       ) : (
         <>
           <div className="bs-cols">

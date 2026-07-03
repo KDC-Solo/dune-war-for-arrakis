@@ -87,14 +87,14 @@ test('v2: a full round plays through the guide bar', async ({ page }) => {
   await expect(page.locator('.rb-round')).toHaveText('R2');
 });
 
-test('v2: a battle runs from the area sheet to a chronicle entry', async ({ page }) => {
+test('v2: an adjacent battle advances the victor into the taken sietch', async ({ page }) => {
   const s = newGameState();
   s.phase = 'action_resolution';
   s.legions = [
     ...s.legions,
     {
       faction: 'harkonnen',
-      area: 'gara_kulon',
+      area: 's1_11', // adjacent to gara_kulon — battles are fought from next door
       units: { regular: 4, elite: 0, special_elite: 0 },
       deploymentTokens: 0,
       leaders: [{ kind: 'generic', faction: 'harkonnen' }],
@@ -103,11 +103,61 @@ test('v2: a battle runs from the area sheet to a chronicle entry', async ({ page
   await seed(page, s);
   await page.goto('/');
   await page.locator('path[data-area="gara_kulon"]').dispatchEvent('click');
-  await page.getByRole('button', { name: /Battle here/ }).click();
+  await page.getByRole('button', { name: /Battle — Harkonnen attack from/ }).click();
   await runBattle(page);
-  // The chronicle logged it.
-  await page.getByRole('button', { name: 'Log' }).click();
-  await expect(page.locator('.chron')).toContainText('Battle');
+  // Victory → the attacker advanced into the sietch area; the chronicle logged it.
+  await page.locator('path[data-area="gara_kulon"]').dispatchEvent('click');
+  await expect(page.locator('.area-sheet')).toContainText('Harkonnen');
+  await expect(page.locator('.area-sheet')).toContainText('destroyed');
+});
+
+test('v2: a ceased attack leaves both legions where they started', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  s.legions = [
+    // Beef up the defenders (no tokens → no reveal step) and send a lone attacker.
+    ...s.legions.filter((l) => l.area !== 'gara_kulon'),
+    {
+      faction: 'atreides',
+      area: 'gara_kulon',
+      units: { regular: 3, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaders: [{ kind: 'generic', faction: 'atreides' }],
+    },
+    {
+      faction: 'harkonnen',
+      area: 's1_11',
+      units: { regular: 1, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaders: [],
+    },
+  ];
+  await seed(page, s);
+  await page.goto('/');
+  await page.locator('path[data-area="gara_kulon"]').dispatchEvent('click');
+  await page.getByRole('button', { name: /Battle — Harkonnen attack from/ }).click();
+  const bs = page.locator('.battle-screen');
+  const rank = bs.getByRole('button', { name: 'Rank 1' });
+  if (await rank.isVisible().catch(() => false)) await rank.click();
+  const begin = bs.getByRole('button', { name: /Begin battle/ });
+  if (await begin.isVisible().catch(() => false)) await begin.click();
+  // Outnumbered ≥2:1, the Harkonnen cease — possibly before any round is rolled.
+  const apply = bs.getByRole('button', { name: 'Apply round' });
+  const done = bs.getByRole('button', { name: 'Apply to the game' });
+  for (let i = 0; i < 4; i++) {
+    await expect(apply.or(done).first()).toBeVisible();
+    if (await done.isVisible()) break;
+    const at = bs.locator('.bs-rollrow.atreides');
+    await at.getByRole('button', { name: 'Swords +1' }).click();
+    await apply.click();
+  }
+  await expect(bs).toContainText(/defenders hold|attackers are wiped/);
+  await done.click();
+  // Rulebook: survivors remain where they started — never co-located.
+  await page.locator('path[data-area="gara_kulon"]').dispatchEvent('click');
+  const sheet = page.locator('.area-sheet');
+  await expect(sheet).toContainText('Atreides');
+  await expect(sheet).not.toContainText('Harkonnen attack from here');
 });
 
 test('v2: entering the objective and destroying Arrakeen wins the game', async ({ page }) => {
@@ -161,7 +211,7 @@ test('v2: battling an unrevealed sietch demands the rank and adds it to the defe
     ...s.legions,
     {
       faction: 'harkonnen',
-      area: 'gara_kulon',
+      area: 's1_11',
       units: { regular: 4, elite: 0, special_elite: 0 },
       deploymentTokens: 0,
       leaders: [],
@@ -170,7 +220,7 @@ test('v2: battling an unrevealed sietch demands the rank and adds it to the defe
   await seed(page, s);
   await page.goto('/');
   await page.locator('path[data-area="gara_kulon"]').dispatchEvent('click');
-  await page.getByRole('button', { name: /Battle here/ }).click();
+  await page.getByRole('button', { name: /Battle — Harkonnen attack from/ }).click();
   const bs = page.locator('.battle-screen');
   // Rank prompt gates everything.
   await expect(bs).toContainText('rank token');
