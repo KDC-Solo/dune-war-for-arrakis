@@ -50,6 +50,17 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Pages intermittently answers "Deployment failed, try again later" even when nothing is
+      # wrong with the artifact; a cool-down retry reliably clears it (observed repeatedly).
       - name: Deploy to GitHub Pages
         id: deployment
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+
+      - name: Cool down before retry
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 300
+
+      - name: Deploy to GitHub Pages (retry after cool-down)
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v5
