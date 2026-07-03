@@ -9,9 +9,9 @@ import { resolveLeaderSpecial } from '../engine/leaderEffects';
 import { applyEffectSteps } from '../engine/effectSteps';
 import { HOUSE_HARKONNEN_CARDS, CORRINO_ALLY_CARDS } from '../engine/planningCards';
 import { NAMED_LEADERS } from '../engine/leaders';
-import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
 import type { Game } from './useGame';
+import { AreaRef, AreaRefs, AzRef } from './refs';
 
 const RAGE: Record<string, string> = {
   rage_overcame_shaddam_iv_a: ' (+4 Regulars)',
@@ -56,7 +56,7 @@ export function TurnSheet({ game }: { game: Game }) {
         <span><Icon name="harvester" size={16} /> Vehicles</span>
         <b>{avail.harvesters}·{avail.ornithopters}·{avail.carryalls}</b>
         <span><Icon name="objective" size={16} /> Target</span>
-        <b>{s.targetSietchId ? areaLabel(s.targetSietchId) : '—'}</b>
+        <b>{s.targetSietchId ? <AreaRef id={s.targetSietchId} /> : '—'}</b>
         <span><Icon name="ban" size={16} /> Bans</span>
         <b>{s.spice.activeBans.length ? s.spice.activeBans.join(', ') : 'none'}</b>
       </div>
@@ -132,8 +132,12 @@ export function TurnSheet({ game }: { game: Game }) {
               <li key={i} className={st.auto ? 'auto' : 'manual'}>
                 <span className="ts-badge">{st.auto ? 'auto' : 'you'}</span>
                 {st.text}
-                {st.groundLocations && st.groundLocations.length > 0 && ` — ${st.groundLocations.map(areaLabel).join(', ')}`}
-                {st.airLocations && st.airLocations.length > 0 && ` — ${st.airLocations.join(', ')}`}
+                {st.groundLocations && st.groundLocations.length > 0 && <> — <AreaRefs ids={st.groundLocations} /></>}
+                {st.airLocations && st.airLocations.length > 0 && (
+                  <> — {st.airLocations.map((z, zi) => (
+                    <span key={z}>{zi > 0 && ', '}<AzRef id={z} /></span>
+                  ))}</>
+                )}
               </li>
             ))}
           </ol>

@@ -638,3 +638,20 @@ html[data-ui='v2'] .wizard .confirm-btn {
 html[data-ui='v2'] .wizard .wizard-dot.current { background: var(--spice); border-color: var(--spice); }
 html[data-ui='v2'] .wizard .wizard-dot.done { background: var(--fremen); border-color: var(--fremen); }
 .welcome h2 { border-bottom-color: var(--spice); }
+
+/* --- location chips (tap → pan + pulse on the stage) ---------------------------------- */
+.loc-chip {
+  display: inline;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline dotted var(--fremen) 1.5px;
+  text-underline-offset: 2px;
+}
+.loc-chip:hover { color: var(--spice); }
+.loc-chip.az { text-decoration-color: #3f6db0; }

@@ -9,9 +9,9 @@ import { stormTargets, stormHits, resolveCoriolisStorms, type StormDice } from '
 import { resolveSpiceHarvesting, totalHarvesterSpice, TOP_ROW, BOTTOM_ROW } from '../engine/spiceMustFlow';
 import { SUPREMACY_WIN } from '../engine/round';
 import type { ImperiumPower } from '../engine/state';
-import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
 import type { Game } from './useGame';
+import { AreaRef, AreaRefs, AzRef } from './refs';
 
 export function VehiclesPanel({ game }: { game: Game }) {
   const { s } = game;
@@ -22,14 +22,19 @@ export function VehiclesPanel({ game }: { game: Game }) {
       {harvesters.length > 0 && (
         <div className="pp-row">
           <Icon name="harvester" size={16} />
-          <span>{harvesters.map((v) => areaLabel(v.location)).join(' · ')}</span>
+          <span><AreaRefs ids={harvesters.map((v) => v.location)} /></span>
         </div>
       )}
       {zones.length > 0 && (
         <div className="pp-row">
           <Icon name="ornithopter" size={16} />
           <span>
-            {zones.map((v) => `${v.type === 'ornithopter' ? 'orni' : 'carryall'} @ ${v.location}`).join(' · ')}
+            {zones.map((v, i) => (
+              <span key={i}>
+                {i > 0 && ' · '}
+                {v.type === 'ornithopter' ? 'orni' : 'carryall'} @ <AzRef id={v.location} />
+              </span>
+            ))}
           </span>
         </div>
       )}
@@ -54,8 +59,8 @@ export function HazardsPanel({ game }: { game: Game }) {
       <div className="pp">
         <div className="pp-row"><Icon name="wormsign" size={16} />
           <span>
-            {discard.length > 0 && `Discard: ${discard.map(areaLabel).join(', ')}. `}
-            {place.length > 0 && `Place: ${place.map(areaLabel).join(', ')}.`}
+            {discard.length > 0 && <>Discard: <AreaRefs ids={discard} />. </>}
+            {place.length > 0 && <>Place: <AreaRefs ids={place} />.</>}
             {nothing && 'No wormsigns to discard or place.'}
           </span>
         </div>
@@ -81,7 +86,7 @@ export function HazardsPanel({ game }: { game: Game }) {
         const hits = stormHits(t.area, d);
         return (
           <div key={t.legionIndex} className="pp-storm">
-            <span className="pp-storm-name">{areaLabel(t.area)} <em>({t.deep ? 'deep' : t.terrain}, ✴={t.specialHitValue})</em></span>
+            <span className="pp-storm-name"><AreaRef id={t.area} /> <em>({t.deep ? 'deep' : t.terrain}, ✴={t.specialHitValue})</em></span>
             {(['swords', 'specials'] as const).map((k) => (
               <label key={k} className="bs-count">
                 {k}

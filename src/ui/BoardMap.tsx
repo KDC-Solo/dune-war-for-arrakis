@@ -146,12 +146,14 @@ interface View {
 }
 
 /** Keep the scaled content covering the viewport (no dragging it fully off-screen). */
-function clampView(v: View): View {
+function clampView(v: View, ox = 0, oy = 0): View {
+  // ox/oy: viewBox units cropped by a `slice` fit (half on each side) — the pan range widens by
+  // that much so cropped edges stay reachable at any zoom.
   const k = clamp(v.k, 1, MAX_K);
   return {
     k,
-    tx: clamp(v.tx, W * (1 - k), 0),
-    ty: clamp(v.ty, H * (1 - k), 0),
+    tx: clamp(v.tx, W * (1 - k) - ox / 2, ox / 2),
+    ty: clamp(v.ty, H * (1 - k) - oy / 2, oy / 2),
   };
 }
 
@@ -187,6 +189,28 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
   // Blow the map up to a full-window overlay so it's easy to read (Esc / button to restore).
   const [maximized, setMaximized] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
+  // fill mode: container aspect decides meet (wide screens — whole board visible) vs slice
+  // (tall screens — cover, with the horizontal crop pannable via the clamp overflow).
+  const [fit, setFit] = useState<{ mode: 'meet' | 'slice'; ox: number; oy: number }>({ mode: 'slice', ox: 0, oy: 0 });
+  useEffect(() => {
+    if (!fill) return;
+    const el = svgRef.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
+      const a = r.width / r.height;
+      const A = W / H;
+      if (a >= A) setFit({ mode: 'meet', ox: 0, oy: 0 });
+      else setFit({ mode: 'slice', ox: W - H * a, oy: 0 });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fill]);
+  const ox = fill ? fit.ox : 0;
+  const oy = fill ? fit.oy : 0;
 
   // While maximized, lock page scroll and let Escape restore the inline size.
   useEffect(() => {
@@ -206,7 +230,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
     if (!focus) return;
     const p = AREA_POSITIONS[focus.id] ?? AIR_ZONE_DOTS[focus.id];
     if (!p) return;
-    setView((v) => clampView({ k: v.k, tx: W / 2 - v.k * (p[0] * W), ty: H / 2 - v.k * (p[1] * H) }));
+    setView((v) => clampView({ k: v.k, tx: W / 2 - v.k * (p[0] * W), ty: H / 2 - v.k * (p[1] * H) }, ox, oy));
     setEmphasis(focus.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus?.nonce]);
@@ -233,7 +257,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
   const zoomAbout = (focalX: number, focalY: number, nextK: number) =>
     setView((v) => {
       const k = clamp(nextK, 1, MAX_K);
-      return clampView({ k, tx: focalX - (focalX - v.tx) * (k / v.k), ty: focalY - (focalY - v.ty) * (k / v.k) });
+      return clampView({ k, tx: focalX - (focalX - v.tx) * (k / v.k), ty: focalY - (focalY - v.ty) * (k / v.k) }, ox, oy);
     });
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -263,7 +287,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
       // pan by the midpoint shift
       const dmx = pxToView(mid[0] - pinch.current.mid[0]);
       const dmy = pxToView(mid[1] - pinch.current.mid[1]);
-      setView((v) => clampView({ ...v, tx: v.tx + dmx, ty: v.ty + dmy }));
+      setView((v) => clampView({ ...v, tx: v.tx + dmx, ty: v.ty + dmy }, ox, oy));
       pinch.current = { dist, mid };
       return;
     }
@@ -273,7 +297,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
       const dy = e.clientY - prev.y;
       moved.current += Math.hypot(dx, dy);
       if (moved.current > DRAG_THRESHOLD) {
-        setView((v) => clampView({ ...v, tx: v.tx + pxToView(dx), ty: v.ty + pxToView(dy) }));
+        setView((v) => clampView({ ...v, tx: v.tx + pxToView(dx), ty: v.ty + pxToView(dy) }, ox, oy));
       }
     }
   };
@@ -366,7 +390,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
       <svg
         ref={svgRef}
         className={`board-map${picking ? ' picking' : ''}${fill ? ' fill' : ''}`}
-        preserveAspectRatio={fill ? 'xMidYMid slice' : 'xMidYMid meet'}
+        preserveAspectRatio={fill ? `xMidYMid ${fit.mode}` : 'xMidYMid meet'}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
         aria-label="Board map"

@@ -22,6 +22,7 @@ import { Icon, type IconName } from './icons';
 import { guideFor } from './flow';
 import { useGame } from './useGame';
 import { AreaSheet, type MovePick } from './AreaSheet';
+import { StageFocusContext, AreaRef } from './refs';
 import { BattleScreen } from './BattleScreen';
 import { YouSheet } from './YouSheet';
 import { VictoryScene } from './VictoryScene';
@@ -158,6 +159,13 @@ export function App2() {
   };
   const [battleArea, setBattleArea] = useState<string | null>(null);
   const [sceneDismissed, setSceneDismissed] = useState(false);
+  // One-shot stage focus (pan + pulse) driven by location chips anywhere in the UI.
+  const [stageFocus, setStageFocus] = useState<{ id: string; nonce: number } | null>(null);
+  const focusStage = (id: string) => {
+    setSheet(null);
+    setAreaOpen(null);
+    setStageFocus({ id, nonce: Date.now() });
+  };
   const [wizardOpen, setWizardOpen] = useState(false);
   // First visit (no saved game yet): offer the guided setup once.
   const [welcome, setWelcome] = useState(() => {
@@ -202,6 +210,7 @@ export function App2() {
   const phaseIndex = PHASE_ORDER.indexOf(s.phase);
 
   return (
+    <StageFocusContext.Provider value={focusStage}>
     <div className="ui2">
       {atmosphere && <div className="dunes" aria-hidden />}
 
@@ -228,6 +237,7 @@ export function App2() {
         <BoardMap
           state={s}
           fill
+          focus={stageFocus}
           highlight={areaOpen}
           glow={moveDests ? [...moveDests] : directiveGlow ?? undefined}
           picking={!!movePick}
@@ -242,7 +252,23 @@ export function App2() {
               <div className="dc-head">
                 <Icon name="leadership" size={16} /> {actionHeadline(directive)}
               </div>
-              <p className="dc-text">{describeAction(directive)}</p>
+              <p className="dc-text">
+                {directive.kind === 'attack_sietch' ? (
+                  <>Attack the sietch at <AreaRef id={directive.sietch} /> with the legion in <AreaRef id={directive.attacker} />{directive.useOrnithopter ? ' (troop-transport)' : ''}.</>
+                ) : directive.kind === 'attack_legion' ? (
+                  <>Attack the Atreides legion in <AreaRef id={directive.defender} /> with the legion in <AreaRef id={directive.attacker} />.</>
+                ) : directive.kind === 'move' ? (
+                  <>Move the legion from <AreaRef id={directive.path[0]} /> to <AreaRef id={directive.path[directive.path.length - 1]} />.</>
+                ) : directive.kind === 'deploy' ? (
+                  <>Deploy{directive.placements.map((pl, i) => (
+                    <span key={i}>{i > 0 ? ';' : ''} in <AreaRef id={pl.settlement} /></span>
+                  ))} — {describeAction(directive)}</>
+                ) : directive.kind === 'house_replace' ? (
+                  <>House: upgrade {directive.count} regular{directive.count === 1 ? '' : 's'} to elite in <AreaRef id={directive.legion} />.</>
+                ) : (
+                  describeAction(directive)
+                )}
+              </p>
               <div className="dc-actions">
                 {directive.kind === 'attack_sietch' || directive.kind === 'attack_legion' ? (
                   <button className="g-primary dc-battle" onClick={directiveToBattle}>⚔ To battle</button>
@@ -260,7 +286,7 @@ export function App2() {
                 <span className="g-now">Choose a destination</span>
                 <span className="g-detail">
                   Glowing areas are the legal moves for the {movePick.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'} legion at{' '}
-                  {areaLabel(movePick.from)} (ground, transport or sandride, with stacking room).
+                  <AreaRef id={movePick.from} /> (ground, transport or sandride, with stacking room).
                 </span>
               </div>
               <button className="g-primary" onClick={() => setMovePick(null)}>
@@ -502,6 +528,7 @@ export function App2() {
 
       {toast && <div className="toast2" role="status">✓ {toast}</div>}
     </div>
+    </StageFocusContext.Provider>
   );
 }
 
