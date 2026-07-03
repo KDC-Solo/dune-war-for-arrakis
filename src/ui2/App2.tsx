@@ -24,6 +24,8 @@ import { guideFor } from './flow';
 import { useGame } from './useGame';
 import { AreaSheet, type MovePick } from './AreaSheet';
 import { BattleScreen } from './BattleScreen';
+import { YouSheet } from './YouSheet';
+import { VictoryScene } from './VictoryScene';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
 const DIE: { face: ActionResult; icon: IconName; label: string }[] = [
@@ -86,6 +88,9 @@ export function App2() {
   }, [atmosphere]);
 
   const guide = useMemo(() => guideFor(s), [s]);
+  useEffect(() => {
+    if (!gameOutcome(s).winner) setSceneDismissed(false);
+  }, [s]);
   const avail = useMemo(() => availability(s.spice.markers), [s.spice.markers]);
   const outcome = gameOutcome(s);
 
@@ -147,6 +152,7 @@ export function App2() {
     setDirective(null);
   };
   const [battleArea, setBattleArea] = useState<string | null>(null);
+  const [sceneDismissed, setSceneDismissed] = useState(false);
 
   const onStageSelect = (id: string) => {
     if (movePick && moveDests) {
@@ -307,21 +313,7 @@ export function App2() {
                 </div>
               </>
             )}
-            {sheet === 'you' && (
-              <>
-                <h2><Icon name="prescience" size={18} /> Your side (Atreides)</h2>
-                <div className="presc-dials">
-                  {PRESCIENCE_MARKERS.map((m, i) => (
-                    <div key={m.key} className={`dial ${m.color}`}>
-                      <b>{s.tracks.prescience[i]}</b>
-                      <span>{m.label}</span>
-                      <em>{s.atreidesObjective ? `goal ${s.atreidesObjective[i]}` : 'goal —'}</em>
-                    </div>
-                  ))}
-                </div>
-                <p className="sheet-hint">The full tracker (objective, stations, reveals, Desert Power) lands in M4.</p>
-              </>
-            )}
+            {sheet === 'you' && <YouSheet game={game} />}
             {sheet === 'log' && (
               <>
                 <h2><Icon name="log" size={18} /> Chronicle</h2>
@@ -375,6 +367,17 @@ export function App2() {
       )}
 
       {battleArea && <BattleScreen game={game} area={battleArea} onClose={() => setBattleArea(null)} />}
+
+      {outcome.winner && !sceneDismissed && (
+        <VictoryScene
+          s={s}
+          onNewGame={() => {
+            setSceneDismissed(false);
+            startNew();
+          }}
+          onDismiss={() => setSceneDismissed(true)}
+        />
+      )}
 
       {toast && <div className="toast2" role="status">✓ {toast}</div>}
     </div>

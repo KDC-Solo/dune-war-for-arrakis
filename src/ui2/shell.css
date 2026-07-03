@@ -555,3 +555,35 @@ html[data-ui='v2'] body {
   50% { transform: translateX(3px); }
   75% { transform: translateX(-2px); }
 }
+
+/* --- You sheet ------------------------------------------------------------------ */
+.ys-h { display: flex; align-items: center; gap: 0.4rem; margin: 1rem 0 0.4rem; font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.ys-pick { display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; border: 1px dashed var(--line); border-radius: var(--r-card); padding: 0.3rem 0.5rem; }
+.ys-danger { border-color: var(--harkonnen); color: var(--harkonnen); }
+.dial-goal { display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: var(--ink-soft); }
+.dial-goal input { width: 2.6rem; padding: 0.15rem 0.3rem; border: 1px solid var(--line); border-radius: 6px; background: var(--sand-0); color: var(--ink); }
+
+/* --- victory scene ------------------------------------------------------------------- */
+.victory {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--bone);
+  animation: sweep-in var(--t-sweep) both;
+}
+.victory.harkonnen { background: radial-gradient(90% 70% at 50% 30%, #5d1520 0%, #1a070b 75%); }
+.victory.atreides { background: radial-gradient(90% 70% at 50% 30%, #1e4a3d 0%, #071510 75%); }
+.vc-sigil { opacity: 0.95; animation: shimmer 3s ease-in-out infinite; border-radius: 50%; padding: 1.1rem; border: 2px solid currentColor; }
+.victory h1 { margin: 0; font-family: var(--font-display); font-size: clamp(1.6rem, 6vw, 2.6rem); letter-spacing: 0.06em; }
+.vc-reason { margin: 0; font-size: 1.05rem; opacity: 0.9; max-width: 30rem; }
+.vc-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.8rem 1.4rem; font-size: 0.9rem; opacity: 0.85; }
+.vc-stats span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.vc-actions { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.6rem; }
+.vc-review { background: transparent; color: var(--bone); border-color: rgba(251,246,236,0.4); justify-content: center; }
