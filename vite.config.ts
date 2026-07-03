@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import pkg from './package.json';
 
 // Vite app config. The pure-TS engine lives in src/engine and is consumed by the UI in src/ui.
 export default defineConfig({
@@ -8,6 +9,7 @@ export default defineConfig({
   // Relative asset paths so the production build also works when dist/index.html is opened
   // directly (file://), not just when served. Dev still requires `npm run dev`.
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Vitest covers the unit suites only; e2e/*.spec.ts belongs to Playwright.
   test: { include: ['src/**/*.test.ts'] },
   plugins: [

@@ -3,6 +3,58 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [0.4.0] — 2026-07-03
+
+The "everything in the plan" release: both victory paths, the Atreides turn panel, guided
+onboarding, an original‑art map, dark theme, PWA install, and a CI‑run full‑game E2E suite.
+
+### Added
+- **Victory engine** — the Atreides Secret Objective (player‑entered targets) joins the Harkonnen
+  supremacy track; prescience economy (cards, testing stations, settlement destruction) and a
+  proper **end‑of‑game screen** for both winners (the `alert()` is gone).
+- **"Your turn (Atreides)" panel** — prescience markers + objective, take testing stations,
+  destroy settlements, reveal sietches (voluntary‑reveal reinforcement rule), and the solo
+  Bene Gesserit rule — no more mid‑game editor digging.
+- **Atreides named leaders** — all 8 House Atreides / Fremen Ally leaders with their real combat
+  strips resolve in battles; editor picker for Atreides legions.
+- **Attack → battle handoff** — attack directives move the attacker in and open the Battle panel
+  focused on that fight.
+- **Guided setup wizard** — 7 steps from an empty table to a running game, with tappable area
+  chips and a "how a round flows" primer.
+- **Map art pass (all original)** — hand‑drawn piece silhouettes (troopers with counts, sietch
+  arches, settlement keeps, harvester crawlers, sandworm maw vs wormsign ripple, air‑zone wing
+  marks), sand‑grain texture, deep‑desert ripples, and the board's double‑red impassable walls
+  traced along full shared borders.
+- **Night on Arrakis** dark theme (full contrast sweep; Harkonnen‑crimson accent) and subtle
+  WebAudio **sound cues** (both toggleable in the header).
+- **PWA** — installable, offline‑capable (manifest + auto‑updating service worker) — replaces the
+  old Capacitor plan. Favicon + app icons (original art).
+- **Full‑game E2E suite** — 5 Playwright journeys (full round, battle, rule‑filtered map move,
+  wizard, both victories) running on every push/PR in CI.
+- Sticky **status strip**; single **round driver** in the walkthrough; toasts + history entries
+  for every applied action; tap‑friendly −/+ steppers for all dice entry; footer version + GitHub
+  link.
+
+### Changed
+- **Map‑first everywhere:** every area selection opens the board map with only rule‑legal areas
+  selectable (moves respect sandriding/troop‑transport/stacking room; deploys respect settlements
+  and capacity). The last dropdowns (target sietch, deploy destination) are gone.
+- Manual moves respect the stacking limit (destination‑capacity clamp, CHOAM‑aware) and drop the
+  2‑token garrison when fully leaving a settlement; "This round" is info‑only; Games/editor
+  collapse into a Setup group; the Reset‑to‑demo button was removed.
+
+### Fixed
+- Gaius Helen Mohiam's solo special is the p9 override (draw 3 Corrino cards).
+- Battle token‑reveal labels are faction‑correct (Fedaykin, not Sardaukar, for Atreides).
+- Impassable walls no longer render as short stubs/ticks.
+- Pages deploys auto‑retry after GitHub's transient "try again later" error.
+
+### Engine
+- **275 unit tests** (victory, stacking, garrison, Atreides leaders, reserve‑deploy areas) plus
+  the 5‑journey Playwright suite.
+
+[0.4.0]: https://github.com/ianpogi5/dune-war-for-arrakis/releases/tag/v0.4.0
+
 ## [0.3.0] — 2026-07-01
 
 A playtesting pass: the board map became a floating pop-over used for every area pick, deployment

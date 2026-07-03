@@ -3,7 +3,7 @@
 // is a clickable 📍 chip that pulses the spot on the board map, so a brand-new player can see
 // exactly where each piece goes. The final steps teach how a round flows.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AREA_IDS, AREAS } from '../engine/board';
 import { NAMED_LEADERS } from '../engine/leaders';
 import { newGameState } from '../engine/newGame';
@@ -172,12 +172,22 @@ export function SetupWizard({
   onFinish: (s: GameState) => void;
 }) {
   const [step, setStep] = useState(0);
-  if (!open) return null;
   const last = step === STEPS.length - 1;
   const close = () => {
     setStep(0);
     onClose();
   };
+  // Escape closes the wizard (matching the map/history overlays).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+  if (!open) return null;
 
   return (
     <div className="map-modal-overlay wizard-overlay" onClick={close}>

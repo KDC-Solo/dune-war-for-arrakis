@@ -2025,6 +2025,12 @@ export function App() {
           Unofficial fan companion for solo play. Not affiliated with or endorsed by CMON, Gale Force Nine, or Herbert
           Properties LLC. No game art or components are reproduced — you need your own copy of the game.
         </small>
+        <small className="footer-meta">
+          v{__APP_VERSION__} ·{' '}
+          <a href="https://github.com/ianpogi5/dune-war-for-arrakis" target="_blank" rel="noreferrer">
+            Source &amp; issues on GitHub
+          </a>
+        </small>
       </footer>
 
       <BoardMapPanel

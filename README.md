@@ -19,15 +19,24 @@ truth; the app is the co‑processor.**
 ## Screenshots
 
 ### Interactive board map
-Every one of the 101 areas, drawn as its real traced shape and colored by terrain (impassable walls
-and air zones included), with your pieces overlaid (legions, sietches, settlements, the target‑sietch
-halo, wormsigns). It opens as a floating overlay from the **🗺 button** (bottom‑right) anywhere on the
-page. Hover or tap a dot for full details, or use **Find an area** to locate one — any area or
-air‑zone name elsewhere in the app jumps here and pulses it. Pinch‑zoom & pan on touch. Whenever you
-set an area (a legion, wormsign, the target sietch…) the map pops open to **pick it by tapping**, then
-closes right back to where you were.
+Every one of the 101 areas, drawn as its real traced shape and colored by terrain, with sand‑grain
+texture, deep‑desert ripples, the board's double‑red impassable walls, air zones — and your whole
+game state as **original hand‑drawn silhouettes**: trooper figures with stack counts, sietch arches,
+settlement keeps, harvester crawlers, sandworm maws vs wormsign ripples, and wing marks for
+ornithopters/carryalls. It opens as a floating overlay from the **🗺 button** anywhere on the page.
+Whenever you set an area (a legion, wormsign, the target sietch, a move destination…) the map pops
+open to **pick it by tapping — only rule‑legal areas are selectable**, the rest are dimmed. Any area
+name anywhere in the app is a clickable 📍 chip that jumps here and pulses the spot. Pinch‑zoom & pan
+on touch.
 
 ![Board map](screenshots/board-map.png)
+
+### Guided setup & teach‑the‑solo‑mode
+A step‑by‑step wizard walks a brand‑new player through laying out the physical board — every listed
+area is a tappable chip that pulses the map — and ends with the matching in‑app game plus a
+"how a round flows" primer.
+
+![Guided setup](screenshots/guided-setup.png)
 
 ### Run the Harkonnen turn
 Roll the physical action die, tap the face, and the app gives a plain‑English directive — applying
@@ -51,8 +60,16 @@ never drift.
 
 ![State editor](screenshots/editor.png)
 
-### Works on a phone
-Responsive layout; the board map supports pinch‑zoom and pan so dots stay tappable.
+### Night on Arrakis
+A dark theme for evening play (🌙 in the header), with the whole UI swept for contrast and the
+accent kept in the Harkonnen crimson family.
+
+![Dark mode](screenshots/dark-mode.png)
+
+### Works on a phone — and installs as an app
+Responsive layout with tap‑friendly −/+ steppers for all dice entry; the board map supports
+pinch‑zoom and pan. It's a **PWA**: install it to your phone/tablet home screen and it works
+offline at the table.
 
 ![Mobile board map](screenshots/mobile-map.png)
 
@@ -61,25 +78,34 @@ Responsive layout; the board map supports pinch‑zoom and pan so dots stay tapp
 ## Features
 
 - **Full Harkonnen decision engine** — action‑die resolution (Leadership/Strategy/Mentat/Deployment/
-  House) via the solo priority cascade, shortest‑path movement, the "cease attack" rule, deployment,
-  vehicle placement, and planning‑card / named‑leader special abilities.
-- **Round‑by‑round battle resolver** — enter each round's physical dice; the app reveals deployment
-  tokens to units at the start of the battle, then applies the Harkonnen casualty priority, leader
-  combat abilities, reinforcement spending, reserve replenishment, and destroys a taken sietch.
-- **Desert Hazards** — official wormsign placement (terrain + occupancy rules) and Coriolis storm
-  resolution.
-- **Spice Must Flow** — imperium markers drive action‑dice and vehicle availability and the bans;
-  a harvesting panel previews and applies the solo spice allocation, completing the round in‑app.
-- **Floating board map** — all 101 areas drawn as their real traced shapes, colored by terrain
-  (or by sector), with impassable walls, air zones, and your whole game state overlaid. It opens as
-  an overlay from a 🗺 button anywhere, and is the way you set every area: tap the board instead of
-  hunting a dropdown, and it closes back to where you were. Locate any area or air zone from anywhere
-  — names everywhere are clickable and pulse the map. Pinch‑zoom & pan on touch.
-- **Editor with safety rails** — set the whole board state (imperium markers, legions, sietch/
-  settlement ranks, wormsigns, reserve); deploy from the reserve without desyncing totals, with a
-  drift indicator that flags an over‑budget figure count.
-- **Persistence** — auto‑save to the browser, multiple named saves, plus JSON export/import.
-- **Built to be trustworthy** — a headless, pure‑TypeScript engine covered by **245 tests**.
+  House) via the solo priority cascade, shortest‑path movement with all tie‑breakers, stacking
+  limits (CHOAM ban aware), the "cease attack" rule, deployment, vehicle placement, and
+  planning‑card / named‑leader special abilities.
+- **Both victory paths** — the Harkonnen supremacy track *and* the Atreides Secret Objective:
+  track your 3 prescience markers, take testing stations, destroy settlements, and the app
+  announces the winner with a proper end‑of‑game screen.
+- **Your‑turn panel (Atreides)** — record what the AI depends on without touching the editor:
+  prescience & objective, sietch reveals (with the voluntary‑reveal reinforcement rule), testing
+  stations, settlement destruction, and the solo Bene Gesserit rule.
+- **Round‑by‑round battle resolver** — attack directives hand off straight into the Battle panel
+  (attacker moved in for you); deployment tokens flip to units, then each round applies the
+  Harkonnen casualty priority, **named‑leader combat strips for both sides** (all 8 Atreides/Fremen
+  leaders included), reinforcement spending, reserve replenishment, and destroys a taken sietch.
+- **Desert Hazards & Spice Must Flow** — official wormsign placement, Coriolis storms, and a
+  harvesting panel that previews and applies the solo spice allocation, completing the round in‑app.
+- **Floating board map, map‑first everywhere** — every area you set is picked by tapping the board,
+  with **only rule‑legal areas selectable** (moves respect sandriding, troop‑transport, and stacking
+  room; deploys respect settlements and capacity). All artwork is original: traced area shapes,
+  hand‑drawn piece silhouettes, sand texture, the double‑red impassable walls.
+- **Guided setup & onboarding** — a wizard lays out the physical board step by step and teaches the
+  round flow; a phase‑gated walkthrough then drives every round from one stepper.
+- **Quality of life** — sticky status strip (round · phase · supremacy · dice · target ·
+  prescience), undo with a full action history, toasts + sound cues for every applied action,
+  dark theme, tap‑friendly steppers.
+- **Persistence & install** — auto‑save, multiple named saves, JSON export/import, and a PWA
+  service worker so it installs and runs offline.
+- **Built to be trustworthy** — a headless, pure‑TypeScript engine covered by **275 unit tests**,
+  plus a **full‑game Playwright E2E suite** (five player journeys, run on every push in CI).
 
 ## How it works
 
@@ -101,6 +127,7 @@ Other scripts:
 npm run build      # type-check + production build to dist/
 npm run preview    # serve the production build
 npm test           # run the engine test suite (vitest)
+npm run test:e2e   # full-game Playwright suite (needs a build; CI installs its own chromium)
 npm run typecheck  # tsc --noEmit
 ```
 
@@ -128,7 +155,9 @@ and conventions (game rules live in the tested pure‑TS engine; the UI stays ru
 
 ## Status
 
-The Mahdi‑solo engine and UI are feature‑complete and shipped. See `PLAN.md` for the roadmap.
+The Mahdi‑solo experience is feature‑complete and shipped: the full Harkonnen AI, both victory
+paths, guided onboarding, and a CI‑run end‑to‑end suite that plays complete games through the UI.
+See `PLAN.md` for the remaining backlog (small p9 edge cases) and history.
 
 ## Disclaimer
 
