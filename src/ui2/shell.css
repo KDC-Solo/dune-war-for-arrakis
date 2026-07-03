@@ -449,3 +449,109 @@ html[data-ui='v2'] body {
   box-shadow: var(--shadow);
   animation: drift-in var(--t-drift) both;
 }
+
+/* --- directive card (the AI's order) ------------------------------------------ */
+.directive-card { display: flex; flex-direction: column; gap: 0.45rem; }
+.dc-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--harkonnen);
+}
+.dc-text { margin: 0; font-size: 1.05rem; line-height: 1.35; }
+.dc-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; flex-wrap: wrap; }
+.dc-battle { background: var(--harkonnen); }
+.dc-manual { font-size: 0.85rem; color: var(--ink-soft); font-style: italic; }
+
+/* --- battle screen (night takeover) --------------------------------------------- */
+.battle-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow-y: auto;
+  background:
+    radial-gradient(120% 70% at 50% -10%, #22344a 0%, transparent 55%),
+    linear-gradient(170deg, var(--night), #060a10);
+  color: var(--bone);
+  padding: 0.8rem 0.9rem calc(1.2rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  animation: sweep-in var(--t-sweep) both;
+}
+@keyframes sweep-in {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0); }
+}
+.bs-head { display: flex; align-items: center; gap: 0.55rem; }
+.bs-head h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-title); letter-spacing: 0.04em; flex: 1; }
+.bs-close { color: var(--bone); }
+.bs-cols { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.6rem; align-items: start; }
+.bs-col {
+  border: 1px solid rgba(251, 246, 236, 0.16);
+  border-top: 4px solid;
+  border-radius: var(--r-card);
+  background: rgba(251, 246, 236, 0.05);
+  padding: 0.6rem 0.7rem;
+}
+.bs-col.harkonnen { border-top-color: var(--harkonnen); }
+.bs-col.atreides { border-top-color: var(--atreides); }
+.bs-col h3 { margin: 0 0 0.4rem; font-family: var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.85rem; }
+.bs-units { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.95rem; }
+.bs-units span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.bs-units em { font-style: normal; font-size: 0.75rem; opacity: 0.7; }
+.bs-named { margin-top: 0.4rem; font-size: 0.82rem; font-style: italic; opacity: 0.85; }
+.bs-vs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding-top: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+}
+.bs-round { font-size: 1.5rem; color: var(--fremen); }
+.bs-sietch { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; opacity: 0.8; }
+.bs-panel {
+  border: 1px solid rgba(251, 246, 236, 0.16);
+  border-radius: var(--r-card);
+  background: rgba(251, 246, 236, 0.05);
+  padding: 0.75rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.bs-note { margin: 0; font-size: 0.9rem; opacity: 0.85; }
+.bs-rollrow {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--r-card);
+  border-left: 4px solid rgba(251, 246, 236, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+}
+.bs-rollrow.harkonnen { border-left-color: var(--harkonnen); }
+.bs-rollrow.atreides { border-left-color: var(--atreides); }
+.bs-rollrow strong { min-width: 6rem; font-family: var(--font-display); letter-spacing: 0.04em; }
+.bs-count { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; }
+.battle-screen .mini-stepper button { background: rgba(251, 246, 236, 0.08); color: var(--bone); border-color: rgba(251, 246, 236, 0.25); }
+.bs-surprise { display: flex; align-items: center; gap: 0.5rem; font-size: 0.92rem; }
+.bs-outcome { text-align: center; animation: tremor 300ms ease-in-out 1; }
+.bs-outcome h3 { margin: 0.2rem 0; font-family: var(--font-display); font-size: 1.3rem; }
+.bs-outcome h3.hk { color: var(--harkonnen); }
+.bs-outcome h3.at { color: #7fc9a8; }
+@keyframes tremor {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}

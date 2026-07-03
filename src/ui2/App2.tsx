@@ -14,13 +14,16 @@ import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } fro
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
-import { moveLegionUnits } from '../engine/applyAction';
+import { moveLegionUnits, applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
+import { resolveAction, type HarkonnenAction } from '../engine/harkonnenActions';
+import { describeAction, actionHeadline } from '../ui/describeAction';
 import { areaLabel } from '../ui/describeAction';
 import { BoardMap } from '../ui/BoardMap';
 import { Icon, type IconName } from './icons';
 import { guideFor } from './flow';
 import { useGame } from './useGame';
 import { AreaSheet, type MovePick } from './AreaSheet';
+import { BattleScreen } from './BattleScreen';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
 const DIE: { face: ActionResult; icon: IconName; label: string }[] = [
@@ -48,6 +51,8 @@ export function App2() {
   const [sheet, setSheet] = useState<SheetId>(null);
   const [areaOpen, setAreaOpen] = useState<string | null>(null);
   const [movePick, setMovePick] = useState<MovePick | null>(null);
+  // The Harkonnen directive being reviewed (die tapped → AI order → confirm/battle/done).
+  const [directive, setDirective] = useState<HarkonnenAction | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       return localStorage.getItem('dwfa.theme') === 'dark' ? 'dark' : 'light';
@@ -90,6 +95,58 @@ export function App2() {
     const legion = s.legions.find((l) => l.faction === movePick.faction && l.area === movePick.from);
     return legion ? legalMoveDestinations(s, legion) : new Set<string>();
   }, [movePick, s]);
+
+  // Areas a pending directive touches — glowed on the stage behind the card.
+  const directiveGlow = useMemo(() => {
+    if (!directive) return null;
+    switch (directive.kind) {
+      case 'attack_sietch':
+        return [directive.attacker, directive.sietch];
+      case 'attack_legion':
+        return [directive.attacker, directive.defender];
+      case 'move':
+        return [directive.path[0], directive.path[directive.path.length - 1]];
+      case 'deploy':
+        return directive.placements.map((p) => p.settlement);
+      case 'house_replace':
+        return [directive.legion];
+      default:
+        return [];
+    }
+  }, [directive]);
+
+  const rollDie = (face: ActionResult) => setDirective(resolveAction(s, face));
+
+  const confirmDirective = () => {
+    if (!directive) return;
+    const res = applyHarkonnenAction(s, directive);
+    if (res.applied) {
+      commit(res.state, { headline: actionHeadline(directive), text: describeAction(directive), note: res.note });
+    } else {
+      setToast(res.note ?? 'Nothing to apply');
+    }
+    setDirective(null);
+  };
+
+  // An attack directive: move the attacker onto the defender (board mirrors it) and open battle.
+  const directiveToBattle = () => {
+    if (!directive || (directive.kind !== 'attack_sietch' && directive.kind !== 'attack_legion')) return;
+    const defArea = directive.kind === 'attack_sietch' ? directive.sietch : directive.defender;
+    const atk = s.legions.find((l) => l.faction === 'harkonnen' && l.area === directive.attacker);
+    if (atk) {
+      commit(
+        moveLegionUnits(s, 'harkonnen', directive.attacker, defArea, {
+          units: atk.units,
+          deploymentTokens: atk.deploymentTokens,
+          leaderIndices: atk.leaders.map((_, i) => i),
+        }),
+        { headline: actionHeadline(directive), text: describeAction(directive), note: 'Attacker moved in — resolve the battle.' },
+      );
+      setBattleArea(defArea);
+    }
+    setDirective(null);
+  };
+  const [battleArea, setBattleArea] = useState<string | null>(null);
 
   const onStageSelect = (id: string) => {
     if (movePick && moveDests) {
@@ -144,7 +201,7 @@ export function App2() {
           state={s}
           fill
           highlight={areaOpen}
-          glow={moveDests ? [...moveDests] : undefined}
+          glow={moveDests ? [...moveDests] : directiveGlow ?? undefined}
           picking={!!movePick}
           selectable={moveDests ? (id) => moveDests.has(id) : undefined}
           onSelect={onStageSelect}
@@ -152,7 +209,24 @@ export function App2() {
 
         {/* Guide bar — during a move pick it narrates the pick; otherwise the flow step. */}
         <div className={`guide${outcome.winner ? ' won' : ''}`}>
-          {movePick ? (
+          {directive ? (
+            <div className="directive-card">
+              <div className="dc-head">
+                <Icon name="leadership" size={16} /> {actionHeadline(directive)}
+              </div>
+              <p className="dc-text">{describeAction(directive)}</p>
+              <div className="dc-actions">
+                {directive.kind === 'attack_sietch' || directive.kind === 'attack_legion' ? (
+                  <button className="g-primary dc-battle" onClick={directiveToBattle}>⚔ To battle</button>
+                ) : isAutoApplied(directive) ? (
+                  <button className="g-primary" onClick={confirmDirective}>Confirm &amp; apply</button>
+                ) : directive.kind === 'none' ? null : (
+                  <span className="dc-manual">Resolve this on the board, then record any changes.</span>
+                )}
+                <button className="as-btn" onClick={() => setDirective(null)}>Dismiss</button>
+              </div>
+            </div>
+          ) : movePick ? (
             <>
               <div className="g-text">
                 <span className="g-now">Choose a destination</span>
@@ -174,7 +248,7 @@ export function App2() {
               {guide.showDice && (
                 <div className="g-dice" role="group" aria-label="Harkonnen die result">
                   {DIE.map((d) => (
-                    <button key={d.face} className="g-die" title={`${d.label} — directive cards arrive in M2`} disabled>
+                    <button key={d.face} className="g-die" onClick={() => rollDie(d.face)}>
                       <Icon name={d.icon} size={20} />
                       <span>{d.label}</span>
                     </button>
@@ -207,9 +281,9 @@ export function App2() {
             setAreaOpen(null);
             setMovePick(pick);
           }}
-          onBattleHere={() => {
+          onBattleHere={(a) => {
             setAreaOpen(null);
-            setToast('The battle screen lands in M3');
+            setBattleArea(a);
           }}
         />
       )}
@@ -299,6 +373,8 @@ export function App2() {
           </section>
         </div>
       )}
+
+      {battleArea && <BattleScreen game={game} area={battleArea} onClose={() => setBattleArea(null)} />}
 
       {toast && <div className="toast2" role="status">✓ {toast}</div>}
     </div>
