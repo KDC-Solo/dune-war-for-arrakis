@@ -64,6 +64,11 @@ export function YouSheet({ game }: { game: Game }) {
   return (
     <>
       <h2><Icon name="prescience" size={18} /> Your side (Atreides)</h2>
+      <p className="sheet-hint">
+        <b>Moves &amp; worm tokens live on the board:</b> tap an area → <em>Move</em> glows your
+        legal destinations (sandriding included); desert areas offer <em>Wormsign</em> /
+        <em>Sandworm</em> buttons. This sheet tracks everything else.
+      </p>
 
       <div className="presc-dials">
         {PRESCIENCE_MARKERS.map((m, i) => (
