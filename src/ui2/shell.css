@@ -613,3 +613,28 @@ html[data-ui='v2'] body {
 .more-import input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .more-save { display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line); border-radius: var(--r-card); padding: 0.4rem 0.7rem; background: color-mix(in srgb, var(--sand-0) 60%, var(--sand-1)); }
 .more-save span { flex: 1; font-weight: 600; }
+
+/* --- v2 reskin of the setup wizard (component shared with v1) ---------------------- */
+.ui2 ~ * .wizard, /* portal safety */
+.ui2 .wizard,
+.map-modal-overlay.wizard-overlay .wizard {
+  font-family: var(--font-body);
+}
+html[data-ui='v2'] .map-modal-overlay.wizard-overlay { z-index: 75; background: rgba(14, 23, 34, 0.55); }
+html[data-ui='v2'] .wizard {
+  background: var(--sand-0);
+  border: 1.5px solid var(--spice);
+  border-radius: var(--r-sheet);
+  box-shadow: var(--shadow), 0 0 0 5px var(--spice-soft);
+  color: var(--ink);
+}
+html[data-ui='v2'] .wizard h2 { font-family: var(--font-display); letter-spacing: 0.03em; border: none; }
+html[data-ui='v2'] .wizard .confirm-btn {
+  background: var(--spice);
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+html[data-ui='v2'] .wizard .wizard-dot.current { background: var(--spice); border-color: var(--spice); }
+html[data-ui='v2'] .wizard .wizard-dot.done { background: var(--fremen); border-color: var(--fremen); }
+.welcome h2 { border-bottom-color: var(--spice); }

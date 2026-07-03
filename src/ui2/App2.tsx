@@ -26,6 +26,8 @@ import { BattleScreen } from './BattleScreen';
 import { YouSheet } from './YouSheet';
 import { VictoryScene } from './VictoryScene';
 import { TurnSheet } from './TurnSheet';
+import { SetupWizard } from '../ui/SetupWizard';
+import { play } from '../ui/sound';
 import { VehiclesPanel, HazardsPanel, SpicePanel } from './PhasePanels';
 import { exportState, importState, listSaves, saveNamedGame, loadNamedGame, deleteNamedGame } from '../ui/persistence';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
@@ -90,9 +92,11 @@ export function App2() {
   }, [atmosphere]);
 
   const guide = useMemo(() => guideFor(s), [s]);
+  const winner = gameOutcome(s).winner;
   useEffect(() => {
-    if (!gameOutcome(s).winner) setSceneDismissed(false);
-  }, [s]);
+    if (!winner) setSceneDismissed(false);
+    else play('win');
+  }, [winner]);
   const outcome = gameOutcome(s);
 
   // Move flow: legal destinations glow; tapping one applies the move.
@@ -154,6 +158,23 @@ export function App2() {
   };
   const [battleArea, setBattleArea] = useState<string | null>(null);
   const [sceneDismissed, setSceneDismissed] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  // First visit (no saved game yet): offer the guided setup once.
+  const [welcome, setWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem('dwfa.state.v1') && !localStorage.getItem('dwfa.v2.welcomed');
+    } catch {
+      return false;
+    }
+  });
+  const dismissWelcome = () => {
+    setWelcome(false);
+    try {
+      localStorage.setItem('dwfa.v2.welcomed', 'yes');
+    } catch {
+      /* ignore */
+    }
+  };
 
   const onStageSelect = (id: string) => {
     if (movePick && moveDests) {
@@ -341,6 +362,9 @@ export function App2() {
                   <button onClick={() => setAtmosphere(!atmosphere)}>
                     <Icon name="wormsign" size={16} /> Atmosphere {atmosphere ? 'on' : 'off'}
                   </button>
+                  <button onClick={() => { setSheet(null); setWizardOpen(true); }}>
+                    🧭 Guided setup
+                  </button>
                   <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) { startNew(); setSheet(null); } }}>
                     <Icon name="objective" size={16} /> New game
                   </button>
@@ -431,6 +455,39 @@ export function App2() {
       )}
 
       {battleArea && <BattleScreen game={game} area={battleArea} onClose={() => setBattleArea(null)} />}
+
+      <SetupWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onFinish={(next) => {
+          game.loadGame(next);
+          setToast('The board is set — begin round 1');
+        }}
+      />
+
+      {welcome && (
+        <div className="sheet-veil" onClick={dismissWelcome}>
+          <section className="sheet welcome" role="dialog" aria-label="Welcome" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-grip" />
+            <h2><Icon name="prescience" size={18} /> First time on Arrakis?</h2>
+            <p className="sheet-hint">
+              You play the Atreides on your physical board; this app runs the Harkonnen AI and always
+              shows the one next thing to do, down in the spice-orange bar.
+            </p>
+            <div className="more-rows">
+              <button
+                onClick={() => {
+                  dismissWelcome();
+                  setWizardOpen(true);
+                }}
+              >
+                🧭 Walk me through the setup
+              </button>
+              <button onClick={dismissWelcome}>I know the drill — explore the demo</button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {outcome.winner && !sceneDismissed && (
         <VictoryScene

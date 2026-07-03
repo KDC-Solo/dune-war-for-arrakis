@@ -40,6 +40,9 @@ async function runBattle(page: Page) {
 test('v2: a full round plays through the guide bar', async ({ page }) => {
   page.on('dialog', (d) => d.accept());
   await page.goto('/');
+  // First visit: the welcome sheet offers guided setup — take the demo path here.
+  const demo = page.getByRole('button', { name: /I know the drill/ });
+  if (await demo.isVisible().catch(() => false)) await demo.click();
   // Fresh game via More sheet.
   await page.getByRole('button', { name: 'More' }).click();
   await page.getByRole('button', { name: /New game/ }).click();
