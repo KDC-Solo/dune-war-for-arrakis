@@ -74,6 +74,15 @@ export function BattleScreen({ game, area, onClose }: { game: Game; area: string
   const [def, setDef] = useState<RawRoll>(emptyRaw);
 
   const sietch = s.sietches.find((si) => si.area === area && !si.destroyed);
+  // Attacking a sietch flips its rank token (rulebook): an unrevealed rank must be entered
+  // before the battle starts — the defender adds it to their combat dice.
+  const needRank = !!sietch && !sietch.revealed;
+  const chooseRank = (rank: 1 | 2 | 3) => {
+    commit(
+      { ...s, sietches: s.sietches.map((si) => (si.area === area ? { ...si, revealed: true, rank } : si)) },
+      { headline: 'Sietch revealed', text: `${areaLabel(area)} — rank ${rank}` },
+    );
+  };
 
   const start = (atkL: Legion, defL: Legion) => {
     const ctx: BattleContext = {
@@ -148,7 +157,23 @@ export function BattleScreen({ game, area, onClose }: { game: Game; area: string
             <LegionCol l={session?.defender ?? defender} side="atreides" />
           </div>
 
-          {reveal && (
+          {needRank && (
+            <div className="bs-panel">
+              <p className="bs-note">
+                The attack flips the sietch's rank token — what does it show? (The defender adds
+                the rank to their combat dice.)
+              </p>
+              <div className="bs-rankrow">
+                {[1, 2, 3].map((r) => (
+                  <button key={r} className="g-primary bs-rank" onClick={() => chooseRank(r as 1 | 2 | 3)}>
+                    Rank {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!needRank && reveal && (
             <div className="bs-panel">
               <p className="bs-note">Flip the facedown tokens — enter the units they reveal.</p>
               {attacker.deploymentTokens > 0 && (
@@ -171,7 +196,7 @@ export function BattleScreen({ game, area, onClose }: { game: Game; area: string
             </div>
           )}
 
-          {!reveal && !session && (
+          {!needRank && !reveal && !session && (
             <div className="bs-panel">
               <label className="bs-surprise">
                 <input type="checkbox" checked={surprise} onChange={(e) => setSurprise(e.target.checked)} />

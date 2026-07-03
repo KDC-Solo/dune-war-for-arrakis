@@ -655,3 +655,6 @@ html[data-ui='v2'] .wizard .wizard-dot.done { background: var(--fremen); border-
 }
 .loc-chip:hover { color: var(--spice); }
 .loc-chip.az { text-decoration-color: #3f6db0; }
+
+.bs-rankrow { display: flex; gap: 0.6rem; }
+.bs-rank { flex: 1; animation: none; }
