@@ -1684,7 +1684,9 @@ label.mini.smf-collected input {
   --sand: #6b5535;
   --ink: #ecdfc8;
   --panel: #251c11;
-  --accent: #d05a6e;
+  /* Harkonnen crimson tuned for night: same blood-red family as the printed #8b1f30 (kept
+     saturated and only moderately lightened so it reads maroon, not pink). */
+  --accent: #c03a44;
   --gold: #d3a53f;
   --line: #4a3a26;
 }
