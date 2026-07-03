@@ -38,6 +38,20 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Preview of the v2 reimagining (branch `v2`, see PRD.md there) served under /v2/.
+      # The app builds with relative asset paths, so it is subfolder-safe; its service worker
+      # scopes to /v2/. Remove this step when v2 replaces v1 at the M7 parity gate.
+      - name: Build v2 preview into dist/v2
+        run: |
+          git fetch origin v2 --depth 1
+          git worktree add /tmp/v2 origin/v2
+          cd /tmp/v2
+          npm ci
+          npm run build
+          rm -f dist/CNAME
+          mkdir -p "$GITHUB_WORKSPACE/dist/v2"
+          cp -r dist/. "$GITHUB_WORKSPACE/dist/v2/"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

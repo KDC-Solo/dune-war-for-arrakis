@@ -18,6 +18,9 @@ export default defineConfig({
     // worker precaches the built assets and auto-updates on new deploys.
     VitePWA({
       registerType: 'autoUpdate',
+      // The /v2/ preview is its own app (own SW, scoped there) — the root SW must not serve
+      // the v1 shell for its navigations.
+      workbox: { navigateFallbackDenylist: [/^\/v2\//] },
       includeAssets: ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png'],
       manifest: {
         name: 'Dune: War for Arrakis — Solo Companion',
