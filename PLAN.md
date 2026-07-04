@@ -271,10 +271,10 @@ Board-first rebuild per PRD.md; engine reused unchanged; v1 reachable via `?clas
 5. **Rules audit vs fan-summary p9 — ✅ DONE (2026-07-03).** Fixed: Gaius solo special is
    draw-3-Corrino (was base-game draw-2-play-1). Added: BG-token rule, voluntary-reveal
    bonus, settlement-exit garrison on manual moves. **Still open (small):**
-   - [ ] Deployment-token pool exhaustion (p9): when the pool is empty and tokens must be
+   - [x] Deployment-token pool exhaustion (✅ 2026-07-04) (p9): when the pool is empty and tokens must be
          placed, reveal 2 tokens of choice on the board first, then place. The app
          currently just places fewer/none — surface a directive for this edge.
-   - [ ] Wormsign reveal when a Harkonnen legion enters a wormsign area is resolved
+   - [x] Wormsign reveal (✅ 2026-07-04) when a Harkonnen legion enters a wormsign area is resolved
          physically; add a help note pointing at the hazard tools for recording outcomes.
 6. **E2E full-game suite — ✅ DONE (2026-07-03, user request).** Playwright
    (`e2e/full-game.spec.ts`, 5 journeys): full round from a fresh game (all 5 dice, attack
