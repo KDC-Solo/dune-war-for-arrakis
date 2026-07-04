@@ -166,7 +166,7 @@ test('v2: entering the objective and destroying Arrakeen wins the game', async (
   s.phase = 'action_resolution';
   await seed(page, s);
   await page.goto('/');
-  await page.getByRole('button', { name: 'You' }).click();
+  await page.getByRole('button', { name: 'Atreides', exact: true }).click();
   const goals = page.locator('.dial-goal input');
   for (let i = 0; i < 3; i++) await goals.nth(i).fill('2');
   await page.getByRole('button', { name: /Arrakeen/ }).click();
@@ -348,7 +348,7 @@ test('v2: deploy-from-reserve places units via the stage pick and the drift mete
   await seed(page, s);
   await page.goto('/');
   // Turn sheet: pick 2 regulars + a Bashar, then choose where on the stage.
-  await page.getByRole('button', { name: 'Turn' }).click();
+  await page.getByRole('button', { name: 'Harkonnen', exact: true }).click();
   const sheet = page.locator('.sheet');
   await expect(sheet.locator('.ts-budget')).toContainText('✓'); // balanced before
   await sheet.getByRole('button', { name: 'Deploy Reg +1' }).click();
@@ -359,7 +359,7 @@ test('v2: deploy-from-reserve places units via the stage pick and the drift mete
   await page.locator('path[data-area="carthag"]').dispatchEvent('click');
   await expect(page.locator('.toast2')).toContainText('Deployed from reserve');
   // The reserve drew down as the units landed — totals stay conserved.
-  await page.getByRole('button', { name: 'Turn' }).click();
+  await page.getByRole('button', { name: 'Harkonnen', exact: true }).click();
   await expect(sheet.locator('.ts-budget')).toContainText('✓');
   await page.locator('.sheet-veil').click({ position: { x: 10, y: 10 } });
   // Free-editing units ABOVE the box count flips the meter to the warning.
@@ -367,7 +367,7 @@ test('v2: deploy-from-reserve places units via the stage pick and the drift mete
   await page.locator('.area-sheet .as-legion.harkonnen').getByRole('button', { name: 'Edit' }).click();
   for (let i = 0; i < 3; i++) await page.locator('.area-sheet').getByRole('button', { name: 'Regulars +1' }).click();
   await page.locator('.sheet-veil').click({ position: { x: 10, y: 10 } });
-  await page.getByRole('button', { name: 'Turn' }).click();
+  await page.getByRole('button', { name: 'Harkonnen', exact: true }).click();
   await expect(sheet.locator('.ts-budget')).toContainText('more than the box contains');
 });
 

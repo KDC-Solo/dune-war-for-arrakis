@@ -29,7 +29,7 @@ copy the `.mjs` in, run it, delete it afterwards.
   (e.g. push a legion into `.legions`) and reload — `src/ui/sampleState.ts` is the default state
   (round 3, `action_resolution`, target sietch `gara_kulon`).
 - Settings keys: `dwfa.aiBrain`, `dwfa.advisor`, `dwfa.theme`, `dwfa.atmosphere`.
-- Surfaces: dock buttons `.dock-btn` ("Turn" / "You" / "Log" / "More") open `.sheet` over a
+- Surfaces: dock buttons `.dock-btn` ("Harkonnen" / "Atreides" / "Log" / "More") open `.sheet` over a
   `.sheet-veil` (click the veil at its top-left corner to close). The guide bar (`.guide`) hosts
   the die faces `.g-die` and the directive card `.directive-card`. The Advisor floats over the
   stage as `.advisor-float` (drag by `.adv-head`; `.advisor-float.min` is the collapsed pill;

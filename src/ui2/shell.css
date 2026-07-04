@@ -253,6 +253,11 @@ html[data-ui='v2'] body {
   border-radius: var(--r-card);
 }
 .dock-btn.on { color: var(--spice); background: var(--spice-soft); }
+/* The two faction sheets carry their side's color so ownership reads at a glance. */
+.dock-btn.hk { color: var(--harkonnen); }
+.dock-btn.at { color: var(--atreides); }
+.dock-btn.hk.on { color: var(--harkonnen); background: color-mix(in srgb, var(--harkonnen) 12%, transparent); }
+.dock-btn.at.on { color: var(--atreides); background: color-mix(in srgb, var(--atreides) 12%, transparent); }
 
 /* --- bottom sheets ---------------------------------------------------------------- */
 .sheet-veil {

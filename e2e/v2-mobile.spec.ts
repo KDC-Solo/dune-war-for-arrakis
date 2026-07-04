@@ -108,7 +108,7 @@ test('mobile: all four dock sheets open and fit', async ({ page }) => {
   s.phase = 'action_resolution';
   await seed(page, s);
   await page.goto('/');
-  for (const dock of ['Turn', 'You', 'Log', 'More']) {
+  for (const dock of ['Harkonnen', 'Atreides', 'Log', 'More']) {
     await page.getByRole('button', { name: dock, exact: true }).click();
     await expect(page.locator('.sheet')).toBeVisible();
     await expectNoSidewaysScroll(page, `${dock} sheet`);

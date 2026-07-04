@@ -60,7 +60,7 @@ export function TurnSheet({ game, onStartDeploy }: { game: Game; onStartDeploy?:
 
   return (
     <>
-      <h2><Icon name="leadership" size={18} /> This round</h2>
+      <h2><Icon name="leadership" size={18} /> Harkonnen — this round</h2>
       <div className="kv2">
         <span><Icon name="mentat" size={16} /> Dice</span>
         <b>

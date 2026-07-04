@@ -407,7 +407,7 @@ export function App2() {
                       key={d.face}
                       className="g-die"
                       disabled={diceUsed >= diceAvail}
-                      title={diceUsed >= diceAvail ? 'All Harkonnen dice for this round are spent (adjust in the Turn sheet if needed)' : undefined}
+                      title={diceUsed >= diceAvail ? 'All Harkonnen dice for this round are spent (adjust in the Harkonnen sheet if needed)' : undefined}
                       onClick={() => rollDie(d.face)}
                     >
                       <Icon name={d.icon} size={20} />
@@ -427,8 +427,8 @@ export function App2() {
       </main>
 
       <nav className="dock">
-        <DockBtn icon="leadership" label="Turn" on={sheet === 'turn'} onClick={() => setSheet(sheet === 'turn' ? null : 'turn')} />
-        <DockBtn icon="prescience" label="You" on={sheet === 'you'} onClick={() => setSheet(sheet === 'you' ? null : 'you')} />
+        <DockBtn icon="leadership" label="Harkonnen" tone="hk" on={sheet === 'turn'} onClick={() => setSheet(sheet === 'turn' ? null : 'turn')} />
+        <DockBtn icon="prescience" label="Atreides" tone="at" on={sheet === 'you'} onClick={() => setSheet(sheet === 'you' ? null : 'you')} />
         <DockBtn icon="log" label="Log" on={sheet === 'log'} onClick={() => setSheet(sheet === 'log' ? null : 'log')} />
         <DockBtn icon="settings" label="More" on={sheet === 'more'} onClick={() => setSheet(sheet === 'more' ? null : 'more')} />
       </nav>
@@ -679,9 +679,9 @@ export function App2() {
   );
 }
 
-function DockBtn({ icon, label, on, onClick }: { icon: IconName; label: string; on: boolean; onClick: () => void }) {
+function DockBtn({ icon, label, on, onClick, tone }: { icon: IconName; label: string; on: boolean; onClick: () => void; tone?: 'hk' | 'at' }) {
   return (
-    <button className={`dock-btn${on ? ' on' : ''}`} onClick={onClick}>
+    <button className={`dock-btn${on ? ' on' : ''}${tone ? ` ${tone}` : ''}`} onClick={onClick}>
       <Icon name={icon} size={22} />
       <span>{label}</span>
     </button>
