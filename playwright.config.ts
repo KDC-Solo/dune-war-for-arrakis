@@ -15,6 +15,21 @@ export default defineConfig({
       ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM }
       : {},
   },
+  projects: [
+    // Desktop: every journey except the phone-specific spec.
+    { name: 'desktop', testIgnore: /mobile/ },
+    // Phone: the mobile spec only (portrait, touch) — the PWA's table form factor.
+    {
+      name: 'mobile',
+      testMatch: /mobile/,
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 2,
+      },
+    },
+  ],
   webServer: {
     command: 'npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173',

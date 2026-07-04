@@ -114,7 +114,8 @@ install it to your phone/tablet home screen and it works offline at the table.
 - **Persistence & install** — auto‑save, multiple named saves, JSON export/import, and a PWA
   service worker so it installs and runs offline.
 - **Built to be trustworthy** — a headless, pure‑TypeScript engine covered by **290 unit tests**,
-  plus a **full‑game Playwright E2E suite** (nine player journeys, including a complete campaign
+  plus a **full‑game Playwright E2E suite** (desktop + phone‑portrait projects, thirteen player
+  journeys, including a complete campaign
   from round 1 to victory, run on every push in CI).
 
 ## How it works
