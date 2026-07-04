@@ -511,6 +511,31 @@ html[data-ui='v2'] body {
 .dc-battle { background: var(--harkonnen); }
 .dc-manual { font-size: 0.85rem; color: var(--ink-soft); font-style: italic; }
 
+/* --- advisor card (the player's suggested move) ---------------------------------- */
+.advisor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--atreides);
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--atreides) 7%, transparent);
+}
+.adv-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--atreides);
+}
+.adv-head .ap-close { margin-left: auto; }
+.adv-text { margin: 0; font-size: 0.98rem; line-height: 1.35; }
+.adv-why { margin: 0; font-size: var(--fs-small); color: var(--ink-soft); font-style: italic; }
+
 /* --- battle screen (night takeover) --------------------------------------------- */
 .battle-screen {
   position: fixed;

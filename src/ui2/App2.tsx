@@ -10,6 +10,8 @@ import '../ui/styles.css';
 import './tokens.css';
 import './shell.css';
 import type { ActionResult, GameState } from '../engine/state';
+import { ATREIDES_ACTION_DICE } from '../engine/state';
+import { adviseAtreides } from '../engine/atreidesAdvisor';
 import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } from '../engine/round';
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
@@ -95,6 +97,28 @@ export function App2() {
       /* ignore */
     }
   }, [brain]);
+  // The player Advisor: optional suggested move during the action phase (off by default).
+  const [advisorOn, setAdvisorOn] = useState(() => {
+    try {
+      return localStorage.getItem('dwfa.advisor') === 'on';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('dwfa.advisor', advisorOn ? 'on' : 'off');
+    } catch {
+      /* ignore */
+    }
+  }, [advisorOn]);
+  // One dismiss silences the advisor for the rest of that action phase.
+  const [advisorHidden, setAdvisorHidden] = useState(false);
+  useEffect(() => setAdvisorHidden(false), [s.phase, s.round]);
+  const advice = useMemo(
+    () => (advisorOn && !advisorHidden && s.phase === 'action_resolution' ? adviseAtreides(s) : null),
+    [advisorOn, advisorHidden, s],
+  );
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -372,6 +396,24 @@ export function App2() {
               {s.phase === 'vehicle_placement' && <VehiclesPanel game={game} />}
               {s.phase === 'desert_hazards' && <HazardsPanel game={game} />}
               {s.phase === 'spice_harvesting' && <SpicePanel game={game} />}
+              {guide.showDice && advice && (s.atreidesDiceUsed ?? 0) < ATREIDES_ACTION_DICE && (
+                <div className="advisor-card">
+                  <div className="adv-head">
+                    <Icon name="prescience" size={14} /> Advisor suggests
+                    <button className="ap-close" onClick={() => setAdvisorHidden(true)} aria-label="Dismiss the advisor for this phase">✕</button>
+                  </div>
+                  <p className="adv-text">
+                    {advice.suggestion.kind === 'assault_settlement' ? (
+                      <>Assault the settlement at <AreaRef id={advice.suggestion.area} /> with your legion in <AreaRef id={advice.suggestion.from} />.</>
+                    ) : advice.suggestion.kind === 'attack_legion' ? (
+                      <>Attack the Harkonnen legion in <AreaRef id={advice.suggestion.area} /> with your legion in <AreaRef id={advice.suggestion.from} />.</>
+                    ) : (
+                      <>Move your legion from <AreaRef id={advice.suggestion.from} /> to <AreaRef id={advice.suggestion.to} />.</>
+                    )}
+                  </p>
+                  <p className="adv-why">{advice.why}</p>
+                </div>
+              )}
               {guide.showDice && (
                 <div className="g-dice" role="group" aria-label="Harkonnen die result">
                   {DIE.map((d) => (
@@ -487,6 +529,14 @@ export function App2() {
                       ))}
                     </select>
                   </label>
+                  <button
+                    onClick={() => {
+                      setAdvisorOn(!advisorOn);
+                      setToast(advisorOn ? 'Advisor off' : 'Advisor on — it suggests a move during the action phase');
+                    }}
+                  >
+                    <Icon name="prescience" size={16} /> Advisor (suggest my move) {advisorOn ? 'on' : 'off'}
+                  </button>
                   <button onClick={() => { setSheet(null); setWizardOpen(true); }}>
                     🧭 Guided setup
                   </button>
