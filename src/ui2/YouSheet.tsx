@@ -14,6 +14,7 @@ import {
   type PrescienceTriple,
 } from '../engine/victory';
 import { scoutingBanned } from '../engine/imperiumBans';
+import { HOUSE_ATREIDES_CARDS, FREMEN_ALLY_CARDS } from '../engine/atreidesCards';
 import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
 import type { Game } from './useGame';
@@ -22,6 +23,9 @@ export function YouSheet({ game }: { game: Game }) {
   const { s, commit } = game;
   const [stationPick, setStationPick] = useState<string | null>(null);
   const [revealPick, setRevealPick] = useState<string | null>(null);
+  const [cardRef, setCardRef] = useState('');
+  const refCard =
+    HOUSE_ATREIDES_CARDS.find((c) => c.id === cardRef) ?? FREMEN_ALLY_CARDS.find((c) => c.id === cardRef) ?? null;
   const objective = s.atreidesObjective ?? null;
 
   const setMarker = (i: number, next: number) => {
@@ -182,6 +186,22 @@ export function YouSheet({ game }: { game: Game }) {
           </button>
         ))}
       </div>
+
+      <h3 className="ys-h"><Icon name="log" size={15} /> Your planning cards <span className="sheet-hint">(reference — resolve on the board)</span></h3>
+      <select className="ts-select" value={cardRef} onChange={(e) => setCardRef(e.target.value)}>
+        <option value="">— look up a card —</option>
+        <optgroup label="House Atreides">
+          {HOUSE_ATREIDES_CARDS.slice().sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)).map((c) => (
+            <option key={c.id} value={c.id}>{c.name}{c.id.endsWith('_a') ? ' (Wormsigns)' : c.id.endsWith('_b') ? ' (Elites)' : c.id.endsWith('_c') ? ' (Vehicles)' : ''}</option>
+          ))}
+        </optgroup>
+        <optgroup label="Fremen Ally">
+          {FREMEN_ALLY_CARDS.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => (
+            <option key={c.id} value={c.id}>{c.name}{(c.copies ?? 1) > 1 ? ` ×${c.copies}` : ''}</option>
+          ))}
+        </optgroup>
+      </select>
+      {refCard && <p className="ys-cardtext">{refCard.text}</p>}
 
       <h3 className="ys-h"><Icon name="mentat" size={15} /> Harkonnen gain a Bene Gesserit token</h3>
       <p className="sheet-hint">Unused Harkonnen dice: <b>{s.harkonnenUnusedDice}</b>. Is a die still set aside on the SMF board?</p>

@@ -445,6 +445,15 @@ html[data-ui='v2'] body {
 .as-tools { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.6rem; }
 .as-battle { align-self: stretch; width: 100%; margin-top: 0.4rem; animation: none; }
 
+.ys-cardtext {
+  margin: 0.5rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border-left: 3px solid var(--atreides);
+  background: var(--sand-0);
+  border-radius: 0 var(--r-soft, 8px) var(--r-soft, 8px) 0;
+  font-size: 0.88rem;
+}
+
 /* --- chronicle ------------------------------------------------------------------- */
 .chron { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .chron li { display: flex; gap: 0.6rem; border-bottom: 1px dashed var(--line); padding-bottom: 0.45rem; }
