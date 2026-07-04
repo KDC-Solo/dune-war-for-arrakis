@@ -14,6 +14,8 @@ import {
   type PrescienceTriple,
 } from '../engine/victory';
 import { scoutingBanned } from '../engine/imperiumBans';
+import { desertPowerAvailable } from '../engine/round';
+import { ATREIDES_ACTION_DICE } from '../engine/state';
 import { HOUSE_ATREIDES_CARDS, FREMEN_ALLY_CARDS } from '../engine/atreidesCards';
 import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
@@ -72,6 +74,35 @@ export function YouSheet({ game }: { game: Game }) {
         <b>Moves &amp; worm tokens live on the board:</b> tap an area → <em>Move</em> glows your
         legal destinations (sandriding included); desert areas offer <em>Wormsign</em> /
         <em>Sandworm</em> buttons. This sheet tracks everything else.
+      </p>
+
+      <h3 className="ys-h"><Icon name="mentat" size={15} /> Your action dice <span className="sheet-hint">(tap as you spend them)</span></h3>
+      <div className="as-tools ys-dice">
+        <label className="bs-count">
+          Used
+          <span className="mini-stepper">
+            <button
+              type="button"
+              aria-label="Atreides dice used −1"
+              disabled={(s.atreidesDiceUsed ?? 0) <= 0}
+              onClick={() => game.edit({ ...s, atreidesDiceUsed: (s.atreidesDiceUsed ?? 0) - 1 }, 'Atreides dice')}
+            >−</button>
+            <b>{s.atreidesDiceUsed ?? 0}/{ATREIDES_ACTION_DICE}</b>
+            <button
+              type="button"
+              aria-label="Atreides dice used +1"
+              onClick={() => game.edit({ ...s, atreidesDiceUsed: (s.atreidesDiceUsed ?? 0) + 1 }, 'Atreides dice')}
+            >+</button>
+          </span>
+        </label>
+        <span className={`ap-tag ${desertPowerAvailable(s) ? 'target' : ''}`}>
+          ◈ Desert Power {desertPowerAvailable(s) ? 'available' : 'not available'}
+        </span>
+      </div>
+      <p className="sheet-hint">
+        You and the Harkonnen alternate actions (you act first). Desert Power needs fewer unused
+        dice than the Harkonnen — cards granting it directly ignore that. A slotted Bene Gesserit
+        token counts as an extra die (adjust here).
       </p>
 
       <div className="presc-dials">

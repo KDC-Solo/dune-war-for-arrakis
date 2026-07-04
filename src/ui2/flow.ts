@@ -49,7 +49,7 @@ export function guideFor(s: GameState): GuideStep {
         detail:
           used >= avail
             ? `${used}/${avail} dice resolved this round. Record your own turns, then continue.`
-            : `Tap the face you rolled — ${avail - used} of ${avail} dice left this round. Record your own turns from the board or the 🜁 sheet.`,
+            : `Tap the face you rolled — ${avail - used} of ${avail} dice left this round. You alternate actions with the AI (you act first); track yours in the You sheet.`,
         action: 'next-phase',
         actionLabel: 'Actions done →',
         showDice: true,
