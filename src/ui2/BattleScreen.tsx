@@ -251,6 +251,12 @@ export function BattleScreen({
                 Roll <b>{setup.attackerDice}</b> {atkName} {setup.discards > 0 ? `(+${setup.discards} reinforcement discards) ` : ''}
                 and <b>{setup.defenderDice}</b> {defName} dice, then enter the results:
               </p>
+              <p className="bs-note bs-hintline">
+                Dice = units in the legion, max 6. Leaders add no dice — each converts 1 ✴ Special
+                you roll into its combat strip (a generic Naib/Bashar = 1 hit).
+                {defenseRank ? ` The defender rolls +${defenseRank} for the ${defenderFaction === 'atreides' ? 'sietch' : 'settlement'} rank.` : ''}
+                {setup.surprise ? ' Surprise attack: +1 attacker die this round.' : ''}
+              </p>
               <div className={`bs-rollrow ${attackerFaction}`}>
                 <strong>{atkName}</strong>
                 <Count label="Swords" value={att.hits} onChange={(n) => setAtt({ ...att, hits: n })} />

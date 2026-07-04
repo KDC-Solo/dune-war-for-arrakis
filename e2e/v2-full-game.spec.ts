@@ -305,6 +305,8 @@ test('v2: the Atreides can attack an adjacent Harkonnen legion — dice roll, no
   await bs.getByRole('button', { name: /Begin battle/ }).click();
   // The fight is ON (previously this instantly showed "defenders hold"): roll entry is offered.
   await expect(bs).toContainText(/Roll .*Atreides .*Harkonnen dice/);
+  // The dice-count explainer prevents "why only 2 dice?" bug reports (leaders roll none).
+  await expect(bs).toContainText('Leaders add no dice');
   const cease = bs.getByRole('button', { name: /Cease the attack/ });
   await expect(cease).toBeHidden(); // only offered from round 2 on
   await bs.locator('.bs-rollrow.atreides').getByRole('button', { name: 'Swords +1' }).click();
