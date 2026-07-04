@@ -175,6 +175,10 @@ test('v2: entering the objective and destroying Arrakeen wins the game', async (
   await scene.getByRole('button', { name: /Begin a new campaign/ }).click();
   await expect(scene).toBeHidden();
   await expect(page.locator('.rb-round')).toHaveText('R1');
+  // The You sheet we won from must be gone — the fresh board is immediately playable.
+  await expect(page.locator('.sheet-veil')).toBeHidden();
+  await page.getByRole('button', { name: /Begin round 1/ }).click();
+  await expect(page.locator('.rb-phase.on')).toHaveText('Vehicles');
 });
 
 test('v2: a legion moves via the glowing legal destinations', async ({ page }) => {

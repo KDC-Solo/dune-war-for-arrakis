@@ -157,6 +157,15 @@ export function App2() {
     setStageFocus({ id, nonce: Date.now() });
   };
   const [wizardOpen, setWizardOpen] = useState(false);
+  // Entering a different game (new campaign, load, import): drop every transient surface so the
+  // fresh board isn't covered by a sheet/pick/battle left over from the previous one.
+  const clearOverlays = () => {
+    setSheet(null);
+    setAreaOpen(null);
+    setMovePick(null);
+    setDirective(null);
+    setBattlePair(null);
+  };
   // First visit (no saved game yet): offer the guided setup once.
   const [welcome, setWelcome] = useState(() => {
     try {
@@ -382,7 +391,7 @@ export function App2() {
                   <button onClick={() => { setSheet(null); setWizardOpen(true); }}>
                     🧭 Guided setup
                   </button>
-                  <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) { startNew(); setSheet(null); } }}>
+                  <button onClick={() => { if (confirm('Start a fresh Mahdi-solo game?')) { clearOverlays(); startNew(); } }}>
                     <Icon name="objective" size={16} /> New game
                   </button>
                   <button
@@ -410,7 +419,7 @@ export function App2() {
                         const next = importState(await f.text());
                         if (next) {
                           game.loadGame(next);
-                          setSheet(null);
+                          clearOverlays();
                         } else alert('Not a valid saved game.');
                       }}
                     />
@@ -443,7 +452,7 @@ export function App2() {
                           const st = loadNamedGame(sv.name);
                           if (st) {
                             game.loadGame(st);
-                            setSheet(null);
+                            clearOverlays();
                           }
                         }}
                       >
@@ -483,6 +492,7 @@ export function App2() {
         onClose={() => setWizardOpen(false)}
         onFinish={(next) => {
           game.loadGame(next);
+          clearOverlays();
           setToast('The board is set — begin round 1');
         }}
       />
@@ -516,6 +526,7 @@ export function App2() {
           s={s}
           onNewGame={() => {
             setSceneDismissed(false);
+            clearOverlays();
             startNew();
           }}
           onDismiss={() => setSceneDismissed(true)}
