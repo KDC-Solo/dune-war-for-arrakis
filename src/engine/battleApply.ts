@@ -10,6 +10,7 @@ import { battleReserveDelta, type BattleSession } from './combat';
 import { applyReserveDelta } from './reserve';
 import { upsertLegion, tokenPoolShortNote } from './applyAction';
 import { areaLabel } from './describeArea';
+import { SUPREMACY_WIN } from './round';
 
 const isEmpty = (l: Legion) =>
   l.units.regular + l.units.elite + l.units.special_elite + l.deploymentTokens === 0 && l.leaders.length === 0;
@@ -87,23 +88,30 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
 
   let sietches = s.sietches;
   let targetSietchId = s.targetSietchId;
+  let tracks = s.tracks;
   let destroyedSietch = false;
+  let destroyedSietchRank = 0;
   if (defenderWiped && def.faction === 'atreides') {
     sietches = s.sietches.map((si) =>
-      si.area === def.area && !si.destroyed ? ((destroyedSietch = true), { ...si, destroyed: true, revealed: true }) : si,
+      si.area === def.area && !si.destroyed
+        ? ((destroyedSietch = true), (destroyedSietchRank = si.rank ?? 0), { ...si, destroyed: true, revealed: true })
+        : si,
     );
     if (destroyedSietch && targetSietchId === def.area) targetSietchId = null;
+    // A destroyed sietch immediately scores supremacy equal to its rank (rulebook p27).
+    if (destroyedSietch && destroyedSietchRank > 0) {
+      tracks = { ...tracks, supremacy: Math.min(SUPREMACY_WIN, tracks.supremacy + destroyedSietchRank) };
+    }
   }
   // An Atreides victor advancing into a settlement destroys it — prescience advances by its rank.
   let settlements = s.settlements;
-  let tracks = s.tracks;
   if (!hkAttacking && advanced) {
     const st = s.settlements.find((x) => x.area === def.area && !x.destroyed);
     if (st) {
       settlements = s.settlements.map((x) => (x.area === def.area ? { ...x, destroyed: true } : x));
       tracks = {
-        ...s.tracks,
-        prescience: s.tracks.prescience.map((v) => v + st.rank) as typeof s.tracks.prescience,
+        ...tracks,
+        prescience: tracks.prescience.map((v) => v + st.rank) as typeof tracks.prescience,
       };
       advanceNotes.push(`${areaLabel(def.area)} settlement destroyed — all prescience markers +${st.rank}.`);
     }
@@ -124,7 +132,13 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
   const where = areaLabel(def.area);
   const who = hkAttacking ? 'Harkonnen' : 'Atreides';
   const notes: string[] = [];
-  if (session.status === 'attacker_won') notes.push(`${who} take ${where}` + (destroyedSietch ? ' — sietch destroyed.' : '.'));
+  if (session.status === 'attacker_won')
+    notes.push(
+      `${who} take ${where}` +
+        (destroyedSietch
+          ? ` — sietch destroyed${destroyedSietchRank > 0 ? `, supremacy +${destroyedSietchRank}` : ''}.`
+          : '.'),
+    );
   else if (session.status === 'attacker_eliminated') notes.push(`${who} attack on ${where} wiped out.`);
   else notes.push(`${who} ceased the attack on ${where}.`);
   if (session.reinforcementsUsed > 0) notes.push(`${session.reinforcementsUsed} reinforcement card(s) spent.`);

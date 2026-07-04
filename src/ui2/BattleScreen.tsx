@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import type { Legion } from '../engine/state';
+import { emptyLegion } from '../engine/state';
 import {
   beginBattle,
   battleRoundSetup,
@@ -79,7 +80,15 @@ export function BattleScreen({
   const { s, commit } = game;
   const defenderFaction: Legion['faction'] = attackerFaction === 'harkonnen' ? 'atreides' : 'harkonnen';
   const attacker = s.legions.find((l) => l.faction === attackerFaction && l.area === attackerArea);
-  const defender = s.legions.find((l) => l.faction === defenderFaction && l.area === area);
+  const realDefender = s.legions.find((l) => l.faction === defenderFaction && l.area === area);
+  // An undefended stronghold can still be attacked: the battle is automatically won (rulebook
+  // p27, "no combat roll is required") — model it as a fight against an empty legion.
+  const defendedStronghold =
+    defenderFaction === 'atreides'
+      ? s.sietches.some((si) => si.area === area && !si.destroyed)
+      : s.settlements.some((st) => st.area === area && !st.destroyed);
+  const undefended = !realDefender && defendedStronghold;
+  const defender = realDefender ?? (undefended ? emptyLegion(defenderFaction, area) : undefined);
 
   const needReveal = (attacker?.deploymentTokens ?? 0) > 0 || (defender?.deploymentTokens ?? 0) > 0;
   const [reveal, setReveal] = useState(
@@ -87,6 +96,9 @@ export function BattleScreen({
       ? {
           atk: { regular: attacker?.deploymentTokens ?? 0, elite: 0, special_elite: 0 },
           def: { regular: defender?.deploymentTokens ?? 0, elite: 0, special_elite: 0 },
+          // Harkonnen tokens can also hide a Bashar Leader (rulebook p15 token symbols).
+          atkBashars: 0,
+          defBashars: 0,
         }
       : null,
   );
@@ -127,11 +139,13 @@ export function BattleScreen({
   const confirmReveal = () => {
     if (!reveal || !attacker || !defender) return;
     let next = s;
-    if (attacker.deploymentTokens > 0) next = revealDeploymentTokens(next, attackerArea, attackerFaction, reveal.atk);
-    if (defender.deploymentTokens > 0) next = revealDeploymentTokens(next, area, defenderFaction, reveal.def);
+    if (attacker.deploymentTokens > 0)
+      next = revealDeploymentTokens(next, attackerArea, attackerFaction, reveal.atk, reveal.atkBashars);
+    if (defender.deploymentTokens > 0)
+      next = revealDeploymentTokens(next, area, defenderFaction, reveal.def, reveal.defBashars);
     commit(next, { headline: 'Tokens revealed', text: areaLabel(area) });
     const a = next.legions.find((l) => l.faction === attackerFaction && l.area === attackerArea)!;
-    const d = next.legions.find((l) => l.faction === defenderFaction && l.area === area)!;
+    const d = next.legions.find((l) => l.faction === defenderFaction && l.area === area) ?? emptyLegion(defenderFaction, area);
     setReveal(null);
     start(a, d);
   };
@@ -221,6 +235,9 @@ export function BattleScreen({
                   <Count label="Reg" value={reveal.atk.regular} onChange={(n) => setReveal({ ...reveal, atk: { ...reveal.atk, regular: n } })} />
                   <Count label="Elite" value={reveal.atk.elite} onChange={(n) => setReveal({ ...reveal, atk: { ...reveal.atk, elite: n } })} />
                   <Count label={attackerFaction === 'harkonnen' ? 'Sardaukar' : 'Fedaykin'} value={reveal.atk.special_elite} onChange={(n) => setReveal({ ...reveal, atk: { ...reveal.atk, special_elite: n } })} />
+                  {attackerFaction === 'harkonnen' && (
+                    <Count label="Bashar" value={reveal.atkBashars} onChange={(n) => setReveal({ ...reveal, atkBashars: n })} />
+                  )}
                 </div>
               )}
               {defender.deploymentTokens > 0 && (
@@ -229,6 +246,9 @@ export function BattleScreen({
                   <Count label="Reg" value={reveal.def.regular} onChange={(n) => setReveal({ ...reveal, def: { ...reveal.def, regular: n } })} />
                   <Count label="Elite" value={reveal.def.elite} onChange={(n) => setReveal({ ...reveal, def: { ...reveal.def, elite: n } })} />
                   <Count label={defenderFaction === 'harkonnen' ? 'Sardaukar' : 'Fedaykin'} value={reveal.def.special_elite} onChange={(n) => setReveal({ ...reveal, def: { ...reveal.def, special_elite: n } })} />
+                  {defenderFaction === 'harkonnen' && (
+                    <Count label="Bashar" value={reveal.defBashars} onChange={(n) => setReveal({ ...reveal, defBashars: n })} />
+                  )}
                 </div>
               )}
               <button className="g-primary" onClick={confirmReveal}>Reveal &amp; begin</button>
@@ -237,11 +257,20 @@ export function BattleScreen({
 
           {!needRank && !reveal && !session && (
             <div className="bs-panel">
-              <label className="bs-surprise">
-                <input type="checkbox" checked={surprise} onChange={(e) => setSurprise(e.target.checked)} />
-                Surprise attack (+1 attacker result, first round)
-              </label>
-              <button className="g-primary" onClick={() => start(attacker, defender)}>⚔ Begin battle</button>
+              {undefended ? (
+                <p className="bs-note">
+                  The {defenderFaction === 'atreides' ? 'sietch' : 'settlement'} is undefended — the
+                  battle is automatically won, no combat roll required (rulebook p27).
+                </p>
+              ) : (
+                <label className="bs-surprise">
+                  <input type="checkbox" checked={surprise} onChange={(e) => setSurprise(e.target.checked)} />
+                  Surprise attack (+1 attacker result, first round)
+                </label>
+              )}
+              <button className="g-primary" onClick={() => start(attacker, defender)}>
+                {undefended ? '⚔ Take it' : '⚔ Begin battle'}
+              </button>
             </div>
           )}
 

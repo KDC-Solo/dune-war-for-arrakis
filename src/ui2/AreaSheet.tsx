@@ -7,6 +7,7 @@ import type { GameState, Legion, UnitType } from '../engine/state';
 import { emptyLegion, unitCount } from '../engine/state';
 import { AREAS } from '../engine/board';
 import { canPlaceSandworm, canPlaceWormsign } from '../engine/wormsigns';
+import { revealDeploymentTokens } from '../engine/revealTokens';
 import { ADJACENCY } from '../engine/board';
 import { harkonnenNeighbors } from '../engine/movement';
 import { NAMED_LEADERS } from '../engine/leaders';
@@ -77,6 +78,8 @@ export function AreaSheet({
 }) {
   const { s, commit, edit } = game;
   const [editing, setEditing] = useState<Legion['faction'] | null>(null);
+  // Revealing Harkonnen tokens outside battle (a Planning-card effect makes it necessary, p42).
+  const [revealing, setRevealing] = useState<{ regular: number; elite: number; special_elite: number; bashars: number } | null>(null);
   const a = AREAS[area];
   const legions = s.legions.filter((l) => l.area === area);
   const hk = legions.find((l) => l.faction === 'harkonnen');
@@ -237,34 +240,45 @@ export function AreaSheet({
         </div>
 
         {legions.length === 0 ? <p className="sheet-hint">No legions here.</p> : legions.map(legionRow)}
-        {at && (() => {
+        {(at || (sietch && !sietch.destroyed)) && (() => {
           // Battles come from adjacent Harkonnen legions (solo adjacency ignores impassable);
-          // a co-located attacker (legacy states) fights in place.
+          // a co-located attacker (legacy states) fights in place. An undefended sietch can still
+          // be attacked — the battle is then automatically won (rulebook p27).
           const nbrs = new Set(harkonnenNeighbors(area));
           const attackers = s.legions.filter(
             (l) => l.faction === 'harkonnen' && unitCount(l) > 0 && (l.area === area || nbrs.has(l.area)),
           );
           return attackers.map((l) => (
             <button key={l.area} type="button" className="g-primary as-battle" onClick={() => onBattleHere(l.area, area, 'harkonnen')}>
-              ⚔ Battle — Harkonnen attack from {l.area === area ? 'here' : areaLabel(l.area)}
+              ⚔ Battle — Harkonnen attack from {l.area === area ? 'here' : areaLabel(l.area)}{!at ? ' (undefended)' : ''}
             </button>
           ));
         })()}
-        {hk && (() => {
+        {(hk || (settlement && !settlement.destroyed)) && (() => {
           // The player can attack too: adjacent Atreides legions (physical adjacency — impassable
           // borders block you, unlike the Harkonnen AI) or a co-located legion (legacy states).
+          // An undefended settlement is likewise an automatic win.
           const nbrs = new Set(ADJACENCY[area] ?? []);
           const attackers = s.legions.filter(
             (l) => l.faction === 'atreides' && unitCount(l) > 0 && (l.area === area || nbrs.has(l.area)),
           );
           return attackers.map((l) => (
             <button key={l.area} type="button" className="g-primary as-battle at" onClick={() => onBattleHere(l.area, area, 'atreides')}>
-              ⚔ Battle — Atreides attack from {l.area === area ? 'here' : areaLabel(l.area)}
+              ⚔ Battle — Atreides attack from {l.area === area ? 'here' : areaLabel(l.area)}{!hk ? ' (undefended)' : ''}
             </button>
           ));
         })()}
 
         <div className="as-tools">
+          {hk && hk.deploymentTokens > 0 && (
+            <button
+              type="button"
+              className="as-btn"
+              onClick={() => setRevealing({ regular: hk.deploymentTokens, elite: 0, special_elite: 0, bashars: 0 })}
+            >
+              <Icon name="token" size={15} /> Reveal tokens
+            </button>
+          )}
           {!hk && (
             <button type="button" className="as-btn" onClick={() => setEditing('harkonnen')}>
               + Harkonnen legion
@@ -312,6 +326,53 @@ export function AreaSheet({
             </button>
           )}
         </div>
+
+        {revealing && hk && (
+          <div className="as-edit">
+            <p className="sheet-hint">
+              Flip the {hk.deploymentTokens} facedown token{hk.deploymentTokens === 1 ? '' : 's'} — enter what
+              they show (units and/or a Bashar). The markers shuffle back into the pool. Needed when a
+              Planning card requires it, e.g. a Legion that must contain a Sardaukar.
+            </p>
+            {(['regular', 'elite', 'special_elite'] as const).map((k) => (
+              <label key={k}>
+                {k === 'regular' ? 'Regulars' : k === 'elite' ? 'Elites' : 'Sardaukar'}
+                <Step
+                  label={k}
+                  value={revealing[k]}
+                  onChange={(n) => setRevealing({ ...revealing, [k]: n })}
+                />
+              </label>
+            ))}
+            <label>
+              Bashars
+              <Step label="Bashars" value={revealing.bashars} onChange={(n) => setRevealing({ ...revealing, bashars: n })} />
+            </label>
+            <button
+              type="button"
+              className="g-primary"
+              onClick={() => {
+                commit(
+                  revealDeploymentTokens(
+                    s,
+                    area,
+                    'harkonnen',
+                    { regular: revealing.regular, elite: revealing.elite, special_elite: revealing.special_elite },
+                    revealing.bashars,
+                  ),
+                  {
+                    headline: 'Tokens revealed',
+                    text: `${areaLabel(area)} — markers return to the pool`,
+                  },
+                );
+                setRevealing(null);
+              }}
+            >
+              Reveal
+            </button>
+            <button type="button" className="as-btn" onClick={() => setRevealing(null)}>Cancel</button>
+          </div>
+        )}
 
         {(editing === 'harkonnen' && !hk) || (editing === 'atreides' && !at) ? (
           <div className="as-edit">

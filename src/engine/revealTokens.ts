@@ -22,16 +22,24 @@ export const HARKONNEN_TOKEN_POOL = 12; // the two sets of Harkonnen Starting De
  * with that legion's `deploymentTokens` cleared and its units increased; for the Harkonnen, the
  * freed token markers return to the reserve pool (capped at the pool size). A no-op if the legion
  * has no tokens (or isn't found).
+ *
+ * Harkonnen tokens can also show a Bashar Leader on their hidden side (rulebook p15 token
+ * symbols) — pass `bashars` to add that many generic leaders; they come out of the reserve's
+ * Bashar figures when any are there.
  */
 export function revealDeploymentTokens(
   s: GameState,
   area: string,
   faction: Legion['faction'],
   revealed: Record<UnitType, number>,
+  bashars = 0,
 ): GameState {
   const target = s.legions.find((l) => l.faction === faction && l.area === area);
   if (!target || target.deploymentTokens === 0) return s;
 
+  const newLeaders = faction === 'harkonnen' && bashars > 0
+    ? Array.from({ length: bashars }, () => ({ kind: 'generic' as const, faction }))
+    : [];
   const legions = s.legions.map((l) =>
     l === target
       ? {
@@ -42,6 +50,7 @@ export function revealDeploymentTokens(
             elite: l.units.elite + revealed.elite,
             special_elite: l.units.special_elite + revealed.special_elite,
           },
+          leaders: [...l.leaders, ...newLeaders],
         }
       : l,
   );
@@ -54,6 +63,7 @@ export function revealDeploymentTokens(
         HARKONNEN_TOKEN_POOL,
         harkonnenReserve.deploymentTokens + target.deploymentTokens,
       ),
+      bashars: Math.max(0, harkonnenReserve.bashars - newLeaders.length),
     };
   }
 

@@ -159,7 +159,12 @@ const CARD_STEPS: Record<string, StepFn[]> = {
       ),
   ],
   shigawire: [
-    () => manual("Move a Legion containing a Sardaukar."),
+    () =>
+      manual(
+        "Move a Legion containing a Sardaukar. A facedown Deployment token may hide one — the card " +
+          "effect lets you flip a token to check (tap the area → Reveal tokens; the units come out, " +
+          "the marker returns to the pool). If no Legion contains a Sardaukar, this part does nothing.",
+      ),
     () =>
       manual(
         "Then place an enemy Named Leader adjacent to that Legion in the Regeneration Tank.",
@@ -178,12 +183,17 @@ const CARD_STEPS: Record<string, StepFn[]> = {
       ),
   ],
   sardaukar_pogrom: [
-    () => manual("Move 3 Legions each containing a Sardaukar."),
+    () =>
+      manual(
+        "Move 3 Legions each containing a Sardaukar. Facedown tokens may hide them — flip tokens to " +
+          "check (tap the area → Reveal tokens). Legions without a Sardaukar don't move.",
+      ),
   ],
   sardaukars_manner: [
     () =>
       manual(
-        "Move or make a Surprise Attack with a Legion containing a Sardaukar.",
+        "Move or make a Surprise Attack with a Legion containing a Sardaukar (a facedown token may " +
+          "hide one — tap the area → Reveal tokens to flip it).",
       ),
   ],
   spies_all_over_arrakis: [

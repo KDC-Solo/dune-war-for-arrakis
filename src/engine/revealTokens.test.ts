@@ -53,6 +53,36 @@ describe('revealDeploymentTokens', () => {
     expect(next.harkonnenReserve.deploymentTokens).toBe(before);
   });
 
+  it('reveals a Bashar from a Harkonnen token, drawing the figure from the reserve', () => {
+    const area = 'carthag';
+    const s = stateWith({
+      legions: [leg('harkonnen', area, { deploymentTokens: 1 })],
+      harkonnenReserve: { ...sampleState().harkonnenReserve, bashars: 2 },
+    });
+    const next = revealDeploymentTokens(s, area, 'harkonnen', { regular: 1, elite: 0, special_elite: 0 }, 1);
+    const after = next.legions.find((l) => l.faction === 'harkonnen' && l.area === area)!;
+    expect(after.leaders.filter((x) => x.kind === 'generic')).toHaveLength(1);
+    expect(next.harkonnenReserve.bashars).toBe(1);
+  });
+
+  it('an empty Bashar reserve still reveals the leader (physical figures exist) without going negative', () => {
+    const area = 'carthag';
+    const s = stateWith({
+      legions: [leg('harkonnen', area, { deploymentTokens: 1 })],
+      harkonnenReserve: { ...sampleState().harkonnenReserve, bashars: 0 },
+    });
+    const next = revealDeploymentTokens(s, area, 'harkonnen', { regular: 0, elite: 0, special_elite: 0 }, 1);
+    expect(next.legions[0].leaders).toHaveLength(1);
+    expect(next.harkonnenReserve.bashars).toBe(0);
+  });
+
+  it('ignores the bashars parameter for Atreides tokens (they only ever show units)', () => {
+    const area = 'sihaya_ridge';
+    const s = stateWith({ legions: [leg('atreides', area, { deploymentTokens: 1 })] });
+    const next = revealDeploymentTokens(s, area, 'atreides', { regular: 1, elite: 0, special_elite: 0 }, 1);
+    expect(next.legions[0].leaders).toHaveLength(0);
+  });
+
   it('is a no-op when the legion has no tokens', () => {
     const area = 'carthag';
     const s = stateWith({ legions: [leg('harkonnen', area, { units: { regular: 3, elite: 0, special_elite: 0 } })] });

@@ -33,7 +33,42 @@ describe('commitBattle', () => {
     expect(state.sietches[0].destroyed).toBe(true);
     expect(state.sietches[0].revealed).toBe(true);
     expect(state.targetSietchId).toBeNull();
-    expect(note).toMatch(/sietch destroyed/);
+    // "the Harkonnen player immediately gains Supremacy points equal to the Sietch rank" (p27)
+    expect(state.tracks.supremacy).toBe(s.tracks.supremacy + 2);
+    expect(note).toMatch(/sietch destroyed, supremacy \+2/);
+  });
+
+  it('an undefended sietch falls automatically — no roll, destroyed, supremacy scored', () => {
+    // gara_kulon (sietch, no defenders) attacked from adjacent s1_11.
+    const attacker = leg('harkonnen', 's1_11', { regular: 3 });
+    const s = stateWith({
+      legions: [attacker],
+      sietches: [{ area: 'gara_kulon', rank: 3, revealed: true, destroyed: false }],
+      targetSietchId: 'gara_kulon',
+    });
+
+    const session = beginBattle({ attacker, defender: emptyLegion('atreides', 'gara_kulon') });
+    expect(session.status).toBe('attacker_won'); // immediate — no combat rounds
+
+    const { state } = commitBattle(s, session);
+    expect(state.sietches[0].destroyed).toBe(true);
+    expect(state.tracks.supremacy).toBe(s.tracks.supremacy + 3);
+    // The victor advances into the taken area.
+    expect(state.legions.find((l) => l.faction === 'harkonnen')!.area).toBe('gara_kulon');
+  });
+
+  it('an undefended settlement falls automatically to an Atreides attack — prescience advances', () => {
+    // carthag (settlement rank 2, no garrison) attacked from adjacent broken_land.
+    const attacker = leg('atreides', 'broken_land', { regular: 3 });
+    const s = stateWith({ legions: [attacker], sietches: [] });
+
+    const session = beginBattle({ attacker, defender: emptyLegion('harkonnen', 'carthag') });
+    expect(session.status).toBe('attacker_won');
+
+    const { state } = commitBattle(s, session);
+    expect(state.settlements.find((st) => st.area === 'carthag')!.destroyed).toBe(true);
+    expect(state.tracks.prescience).toEqual(s.tracks.prescience.map((v) => v + 2));
+    expect(state.legions.find((l) => l.faction === 'atreides')!.area).toBe('carthag');
   });
 
   it('drops a wiped-out attacker and replenishes its casualties into the reserve', () => {
