@@ -31,8 +31,9 @@ copy the `.mjs` in, run it, delete it afterwards.
 - Settings keys: `dwfa.aiBrain`, `dwfa.advisor`, `dwfa.theme`, `dwfa.atmosphere`.
 - Surfaces: dock buttons `.dock-btn` ("Turn" / "You" / "Log" / "More") open `.sheet` over a
   `.sheet-veil` (click the veil at its top-left corner to close). The guide bar (`.guide`) hosts
-  the die faces `.g-die`, the directive card `.directive-card`, and the advisor card
-  `.advisor-card`.
+  the die faces `.g-die` and the directive card `.directive-card`. The Advisor floats over the
+  stage as `.advisor-float` (drag by `.adv-head`; `.advisor-float.min` is the collapsed pill;
+  position/collapse persist at `dwfa.advisorPos` / `dwfa.advisorMin`).
 - Area chips (`.loc-chip`) pan/pulse the board — after clicking, wait ~700ms before screenshot.
 - Steppers use aria-labels, e.g. `[aria-label="Atreides dice used +1"]` in the You sheet.
 

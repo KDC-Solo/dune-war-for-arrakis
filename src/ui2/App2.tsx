@@ -12,6 +12,7 @@ import './shell.css';
 import type { ActionResult, GameState } from '../engine/state';
 import { ATREIDES_ACTION_DICE } from '../engine/state';
 import { adviseAtreides } from '../engine/atreidesAdvisor';
+import { AdvisorFloat } from './AdvisorFloat';
 import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } from '../engine/round';
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
@@ -112,12 +113,12 @@ export function App2() {
       /* ignore */
     }
   }, [advisorOn]);
-  // One dismiss silences the advisor for the rest of that action phase.
-  const [advisorHidden, setAdvisorHidden] = useState(false);
-  useEffect(() => setAdvisorHidden(false), [s.phase, s.round]);
   const advice = useMemo(
-    () => (advisorOn && !advisorHidden && s.phase === 'action_resolution' ? adviseAtreides(s) : null),
-    [advisorOn, advisorHidden, s],
+    () =>
+      advisorOn && s.phase === 'action_resolution' && (s.atreidesDiceUsed ?? 0) < ATREIDES_ACTION_DICE
+        ? adviseAtreides(s)
+        : null,
+    [advisorOn, s],
   );
 
   useEffect(() => {
@@ -326,6 +327,9 @@ export function App2() {
           onSelect={onStageSelect}
         />
 
+        {/* The Advisor floats over the map — Atreides business, kept out of the Harkonnen bar. */}
+        <AdvisorFloat advice={advice} />
+
         {/* Guide bar — during a move pick it narrates the pick; otherwise the flow step. */}
         <div className={`guide${outcome.winner ? ' won' : ''}`}>
           {directive ? (
@@ -396,24 +400,6 @@ export function App2() {
               {s.phase === 'vehicle_placement' && <VehiclesPanel game={game} />}
               {s.phase === 'desert_hazards' && <HazardsPanel game={game} />}
               {s.phase === 'spice_harvesting' && <SpicePanel game={game} />}
-              {guide.showDice && advice && (s.atreidesDiceUsed ?? 0) < ATREIDES_ACTION_DICE && (
-                <div className="advisor-card">
-                  <div className="adv-head">
-                    <Icon name="prescience" size={14} /> Advisor suggests
-                    <button className="ap-close" onClick={() => setAdvisorHidden(true)} aria-label="Dismiss the advisor for this phase">✕</button>
-                  </div>
-                  <p className="adv-text">
-                    {advice.suggestion.kind === 'assault_settlement' ? (
-                      <>Assault the settlement at <AreaRef id={advice.suggestion.area} /> with your legion in <AreaRef id={advice.suggestion.from} />.</>
-                    ) : advice.suggestion.kind === 'attack_legion' ? (
-                      <>Attack the Harkonnen legion in <AreaRef id={advice.suggestion.area} /> with your legion in <AreaRef id={advice.suggestion.from} />.</>
-                    ) : (
-                      <>Move your legion from <AreaRef id={advice.suggestion.from} /> to <AreaRef id={advice.suggestion.to} />.</>
-                    )}
-                  </p>
-                  <p className="adv-why">{advice.why}</p>
-                </div>
-              )}
               {guide.showDice && (
                 <div className="g-dice" role="group" aria-label="Harkonnen die result">
                   {DIE.map((d) => (

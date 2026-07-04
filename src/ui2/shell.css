@@ -157,10 +157,10 @@ html[data-ui='v2'] body {
   border: 1.5px solid var(--spice);
   border-radius: var(--r-card);
   box-shadow: var(--shadow), 0 0 0 4px var(--spice-soft);
-  padding: 0.65rem 0.8rem;
+  padding: 0.55rem 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.45rem;
   animation: drift-in var(--t-drift) both;
 }
 .g-text { display: flex; flex-direction: column; gap: 0.1rem; }
@@ -511,15 +511,36 @@ html[data-ui='v2'] body {
 .dc-battle { background: var(--harkonnen); }
 .dc-manual { font-size: 0.85rem; color: var(--ink-soft); font-style: italic; }
 
-/* --- advisor card (the player's suggested move) ---------------------------------- */
-.advisor-card {
+/* --- advisor float (the player's suggested move, hovering over the map) ---------- */
+.advisor-float {
+  position: absolute;
+  top: 0.75rem; /* phones: pushed below the map toolbar (see media rule further down) */
+  left: 0.75rem;
+  z-index: 5;
+  width: min(19rem, calc(100% - 1.5rem));
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid var(--atreides);
+  border: 1.5px solid var(--atreides);
   border-radius: var(--r-card);
-  background: color-mix(in srgb, var(--atreides) 7%, transparent);
+  background: color-mix(in srgb, var(--sand-0) 94%, transparent);
+  box-shadow: var(--shadow);
+}
+.advisor-float.min {
+  width: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--atreides);
+  cursor: pointer;
 }
 .adv-head {
   display: flex;
@@ -531,10 +552,18 @@ html[data-ui='v2'] body {
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--atreides);
+  cursor: grab;
+  touch-action: none; /* the header is the drag handle — keep the browser from panning instead */
+  user-select: none;
 }
+.adv-head:active { cursor: grabbing; }
 .adv-head .ap-close { margin-left: auto; }
 .adv-text { margin: 0; font-size: 0.98rem; line-height: 1.35; }
 .adv-why { margin: 0; font-size: var(--fs-small); color: var(--ink-soft); font-style: italic; }
+/* Phones: the map toolbar spans the top — the advisor's default spot starts below it. */
+@media (max-width: 767px) {
+  .advisor-float { top: 3.3rem; }
+}
 
 /* --- battle screen (night takeover) --------------------------------------------- */
 .battle-screen {
