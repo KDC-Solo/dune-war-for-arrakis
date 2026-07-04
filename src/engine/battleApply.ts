@@ -41,6 +41,7 @@ export interface CommitBattleResult {
 export function commitBattle(s: GameState, session: BattleSession): CommitBattleResult {
   const atk = session.ctx.attacker;
   const def = session.ctx.defender;
+  const hkAttacking = atk.faction === 'harkonnen';
 
   let legions = replaceLegion(s.legions, atk.faction, atk.area, session.attacker);
   legions = replaceLegion(legions, def.faction, def.area, session.defender);
@@ -52,7 +53,10 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
   // only ADVANCES into the defender's area after a victory. (When ctx areas are equal — legacy
   // co-located flows — the advance is a no-op.)
   const advanceNotes: string[] = [];
+  let vehicles = s.vehicles;
+  let advanced = false;
   if (session.status === 'attacker_won' && atk.area !== def.area && !isEmpty(session.attacker)) {
+    advanced = true;
     // Merge with any friendly legion already in the taken area (legacy saves / manual edits) —
     // one legion per faction per area is a state invariant.
     const advancing = legions.find((l) => l.faction === atk.faction && l.area === atk.area);
@@ -62,27 +66,46 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
         { ...advancing, area: def.area },
       );
     }
-    // Solo garrison rule: fully leaving a live settlement drops 2 deployment tokens there.
-    if (s.settlements.some((st) => st.area === atk.area && !st.destroyed)) {
+    // Solo garrison rule (Harkonnen only): fully leaving a live settlement drops 2 tokens there.
+    if (hkAttacking && s.settlements.some((st) => st.area === atk.area && !st.destroyed)) {
       const dropped = Math.min(2, s.harkonnenReserve.deploymentTokens);
       if (dropped > 0) {
         legions = [...legions, { ...emptyLegion(atk.faction, atk.area), deploymentTokens: dropped }];
         advanceNotes.push(`${dropped} garrison token${dropped === 1 ? '' : 's'} left in ${areaLabel(atk.area)}.`);
       }
     }
-    if (s.wormsigns.some((w) => w.area === def.area)) {
+    if (hkAttacking && s.wormsigns.some((w) => w.area === def.area)) {
       advanceNotes.push('The advance enters a Wormsign — reveal and resolve it.');
+    }
+    // A victorious Atreides legion advancing into an area with a harvester removes it (rulebook).
+    if (!hkAttacking && vehicles.some((v) => v.type === 'harvester' && v.location === def.area)) {
+      vehicles = vehicles.filter((v) => !(v.type === 'harvester' && v.location === def.area));
+      advanceNotes.push(`The harvester in ${areaLabel(def.area)} is destroyed.`);
     }
   }
 
   let sietches = s.sietches;
   let targetSietchId = s.targetSietchId;
   let destroyedSietch = false;
-  if (defenderWiped) {
+  if (defenderWiped && def.faction === 'atreides') {
     sietches = s.sietches.map((si) =>
       si.area === def.area && !si.destroyed ? ((destroyedSietch = true), { ...si, destroyed: true, revealed: true }) : si,
     );
     if (destroyedSietch && targetSietchId === def.area) targetSietchId = null;
+  }
+  // An Atreides victor advancing into a settlement destroys it — prescience advances by its rank.
+  let settlements = s.settlements;
+  let tracks = s.tracks;
+  if (!hkAttacking && advanced) {
+    const st = s.settlements.find((x) => x.area === def.area && !x.destroyed);
+    if (st) {
+      settlements = s.settlements.map((x) => (x.area === def.area ? { ...x, destroyed: true } : x));
+      tracks = {
+        ...s.tracks,
+        prescience: s.tracks.prescience.map((v) => v + st.rank) as typeof s.tracks.prescience,
+      };
+      advanceNotes.push(`${areaLabel(def.area)} settlement destroyed — all prescience markers +${st.rank}.`);
+    }
   }
 
   const reservedReinforcements = Math.max(0, (s.decks.reinforcements ?? 0) - session.reinforcementsUsed);
@@ -98,10 +121,11 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
   }
 
   const where = areaLabel(def.area);
+  const who = hkAttacking ? 'Harkonnen' : 'Atreides';
   const notes: string[] = [];
-  if (session.status === 'attacker_won') notes.push(`Harkonnen take ${where}` + (destroyedSietch ? ' — sietch destroyed.' : '.'));
-  else if (session.status === 'attacker_eliminated') notes.push(`Harkonnen attack on ${where} wiped out.`);
-  else notes.push(`Harkonnen ceased the attack on ${where}.`);
+  if (session.status === 'attacker_won') notes.push(`${who} take ${where}` + (destroyedSietch ? ' — sietch destroyed.' : '.'));
+  else if (session.status === 'attacker_eliminated') notes.push(`${who} attack on ${where} wiped out.`);
+  else notes.push(`${who} ceased the attack on ${where}.`);
   if (session.reinforcementsUsed > 0) notes.push(`${session.reinforcementsUsed} reinforcement card(s) spent.`);
   notes.push(...advanceNotes);
 
@@ -110,6 +134,9 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
       ...s,
       legions,
       sietches,
+      settlements,
+      tracks,
+      vehicles,
       targetSietchId,
       decks: { ...s.decks, reinforcements: reservedReinforcements },
       harkonnenReserve,

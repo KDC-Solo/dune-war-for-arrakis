@@ -444,6 +444,9 @@ html[data-ui='v2'] body {
 }
 .as-tools { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.6rem; }
 .as-battle { align-self: stretch; width: 100%; margin-top: 0.4rem; animation: none; }
+.as-battle.at { background: var(--atreides); }
+.bs-cease { margin-top: 0.5rem; }
+.bs-hintline { margin-top: 0.4rem; font-size: 0.8rem; opacity: 0.75; }
 
 .ys-cardtext {
   margin: 0.5rem 0 0;

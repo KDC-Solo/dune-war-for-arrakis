@@ -7,6 +7,7 @@ import type { GameState, Legion, UnitType } from '../engine/state';
 import { emptyLegion, unitCount } from '../engine/state';
 import { AREAS } from '../engine/board';
 import { canPlaceSandworm, canPlaceWormsign } from '../engine/wormsigns';
+import { ADJACENCY } from '../engine/board';
 import { harkonnenNeighbors } from '../engine/movement';
 import { NAMED_LEADERS } from '../engine/leaders';
 import { ATREIDES_LEADERS } from '../engine/atreidesLeaders';
@@ -72,7 +73,7 @@ export function AreaSheet({
   onClose: () => void;
   onStartMove: (pick: MovePick) => void;
   /** Start a battle: attacker's area (adjacent, or here for legacy states) vs this area. */
-  onBattleHere: (attackerArea: string, defenderArea: string) => void;
+  onBattleHere: (attackerArea: string, defenderArea: string, attackerFaction: Legion['faction']) => void;
 }) {
   const { s, commit, edit } = game;
   const [editing, setEditing] = useState<Legion['faction'] | null>(null);
@@ -244,8 +245,21 @@ export function AreaSheet({
             (l) => l.faction === 'harkonnen' && unitCount(l) > 0 && (l.area === area || nbrs.has(l.area)),
           );
           return attackers.map((l) => (
-            <button key={l.area} type="button" className="g-primary as-battle" onClick={() => onBattleHere(l.area, area)}>
+            <button key={l.area} type="button" className="g-primary as-battle" onClick={() => onBattleHere(l.area, area, 'harkonnen')}>
               ⚔ Battle — Harkonnen attack from {l.area === area ? 'here' : areaLabel(l.area)}
+            </button>
+          ));
+        })()}
+        {hk && (() => {
+          // The player can attack too: adjacent Atreides legions (physical adjacency — impassable
+          // borders block you, unlike the Harkonnen AI) or a co-located legion (legacy states).
+          const nbrs = new Set(ADJACENCY[area] ?? []);
+          const attackers = s.legions.filter(
+            (l) => l.faction === 'atreides' && unitCount(l) > 0 && (l.area === area || nbrs.has(l.area)),
+          );
+          return attackers.map((l) => (
+            <button key={l.area} type="button" className="g-primary as-battle at" onClick={() => onBattleHere(l.area, area, 'atreides')}>
+              ⚔ Battle — Atreides attack from {l.area === area ? 'here' : areaLabel(l.area)}
             </button>
           ));
         })()}

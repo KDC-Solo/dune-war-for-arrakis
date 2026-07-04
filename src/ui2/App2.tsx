@@ -144,10 +144,10 @@ export function App2() {
   const directiveToBattle = () => {
     if (!directive || (directive.kind !== 'attack_sietch' && directive.kind !== 'attack_legion')) return;
     const defArea = directive.kind === 'attack_sietch' ? directive.sietch : directive.defender;
-    setBattlePair({ atk: directive.attacker, def: defArea });
+    setBattlePair({ atk: directive.attacker, def: defArea, faction: 'harkonnen' });
     setDirective(null);
   };
-  const [battlePair, setBattlePair] = useState<{ atk: string; def: string } | null>(null);
+  const [battlePair, setBattlePair] = useState<{ atk: string; def: string; faction: 'harkonnen' | 'atreides' } | null>(null);
   const [sceneDismissed, setSceneDismissed] = useState(false);
   // One-shot stage focus (pan + pulse) driven by location chips anywhere in the UI.
   const [stageFocus, setStageFocus] = useState<{ id: string; nonce: number } | null>(null);
@@ -338,9 +338,9 @@ export function App2() {
             setAreaOpen(null);
             setMovePick(pick);
           }}
-          onBattleHere={(atk, def) => {
+          onBattleHere={(atk, def, faction) => {
             setAreaOpen(null);
-            setBattlePair({ atk, def });
+            setBattlePair({ atk, def, faction });
           }}
         />
       )}
@@ -484,7 +484,13 @@ export function App2() {
       )}
 
       {battlePair && (
-        <BattleScreen game={game} attackerArea={battlePair.atk} area={battlePair.def} onClose={() => setBattlePair(null)} />
+        <BattleScreen
+          game={game}
+          attackerArea={battlePair.atk}
+          area={battlePair.def}
+          attackerFaction={battlePair.faction}
+          onClose={() => setBattlePair(null)}
+        />
       )}
 
       <SetupWizard

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { commitBattle } from './battleApply';
-import { beginBattle, resolveBattleRound } from './combat';
+import { beginBattle, resolveBattleRound, battleRoundSetup, ceaseAttack } from './combat';
 import { emptyLegion, type GameState, type Legion } from './state';
 import { sampleState } from '../ui/sampleState';
 
@@ -119,6 +119,73 @@ describe('commitBattle — adjacent battles (rulebook positions)', () => {
     expect(garrison?.deploymentTokens).toBe(2);
     expect(state.harkonnenReserve.deploymentTokens).toBe(3);
     expect(note).toMatch(/garrison/);
+  });
+
+  it('an outnumbered ATREIDES attacker does not auto-cease (that rule is Harkonnen-AI only)', () => {
+    const attacker = leg('atreides', 's1_11', { regular: 1 });
+    const defender = leg('harkonnen', 'gara_kulon', { regular: 4 });
+    const session = beginBattle({ attacker, defender });
+    expect(session.status).toBe('ongoing'); // a Harkonnen attacker this weak would cease instantly
+  });
+
+  it('the Atreides attacker can cease; survivors keep their starting positions', () => {
+    const attacker = leg('atreides', 's1_11', { regular: 2 });
+    const defender = leg('harkonnen', 'gara_kulon', { regular: 3 });
+    const s = stateWith({ legions: [attacker, defender], sietches: [] });
+
+    let session = beginBattle({ attacker, defender });
+    session = resolveBattleRound(session, { attacker: { hits: 1, shields: 0 }, defender: { hits: 1, shields: 0 } });
+    session = ceaseAttack(session);
+    expect(session.status).toBe('defender_survived');
+
+    const { state, note } = commitBattle(s, session);
+    expect(state.legions.find((l) => l.faction === 'atreides')!.area).toBe('s1_11');
+    expect(state.legions.find((l) => l.faction === 'harkonnen')!.area).toBe('gara_kulon');
+    expect(note).toMatch(/Atreides ceased/);
+  });
+
+  it('an Atreides attacker never spends Harkonnen reinforcement cards', () => {
+    const attacker = leg('atreides', 's1_11', { regular: 2 });
+    const defender = leg('harkonnen', 'gara_kulon', { regular: 3 });
+    const session = beginBattle({ attacker, defender, reinforcements: 4 });
+    expect(battleRoundSetup(session).discards).toBe(0);
+  });
+
+  it('a winning Atreides advance destroys the settlement (+prescience), removes the harvester, and refunds Harkonnen casualties', () => {
+    const attacker = leg('atreides', 'arsunt', { regular: 4 });
+    const defender = leg('harkonnen', 'carthag', { regular: 2 });
+    const s = stateWith({
+      legions: [attacker, defender],
+      settlements: [{ area: 'carthag', rank: 2, destroyed: false }],
+      sietches: [],
+      vehicles: [{ type: 'harvester', location: 'carthag' }],
+      tracks: { ...sampleState().tracks, prescience: [1, 0, 0] },
+    });
+
+    let session = beginBattle({ attacker, defender, defenderSettlementRank: 2 });
+    session = resolveBattleRound(session, { attacker: { hits: 2, shields: 0 }, defender: { hits: 0, shields: 0 } });
+    expect(session.status).toBe('attacker_won');
+
+    const { state, note } = commitBattle(s, session);
+    expect(state.legions.find((l) => l.faction === 'atreides')!.area).toBe('carthag');
+    expect(state.settlements[0].destroyed).toBe(true);
+    expect(state.tracks.prescience).toEqual([3, 2, 2]); // +rank 2 on every marker
+    expect(state.vehicles).toHaveLength(0);
+    // The 2 Harkonnen regular casualties return to the reserve pool.
+    expect(state.harkonnenReserve.units.regular).toBe(sampleState().harkonnenReserve.units.regular + 2);
+    expect(note).toMatch(/settlement destroyed/i);
+  });
+
+  it('the settlement-assault continue cost lands at the START of rounds 2+, so ceasing costs nothing', () => {
+    const attacker = leg('atreides', 'arsunt', { regular: 4 });
+    const defender = leg('harkonnen', 'carthag', { regular: 4 });
+    let session = beginBattle({ attacker, defender, defenderSettlementRank: 2 });
+    // Round 1: no rolls land — attacker still at full strength (no assault hit yet).
+    session = resolveBattleRound(session, { attacker: { hits: 0, shields: 0 }, defender: { hits: 0, shields: 0 } });
+    expect(session.attacker.units.regular).toBe(4);
+    // Round 2: the continue cost is charged before the round resolves.
+    session = resolveBattleRound(session, { attacker: { hits: 0, shields: 0 }, defender: { hits: 0, shields: 0 } });
+    expect(session.attacker.units.regular).toBe(3);
   });
 
   it('a victory advance MERGES with a friendly legion already in the taken area', () => {

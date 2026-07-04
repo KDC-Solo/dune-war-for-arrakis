@@ -263,15 +263,63 @@ test('v2: a named Atreides leader added via the area-sheet chips fights with its
   await sheet.locator('.as-legion.atreides').getByRole('button', { name: 'Edit' }).click();
   await sheet.getByRole('button', { name: 'Stilgar', exact: true }).click();
   await expect(sheet.locator('.as-named')).toContainText('Stilgar');
-  // Fight: 1 Atreides Special converts to 2 hits; +1 sietch assault hit → attacker 4 → 1.
+  // Fight: 1 Atreides Special converts to 2 hits → attacker 4 → 2 (the sietch-assault continue
+  // cost is only charged from round 2 on).
   await page.getByRole('button', { name: /Battle — Harkonnen attack from/ }).click();
   const bs = page.locator('.battle-screen');
   await expect(bs.locator('.bs-col.atreides .bs-named')).toContainText('Stilgar');
   await bs.getByRole('button', { name: /Begin battle/ }).click();
   await bs.locator('.bs-rollrow.atreides').getByRole('button', { name: 'Specials +1' }).click();
   await bs.getByRole('button', { name: 'Apply round' }).click();
-  await expect(bs.locator('.bs-col.harkonnen')).toContainText('1');
+  await expect(bs.locator('.bs-col.harkonnen')).toContainText('2');
   await expect(bs.locator('.bs-col.atreides')).toContainText('4');
+});
+
+test('v2: the Atreides can attack an adjacent Harkonnen legion — dice roll, no auto-cease', async ({ page }) => {
+  // The Windgap report: a strong Atreides legion attacks a weak Harkonnen one. Under the old
+  // model the only battle mode framed the Harkonnen as attacker, whose AI ceased instantly.
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  s.legions = [
+    ...s.legions.filter((l) => l.area !== 'wind_pass' && l.area !== 'arsunt'),
+    {
+      faction: 'atreides',
+      area: 'arsunt',
+      units: { regular: 1, elite: 1, special_elite: 1 },
+      deploymentTokens: 0,
+      leaders: [],
+    },
+    {
+      faction: 'harkonnen',
+      area: 'arsunt',
+      units: { regular: 0, elite: 1, special_elite: 0 },
+      deploymentTokens: 0,
+      leaders: [],
+    },
+  ];
+  await seed(page, s);
+  await page.goto('/');
+  await page.locator('path[data-area="arsunt"]').dispatchEvent('click');
+  await page.getByRole('button', { name: /Battle — Atreides attack from here/ }).click();
+  const bs = page.locator('.battle-screen');
+  await bs.getByRole('button', { name: /Begin battle/ }).click();
+  // The fight is ON (previously this instantly showed "defenders hold"): roll entry is offered.
+  await expect(bs).toContainText(/Roll .*Atreides .*Harkonnen dice/);
+  const cease = bs.getByRole('button', { name: /Cease the attack/ });
+  await expect(cease).toBeHidden(); // only offered from round 2 on
+  await bs.locator('.bs-rollrow.atreides').getByRole('button', { name: 'Swords +1' }).click();
+  await bs.getByRole('button', { name: 'Apply round' }).click();
+  // Elite absorbed the hit as a downgrade? No — Harkonnen casualty priority: elite → regular.
+  await expect(bs.locator('.bs-col.harkonnen')).toContainText('Reg');
+  // Round 2 offers the player the choice to stop.
+  await expect(cease).toBeVisible();
+  await cease.click();
+  await expect(bs).toContainText('The defenders hold');
+  await bs.getByRole('button', { name: 'Apply to the game' }).click();
+  // Cease keeps both legions in place (co-located legacy seed → both still in arsunt).
+  await page.locator('path[data-area="arsunt"]').dispatchEvent('click');
+  await expect(page.locator('.area-sheet')).toContainText('Atreides');
+  await expect(page.locator('.area-sheet')).toContainText('Harkonnen');
 });
 
 test('v2: a campaign plays from round 1 until someone wins', async ({ page }) => {
