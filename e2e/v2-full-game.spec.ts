@@ -324,6 +324,24 @@ test('v2: the Atreides can attack an adjacent Harkonnen legion — dice roll, no
   await expect(page.locator('.area-sheet')).toContainText('Harkonnen');
 });
 
+test('v2: a difficulty brain can be selected and resolves dice into directives', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  await seed(page, s);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.locator('.more-brain select').selectOption('baron');
+  await expect(page.locator('.toast2')).toContainText('Baron');
+  await page.locator('.sheet-veil').click({ position: { x: 10, y: 10 } });
+  // Roll a die: the Baron brain must produce a directive card like the Mahdi bot does.
+  await page.locator('.g-dice').getByRole('button', { name: 'Strategy' }).click();
+  await expect(page.locator('.directive-card')).toBeVisible();
+  // The choice persists across reloads.
+  await page.reload();
+  await page.getByRole('button', { name: 'More' }).click();
+  await expect(page.locator('.more-brain select')).toHaveValue('baron');
+});
+
 test('v2: a campaign plays from round 1 until someone wins', async ({ page }) => {
   test.setTimeout(300_000);
   page.on('dialog', (d) => d.accept());

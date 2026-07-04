@@ -285,6 +285,23 @@ Board-first rebuild per PRD.md; engine reused unchanged; v1 reachable via `?clas
 7. **Playtest feedback pass → v0.4.0.** Fold in findings from the current playtest; tag
    the release (everything above is live on main/Pages already).
 
+## 4b. M8 — human-like Harkonnen AI with difficulty levels (ACTIVE, post-v1.0.0)
+
+The Mahdi bot resolves dice through fixed priority tables; M8 adds swappable "brains" behind the
+same `resolveAction` seam (`src/engine/harkonnenBrain.ts`) — the chassis (dice, directives,
+battles, UI) is untouched.
+
+- [x] Brain interface + candidate generation + position evaluation + softmax choice.
+- [x] Profiles: **Recruit** (erratic, no defense, no transport attacks) · **Bashar** (solid) ·
+      **Baron** (low temperature, threat-response defense) — plus **Mahdi (classic)** default.
+- [x] Honesty rule: brains never read unrevealed sietch ranks (estimate 2), token contents, or
+      the player's Secret Objective — unlike the solo bot, which is allowed to know.
+- [x] Picker in the More sheet (persisted, per-device); dice resolve through the chosen brain.
+- [x] Self-play harness (`selfplay.test.ts`): every brain plays full engine-level games to a win
+      with invariant checks; tempo (rounds-to-win) compared across profiles.
+- [ ] Tune from real playtests: evaluation weights, deployment variants (currently Mahdi's
+      placement only), persistent multi-round plans, and possibly a search-based "Mentat" level.
+
 ## 5. Key references
 
 - `BOARD_VERIFICATION.md` — board data (source of truth for Phase 1).

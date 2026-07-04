@@ -15,7 +15,8 @@ import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
 import { moveLegionUnits, applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
-import { resolveAction, type HarkonnenAction } from '../engine/harkonnenActions';
+import { type HarkonnenAction } from '../engine/harkonnenActions';
+import { decideHarkonnenAction, BRAIN_LABELS, type BrainId } from '../engine/harkonnenBrain';
 import { describeAction, actionHeadline } from '../ui/describeAction';
 import { areaLabel } from '../ui/describeAction';
 import { BoardMap } from '../ui/BoardMap';
@@ -76,6 +77,22 @@ export function App2() {
     }
   });
   const [sound, setSound] = useState(soundEnabled());
+  // Which Harkonnen brain resolves the dice — Mahdi (official bot) or a human-like difficulty.
+  const [brain, setBrain] = useState<BrainId>(() => {
+    try {
+      const v = localStorage.getItem('dwfa.aiBrain');
+      return v === 'recruit' || v === 'bashar' || v === 'baron' ? v : 'mahdi';
+    } catch {
+      return 'mahdi';
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('dwfa.aiBrain', brain);
+    } catch {
+      /* ignore */
+    }
+  }, [brain]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -133,7 +150,7 @@ export function App2() {
   const rollDie = (face: ActionResult) => {
     const next = { ...s, harkonnenDiceUsed: diceUsed + 1 };
     commit(next, { headline: `Harkonnen die ${diceUsed + 1}/${diceAvail}: ${face}`, quiet: true });
-    setDirective(resolveAction(next, face));
+    setDirective(decideHarkonnenAction(next, face, brain));
   };
 
   const confirmDirective = () => {
@@ -402,6 +419,21 @@ export function App2() {
                   <button onClick={() => setAtmosphere(!atmosphere)}>
                     <Icon name="wormsign" size={16} /> Atmosphere {atmosphere ? 'on' : 'off'}
                   </button>
+                  <label className="more-brain">
+                    <Icon name="mentat" size={16} /> Harkonnen AI
+                    <select
+                      className="ts-select"
+                      value={brain}
+                      onChange={(e) => {
+                        setBrain(e.target.value as BrainId);
+                        setToast(`Harkonnen AI: ${BRAIN_LABELS[e.target.value as BrainId]}`);
+                      }}
+                    >
+                      {(Object.keys(BRAIN_LABELS) as BrainId[]).map((id) => (
+                        <option key={id} value={id}>{BRAIN_LABELS[id]}</option>
+                      ))}
+                    </select>
+                  </label>
                   <button onClick={() => { setSheet(null); setWizardOpen(true); }}>
                     🧭 Guided setup
                   </button>
