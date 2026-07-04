@@ -1,15 +1,17 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
 import { ErrorBoundary } from './ErrorBoundary';
-import './styles.css';
+import { App2 } from '../ui2/App2';
+
+document.documentElement.dataset.ui = 'v2';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root not found');
+
 createRoot(root).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      <App2 />
     </ErrorBoundary>
   </React.StrictMode>,
 );

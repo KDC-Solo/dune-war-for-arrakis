@@ -14,6 +14,7 @@ import type {
   TacticalSector,
   Vehicle,
 } from "./state";
+import { ATREIDES_ACTION_DICE } from "./state";
 import { availability } from "./spiceMustFlow";
 import { placeVehicles } from "./vehiclePlacement";
 
@@ -198,6 +199,8 @@ export function setupRound(
     phase: "vehicle_placement",
     harvestingSector,
     targetSietchId,
+    harkonnenDiceUsed: 0,
+    atreidesDiceUsed: 0,
   };
 
   // Auto-place vehicles for this round so s.vehicles is the single source of truth.
@@ -249,4 +252,15 @@ export function startNextRound(
     state: setupRound(ended, rng),
     harkonnenWins: supremacy >= SUPREMACY_WIN,
   };
+}
+
+/**
+ * Desert Power gate (rulebook "Desert Power action"): the Atreides may take one only while they
+ * have FEWER unused action dice than the Harkonnen — or when a planning card / special action
+ * grants it directly (that exception is the player's call, not checked here).
+ */
+export function desertPowerAvailable(s: GameState): boolean {
+  const hkUnused = Math.max(0, availability(s.spice.markers).diceAvailable - (s.harkonnenDiceUsed ?? 0));
+  const atUnused = Math.max(0, ATREIDES_ACTION_DICE - (s.atreidesDiceUsed ?? 0));
+  return atUnused < hkUnused;
 }

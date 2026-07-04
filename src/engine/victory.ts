@@ -40,8 +40,10 @@ export function gameOutcome(s: GameState): GameOutcome {
       reason: `The supremacy marker reached ${SUPREMACY_WIN}.`,
     };
   }
+  // Every Secret Objective card targets all three markers with nonzero scores, so a triple with
+  // any 0 means the player is still entering it — never declare a win off a partial objective.
   const obj = s.atreidesObjective;
-  if (obj && obj.every((target, i) => s.tracks.prescience[i] >= target)) {
+  if (obj && obj.every((target) => target >= 1) && obj.every((target, i) => s.tracks.prescience[i] >= target)) {
     return {
       winner: "atreides",
       reason: "All 3 prescience markers reached the Secret Objective scores.",

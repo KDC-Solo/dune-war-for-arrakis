@@ -158,9 +158,9 @@ export type DiceProvider = (
 ) => { attacker: RollResult; defender: RollResult };
 
 export interface BattleContext {
-  /** Harkonnen attacking legion. */
+  /** Attacking legion — either faction (the Harkonnen AI, or the Atreides player attacking). */
   attacker: Legion;
-  /** Atreides defending legion. */
+  /** Defending legion (the opposite faction). */
   defender: Legion;
   /** Rank of the settlement/sietch the defender occupies (extra defender dice + continue cost). */
   defenderSettlementRank?: number;
@@ -221,8 +221,23 @@ export interface RoundSetup {
 function evalStatus(attacker: Legion, defender: Legion): BattleStatus {
   if (eliminated(defender)) return 'attacker_won';
   if (eliminated(attacker)) return 'attacker_eliminated';
-  if (!harkonnenShouldContinueAttack(attacker, defender)) return 'defender_survived';
+  // The auto-cease criterion is Mahdi AI behavior: it only governs HARKONNEN attacks. A player
+  // (Atreides) attacker decides each round whether to continue — see `ceaseAttack`.
+  if (attacker.faction === 'harkonnen' && !harkonnenShouldContinueAttack(attacker, defender)) {
+    return 'defender_survived';
+  }
   return 'ongoing';
+}
+
+/** Apply hits with the right casualty rule for the legion's faction. */
+function applyHitsFor(legion: Legion, hits: number): { legion: Legion; casualties: Casualties } {
+  return legion.faction === 'harkonnen' ? applyHarkonnenHits(legion, hits) : applyDefaultHits(legion, hits);
+}
+
+/** The (player) attacker chooses to stop: the battle ends, survivors keep their positions. */
+export function ceaseAttack(session: BattleSession): BattleSession {
+  if (session.status !== 'ongoing') return session;
+  return { ...session, status: 'defender_survived' };
 }
 
 /** Open a battle. The status reflects an immediate decision (e.g. the Harkonnen never engage). */
@@ -244,7 +259,8 @@ export function battleRoundSetup(session: BattleSession): RoundSetup {
   const attUnits = liveUnits(session.attacker);
   const defUnits = liveUnits(session.defender);
   let discards = 0;
-  if (!ctx.landsraadBan && session.reinforcements > 0) {
+  // Reinforcement discards are a Harkonnen-AI mechanic — never for an Atreides attacker.
+  if (ctx.attacker.faction === 'harkonnen' && !ctx.landsraadBan && session.reinforcements > 0) {
     discards = Math.max(0, Math.min(session.reinforcements, MAX_COMBAT_DICE - attUnits));
   }
   const surprise = !!ctx.surprise && session.rounds === 0;
@@ -262,17 +278,24 @@ export function battleRoundSetup(session: BattleSession): RoundSetup {
  */
 export function resolveBattleRound(session: BattleSession, r: RollOutcome): BattleSession {
   if (session.status !== 'ongoing') return session;
-  const chooseDef = session.ctx.chooseDefenderCasualties ?? ((d: Legion, h: number) => applyDefaultHits(d, h).legion);
+  const chooseDef = session.ctx.chooseDefenderCasualties ?? ((d: Legion, h: number) => applyHitsFor(d, h).legion);
   const { discards } = battleRoundSetup(session);
+
+  // Assaulting a defended settlement/sietch: the attacker pays 1 hit to CONTINUE the battle —
+  // charged at the start of every round after the first (ceasing instead costs nothing).
+  let preAttacker = session.attacker;
+  if (session.ctx.defenderSettlementRank && session.rounds > 0) {
+    preAttacker = applyHitsFor(preAttacker, 1).legion;
+    if (eliminated(preAttacker)) {
+      return { ...session, attacker: preAttacker, rounds: session.rounds + 1, status: evalStatus(preAttacker, session.defender) };
+    }
+  }
 
   const hitsOnDefender = Math.max(0, r.attacker.hits - r.defender.shields);
   const hitsOnAttacker = Math.max(0, r.defender.hits - r.attacker.shields);
 
-  let defender = chooseDef(session.defender, hitsOnDefender);
-  let attacker = applyHarkonnenHits(session.attacker, hitsOnAttacker).legion;
-  if (session.ctx.defenderSettlementRank && !eliminated(defender) && !eliminated(attacker)) {
-    attacker = applyHarkonnenHits(attacker, 1).legion;
-  }
+  const defender = chooseDef(session.defender, hitsOnDefender);
+  const attacker = applyHitsFor(preAttacker, hitsOnAttacker).legion;
 
   return {
     ...session,
@@ -285,9 +308,13 @@ export function resolveBattleRound(session: BattleSession, r: RollOutcome): Batt
   };
 }
 
-/** The Harkonnen reserve replenishment for the casualties taken so far in `session`. */
+/** The Harkonnen reserve replenishment for the casualties taken so far in `session` — computed
+ *  from whichever side is the Harkonnen (they can be the defender when the Atreides attack). */
 export function battleReserveDelta(session: BattleSession): ReserveDelta {
-  return reserveDeltaFromCasualties(session.ctx.attacker, session.attacker);
+  if (session.ctx.attacker.faction === 'harkonnen') {
+    return reserveDeltaFromCasualties(session.ctx.attacker, session.attacker);
+  }
+  return reserveDeltaFromCasualties(session.ctx.defender, session.defender);
 }
 
 /** Per-round roll once shields/leaders are resolved (see combatRoll.resolveCombatRoll). */

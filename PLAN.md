@@ -203,6 +203,23 @@ Lower the barrier for a brand-new solo player picking up the app cold.
       actions → battles → hazards → spice → end), on top of the existing phase-gated walkthrough
       and help panel. A deeper interactive tutorial can come later if playtesting wants it.
 
+## 3.5 v2 reimagining (branch `v2` — see PRD.md)
+
+Board-first rebuild per PRD.md; engine reused unchanged; v1 reachable via `?classic`.
+
+- [x] **M0** design system (tokens, Rajdhani, 27-glyph icon set) + living shell (2026-07-03)
+- [x] **M1** stage camera-fill + glow system + area sheet (edit/move with legal-destination glow)
+- [x] **M2** directive flow: die faces → directive card → confirm; chronicle + undo
+- [x] **M3** battle screen (night takeover, token reveal, counters, outcome)
+- [x] **M4** Atreides tracker sheet + victory scenes
+- [x] **M5** phase flows in the guide bar (vehicles/hazards/storms/spice), TurnSheet
+      (markers/reserve/cards), saves + import/export; v2 E2E suite (4 journeys; 9 total green)
+- [x] **M6** onboarding: first-run welcome, reskinned guided setup, win cue
+- [ ] **M7 — PARITY GATE (owner sign-off required):** playtest v2, tick the §8 parity list in
+      PRD.md, then swap the default, delete src/ui (v1), and release v1.0.0. Known deltas from
+      v1 noted in the M6 report (deep editor coverage vs area-sheet editing; deploy-from-reserve
+      conservation UI; wormsign placement via area sheets).
+
 ## 4. Current status (update me each session)
 
 - **Phases 0–2 and 4 complete; Phase 3 nearly complete.** 256 tests pass; v0.3.0 shipped

@@ -269,7 +269,17 @@ export interface GameState {
   // Action-die pools (counts; faces are assigned as dice are rolled/placed).
   harkonnenUnusedDice: number;
   atreidesUnusedDice: number;
+  /** Harkonnen action dice resolved so far this round (reset by setupRound). Optional for
+   *  save-compatibility — absent means 0. The SMF active row caps how many are available. */
+  harkonnenDiceUsed?: number;
+  /** Atreides action dice spent so far this round (reset by setupRound). Optional for
+   *  save-compatibility — absent means 0. The pool is ATREIDES_ACTION_DICE (physical dice;
+   *  a Bene Gesserit token slotted as a die effectively adds one — adjust the counter). */
+  atreidesDiceUsed?: number;
 }
+
+/** The Atreides action-dice pool (component list: 4 dice; the Harkonnen pool comes from SMF). */
+export const ATREIDES_ACTION_DICE = 4;
 
 // ---------------------------------------------------------------------------
 // Component reference counts (from the rulebook component list)

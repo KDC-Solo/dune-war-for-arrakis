@@ -10,6 +10,7 @@ import {
   shuffle,
   setupRound,
   startNextRound,
+  desertPowerAvailable,
 } from './round';
 import type { GameState, TacticalCard } from './state';
 
@@ -144,6 +145,32 @@ describe('setupRound', () => {
     const next = setupRound(s, () => 0);
     expect(next.round).toBe(1);
     expect(next.tracks.supremacy).toBe(0);
+  });
+
+  it('resets both dice-used counters for the new round', () => {
+    const s = {
+      ...miniState({ round: 1, phase: 'start', tracks: { supremacy: 0, prescience: [0, 0, 0] } }),
+      harkonnenDiceUsed: 5,
+      atreidesDiceUsed: 3,
+    };
+    const next = setupRound(s, () => 0);
+    expect(next.harkonnenDiceUsed).toBe(0);
+    expect(next.atreidesDiceUsed).toBe(0);
+  });
+});
+
+describe('desertPowerAvailable', () => {
+  const base = () => miniState({ round: 1, phase: 'action_resolution', tracks: { supremacy: 0, prescience: [0, 0, 0] } });
+
+  it('requires FEWER unused Atreides dice than Harkonnen', () => {
+    // miniState markers at 3 → active row 3 → 6 Harkonnen dice. Fresh: 4 Atreides < 6 → available.
+    expect(desertPowerAvailable(base())).toBe(true);
+    // Harkonnen spent 4 (2 unused): Atreides 4 unused → 4 < 2 fails.
+    expect(desertPowerAvailable({ ...base(), harkonnenDiceUsed: 4 })).toBe(false);
+    // The Atreides spend down to 1 unused: 1 < 2 → available again.
+    expect(desertPowerAvailable({ ...base(), harkonnenDiceUsed: 4, atreidesDiceUsed: 3 })).toBe(true);
+    // Everything spent: 0 < 0 fails.
+    expect(desertPowerAvailable({ ...base(), harkonnenDiceUsed: 6, atreidesDiceUsed: 4 })).toBe(false);
   });
 });
 

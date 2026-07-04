@@ -142,8 +142,9 @@ const STEPS: Step[] = [
           </li>
           <li>
             <strong>Actions</strong> — alternate turns. On the Harkonnen turn, roll their action
-            die and tap the face in <em>Resolve Harkonnen turn</em>; the app decides everything.
-            Record your own turns in <em>Your turn (Atreides)</em> and <em>Move a legion</em>.
+            die and tap the matching face; the app decides everything. On your turns, tap an
+            area on the board to move a legion or place worm tokens, and use the Atreides sheet
+            for prescience, stations and reveals.
           </li>
           <li>
             <strong>Hazards</strong> — wormsigns, then Coriolis storms (enter your dice).
