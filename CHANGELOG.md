@@ -3,6 +3,43 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [1.0.0] — 2026-07-04
+
+**The board‑first reimagining ships as the app.** The v2 interface (full‑viewport stage, guide
+bar, sheets, battle takeover) replaces the v1 panel UI, after two days of autonomous + owner
+playtesting. Saves from 0.x load unchanged.
+
+### Added
+- **Board‑first interface** — the map is the app: status ribbon, spice‑orange guide bar that
+  always shows the one next action (die faces → directive cards → phase panels), 4‑dock bottom
+  sheets (Turn / You / Log / More), tap‑any‑area sheets with in‑place editing, full‑screen
+  night‑palette battle screen, victory scenes, first‑run welcome + reskinned setup wizard.
+- **Atreides‑initiated battles** — attack adjacent Harkonnen legions from the area sheet; cease
+  any round after the first; taking a settlement destroys it (+prescience by rank) and removes
+  harvesters; faction‑aware casualty rules and reserve refunds.
+- **Battle model per rulebook p26** — battles fight from adjacency (no attacker pre‑move), cease
+  keeps both survivors in place, the victor advances (merging with friendlies; garrison drop on
+  leaving a settlement); the settlement‑assault continue cost lands at the start of rounds 2+.
+- **Named‑leader chips** — add/remove all 15 named leader cards (7 Harkonnen/Corrino +
+  8 Atreides/Fremen) on any legion from the area sheet; combat strips verified in battle.
+- **Atreides planning deck** — all 36 cards (18 House Atreides incl. the three Smugglers
+  variants + 18 Fremen Ally incl. Shai‑Hulud ×3) modeled and browsable from the You sheet.
+- **Dice accounting, both sides** — the Harkonnen pool is counted per round (die taps land in
+  the chronicle, faces disable when spent), and your action dice drive a live **Desert Power
+  availability** badge; both counters have correction steppers.
+- **Battle‑screen clarity** — labeled unit rows (Reg/Elite/Fedaykin/Tokens/Naib…) and an inline
+  dice‑math explainer (units roll; leaders convert ✴ Specials; rank and surprise bonuses).
+
+### Changed
+- Undo now checkpoints quiet tracker edits (markers, reserve, area edits) as coalesced chronicle
+  entries, and phase advances are logged steps — nothing is silently swallowed.
+- A partial Secret Objective (any goal still 0) never declares an Atreides victory.
+- Starting/loading/importing a game clears every leftover sheet, move pick, and battle overlay.
+
+### Removed
+- The v1 panel UI (`?classic`), its state editor, and the v1 E2E suite. The engine, saves, and
+  all shared modules (board map, wizard, persistence) are unchanged — 0.x saves load as‑is.
+
 ## [0.4.0] — 2026-07-03
 
 The "everything in the plan" release: both victory paths, the Atreides turn panel, guided

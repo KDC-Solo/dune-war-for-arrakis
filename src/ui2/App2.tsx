@@ -438,7 +438,6 @@ export function App2() {
                       }}
                     />
                   </label>
-                  <a href="?classic">↩ Classic interface (v1)</a>
                 </div>
                 <h3 className="ys-h"><Icon name="log" size={15} /> Named saves</h3>
                 <div className="more-rows">
