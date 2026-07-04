@@ -191,7 +191,8 @@ export function App2() {
     if (guide.action === 'begin-round') commit(setupRound(s), { headline: `Round ${s.round} begun` });
     else if (guide.action === 'next-phase') {
       const n = nextPhase(s.phase);
-      if (n) game.edit({ ...s, phase: n });
+      // A quiet commit (not a silent edit): the step lands in the chronicle and undoes cleanly.
+      if (n) commit({ ...s, phase: n }, { headline: guide.actionLabel?.replace(/\s*→$/, '') ?? 'Next phase', quiet: true });
     } else if (guide.action === 'next-round') {
       commit(startNextRound(s).state, { headline: `Round ${s.round + 1} begun` });
     }
@@ -421,11 +422,14 @@ export function App2() {
                   <button
                     onClick={() => {
                       const name = prompt('Save as…', `Round ${s.round}`);
-                      if (name?.trim()) {
-                        saveNamedGame(name.trim(), s);
-                        setToast(`Saved "${name.trim()}"`);
-                        setSheet(null);
+                      if (name === null) return; // cancelled
+                      if (!name.trim()) {
+                        setToast('Not saved — the name was blank');
+                        return;
                       }
+                      saveNamedGame(name.trim(), s);
+                      setToast(`Saved "${name.trim()}"`);
+                      setSheet(null);
                     }}
                   >
                     + Save current game

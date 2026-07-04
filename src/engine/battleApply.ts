@@ -8,6 +8,7 @@ import type { GameState, Legion } from './state';
 import { emptyLegion } from './state';
 import { battleReserveDelta, type BattleSession } from './combat';
 import { applyReserveDelta } from './reserve';
+import { upsertLegion } from './applyAction';
 import { areaLabel } from './describeArea';
 
 const isEmpty = (l: Legion) =>
@@ -52,9 +53,15 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
   // co-located flows — the advance is a no-op.)
   const advanceNotes: string[] = [];
   if (session.status === 'attacker_won' && atk.area !== def.area && !isEmpty(session.attacker)) {
-    legions = legions.map((l) =>
-      l.faction === atk.faction && l.area === atk.area ? { ...l, area: def.area } : l,
-    );
+    // Merge with any friendly legion already in the taken area (legacy saves / manual edits) —
+    // one legion per faction per area is a state invariant.
+    const advancing = legions.find((l) => l.faction === atk.faction && l.area === atk.area);
+    if (advancing) {
+      legions = upsertLegion(
+        legions.filter((l) => l !== advancing),
+        { ...advancing, area: def.area },
+      );
+    }
     // Solo garrison rule: fully leaving a live settlement drops 2 deployment tokens there.
     if (s.settlements.some((st) => st.area === atk.area && !st.destroyed)) {
       const dropped = Math.min(2, s.harkonnenReserve.deploymentTokens);

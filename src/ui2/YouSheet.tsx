@@ -35,7 +35,7 @@ export function YouSheet({ game }: { game: Game }) {
   const setObjective = (i: number, value: number) => {
     const next: PrescienceTriple = [...(objective ?? [0, 0, 0])] as PrescienceTriple;
     next[i] = Math.max(0, value);
-    game.edit({ ...s, atreidesObjective: next });
+    game.edit({ ...s, atreidesObjective: next }, 'Secret Objective');
   };
 
   const stations = s.testingStations.filter((t) => !t.revealed);

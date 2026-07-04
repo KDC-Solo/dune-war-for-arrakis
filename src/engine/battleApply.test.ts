@@ -120,4 +120,23 @@ describe('commitBattle — adjacent battles (rulebook positions)', () => {
     expect(state.harkonnenReserve.deploymentTokens).toBe(3);
     expect(note).toMatch(/garrison/);
   });
+
+  it('a victory advance MERGES with a friendly legion already in the taken area', () => {
+    const attacker = leg('harkonnen', 's1_11', { regular: 4 });
+    const occupant = { ...leg('harkonnen', 'gara_kulon', { regular: 2, elite: 1 }), deploymentTokens: 1 };
+    const defender = leg('atreides', 'gara_kulon', { regular: 1 });
+    const s = stateWith({ legions: [attacker, occupant, defender], sietches: [] });
+
+    let session = beginBattle({ attacker, defender });
+    session = resolveBattleRound(session, { attacker: { hits: 1, shields: 0 }, defender: { hits: 0, shields: 0 } });
+    expect(session.status).toBe('attacker_won');
+
+    const { state } = commitBattle(s, session);
+    const hkAtDef = state.legions.filter((l) => l.faction === 'harkonnen' && l.area === 'gara_kulon');
+    expect(hkAtDef).toHaveLength(1); // one legion per faction per area — never two
+    expect(hkAtDef[0].units.regular).toBe(6);
+    expect(hkAtDef[0].units.elite).toBe(1);
+    expect(hkAtDef[0].deploymentTokens).toBe(1);
+    expect(state.legions.some((l) => l.faction === 'harkonnen' && l.area === 's1_11')).toBe(false);
+  });
 });

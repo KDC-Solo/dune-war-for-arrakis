@@ -38,6 +38,20 @@ describe("gameOutcome", () => {
     s.tracks = { ...s.tracks, prescience: [99, 99, 99] };
     expect(gameOutcome(s).winner).toBeNull();
   });
+
+  it("a partially entered objective (any 0 goal) never wins", () => {
+    // Objective cards target all three markers, so a 0 means the player is still typing.
+    const s = base();
+    s.atreidesObjective = [1, 0, 0];
+    s.tracks = { ...s.tracks, prescience: [1, 0, 0] };
+    expect(gameOutcome(s).winner).toBeNull();
+
+    s.atreidesObjective = [1, 1, 1];
+    expect(gameOutcome(s).winner).toBeNull(); // prescience [1,0,0] still short
+
+    s.tracks = { ...s.tracks, prescience: [1, 1, 1] };
+    expect(gameOutcome(s).winner).toBe("atreides");
+  });
 });
 
 describe("prescience economy", () => {

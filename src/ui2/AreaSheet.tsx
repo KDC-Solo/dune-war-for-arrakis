@@ -92,6 +92,7 @@ export function AreaSheet({
         }
         return { ...l, units: { ...l.units, [key]: n } };
       }),
+      `Edited ${areaLabel(area)}`,
     );
   };
 

@@ -34,6 +34,8 @@ export function useGame() {
   const [log, setLog] = useState<LogEntry[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const nextId = useRef(1);
+  // Label of the edit burst currently being coalesced (null = last action was a commit/undo/load).
+  const editBurst = useRef<string | null>(null);
 
   useEffect(() => saveState(s), [s]);
   useEffect(() => {
@@ -44,6 +46,7 @@ export function useGame() {
 
   /** Apply a change with undo + chronicle + toast + cue. */
   const commit = (next: GameState, l: ApplyLog) => {
+    editBurst.current = null;
     setPast((p) => [...p.slice(-(UNDO_LIMIT - 1)), s]);
     setLog((h) => [
       ...h.slice(-(UNDO_LIMIT - 1)),
@@ -63,10 +66,24 @@ export function useGame() {
     }
   };
 
-  /** Silent state edit (drag-style edits that shouldn't spam the chronicle). */
-  const edit = (next: GameState) => setS(next);
+  /**
+   * Quiet state edit (steppers, typed fields). No toast/cue, but each burst of same-label edits
+   * checkpoints ONE undo step + chronicle line, so Undo never silently swallows tracker changes.
+   */
+  const edit = (next: GameState, label = 'Manual adjustment') => {
+    if (editBurst.current !== label) {
+      editBurst.current = label;
+      setPast((p) => [...p.slice(-(UNDO_LIMIT - 1)), s]);
+      setLog((h) => [
+        ...h.slice(-(UNDO_LIMIT - 1)),
+        { id: nextId.current++, round: s.round, time: Date.now(), headline: label, text: '' },
+      ]);
+    }
+    setS(next);
+  };
 
   const undo = () => {
+    editBurst.current = null;
     setPast((p) => {
       if (p.length === 0) return p;
       setS(p[p.length - 1]);
@@ -78,6 +95,7 @@ export function useGame() {
 
   /** Load/import/new game: fresh undo history. */
   const loadGame = (next: GameState) => {
+    editBurst.current = null;
     setPast([]);
     setLog([]);
     setS(next);

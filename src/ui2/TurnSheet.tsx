@@ -43,10 +43,10 @@ export function TurnSheet({ game }: { game: Game }) {
 
   const setMarker = (key: ImperiumPower, value: number) => {
     const markers = { ...s.spice.markers, [key]: Math.max(1, Math.min(5, value)) };
-    edit({ ...s, spice: { ...s.spice, markers, activeBans: activeBans(markers) } });
+    edit({ ...s, spice: { ...s.spice, markers, activeBans: activeBans(markers) } }, 'Imperium markers');
   };
   const setReserve = (key: UnitType, value: number) =>
-    edit({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: Math.max(0, Math.min(16, value)) } } });
+    edit({ ...s, harkonnenReserve: { ...r, units: { ...r.units, [key]: Math.max(0, Math.min(16, value)) } } }, 'Harkonnen reserve');
 
   return (
     <>
@@ -90,17 +90,17 @@ export function TurnSheet({ game }: { game: Game }) {
         <label className="bs-count">
           Tokens
           <span className="mini-stepper">
-            <button type="button" disabled={r.deploymentTokens <= 0} onClick={() => edit({ ...s, harkonnenReserve: { ...r, deploymentTokens: r.deploymentTokens - 1 } })}>−</button>
+            <button type="button" disabled={r.deploymentTokens <= 0} onClick={() => edit({ ...s, harkonnenReserve: { ...r, deploymentTokens: r.deploymentTokens - 1 } }, 'Harkonnen reserve')}>−</button>
             <b>{r.deploymentTokens}</b>
-            <button type="button" onClick={() => edit({ ...s, harkonnenReserve: { ...r, deploymentTokens: r.deploymentTokens + 1 } })}>+</button>
+            <button type="button" onClick={() => edit({ ...s, harkonnenReserve: { ...r, deploymentTokens: r.deploymentTokens + 1 } }, 'Harkonnen reserve')}>+</button>
           </span>
         </label>
         <label className="bs-count">
           Bashars
           <span className="mini-stepper">
-            <button type="button" disabled={r.bashars <= 0} onClick={() => edit({ ...s, harkonnenReserve: { ...r, bashars: r.bashars - 1 } })}>−</button>
+            <button type="button" disabled={r.bashars <= 0} onClick={() => edit({ ...s, harkonnenReserve: { ...r, bashars: r.bashars - 1 } }, 'Harkonnen reserve')}>−</button>
             <b>{r.bashars}</b>
-            <button type="button" onClick={() => edit({ ...s, harkonnenReserve: { ...r, bashars: r.bashars + 1 } })}>+</button>
+            <button type="button" onClick={() => edit({ ...s, harkonnenReserve: { ...r, bashars: r.bashars + 1 } }, 'Harkonnen reserve')}>+</button>
           </span>
         </label>
       </div>

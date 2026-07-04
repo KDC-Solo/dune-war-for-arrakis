@@ -191,6 +191,10 @@ export function BattleScreen({
           {!needRank && reveal && (
             <div className="bs-panel">
               <p className="bs-note">Flip the facedown tokens — enter the units they reveal.</p>
+              <label className="bs-surprise">
+                <input type="checkbox" checked={surprise} onChange={(e) => setSurprise(e.target.checked)} />
+                Surprise attack (+1 Harkonnen result, first round)
+              </label>
               {attacker.deploymentTokens > 0 && (
                 <div className="bs-rollrow">
                   <strong>Harkonnen ×{attacker.deploymentTokens}</strong>
