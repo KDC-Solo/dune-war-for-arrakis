@@ -409,10 +409,12 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             <path d="M0,5 Q3.5,2.4 7,5 T14,5" fill="none" stroke="#8a5c1e" strokeWidth="1.1" opacity="0.5" />
           </pattern>
         </defs>
-        <rect x={0} y={0} width={W} height={H} rx={10} fill="#f3e2bd" stroke="#d8c9aa" />
+        <rect className="map-frame" x={0} y={0} width={W} height={H} rx={10} fill="#f3e2bd" stroke="#d8c9aa" />
         <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
           {/* Each area is its traced outline from the board (boardShapes.ts), filled by terrain — or
-              by sector colour in Sectors view. These are the click/hover targets. */}
+              by sector colour in Sectors view. These are the click/hover targets. The .map-ground
+              wrapper lets dark mode dim the terrain without dulling pieces or highlights. */}
+          <g className="map-ground">
           {GEO.cells.map(({ id, d, terrainFill, sector }) => {
             const on = hover === id || highlight === id;
             const ok = !selectable || selectable(id);
@@ -446,6 +448,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
           {colorBy === 'terrain' && (
             <rect x={0} y={0} width={W} height={H} filter="url(#sand-grain)" opacity={0.16} pointerEvents="none" />
           )}
+          </g>
 
           {/* Selected / located area — highlight the whole polygon (gold), not just a dot. An air
               zone (no polygon) pulses a gold ring around its circle instead. */}
@@ -470,6 +473,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
           })()}
 
           {/* Impassable borders — a bold red mark (white-cased) along the two areas' shared edge. */}
+          <g className="map-ground">
           {GEO.impassable.map((b, i) => (
             <g key={`imp-${i}`} pointerEvents="none" fill="none" strokeLinecap="round" strokeLinejoin="round">
               <path d={b.d} stroke="#fff" strokeWidth={7} vectorEffect="non-scaling-stroke" />
@@ -477,6 +481,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
               <path d={b.d} stroke="#fbf1df" strokeWidth={1.6} vectorEffect="non-scaling-stroke" />
             </g>
           ))}
+          </g>
 
           {/* v2 glow: spice outline on directive-target / legal-pick areas. */}
           {glow?.map((id) => {
@@ -550,7 +555,7 @@ export function BoardMap({ highlight, focus, onSelect, onHover, state, picking, 
             return (
               <circle
                 key={id}
-                className="map-dot"
+                className={`map-dot${on ? ' on' : ''}`}
                 cx={cx}
                 cy={cy}
                 r={(on ? 3.4 : 2.2) / Math.sqrt(view.k)}
