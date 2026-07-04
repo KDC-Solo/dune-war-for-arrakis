@@ -114,6 +114,34 @@ describe("applyHarkonnenAction — move", () => {
     expect(left?.deploymentTokens).toBe(2);
     expect(r.state.harkonnenReserve.deploymentTokens).toBe(6); // 8 - 2
   });
+
+  it("surfaces the reveal-first instruction when the token pool cannot cover the garrison", () => {
+    const s = state({
+      settlements: [{ area: "carthag", rank: 2, destroyed: false }],
+      legions: [hLeg("carthag", { regular: 3 })],
+    });
+    s.harkonnenReserve = { ...s.harkonnenReserve, deploymentTokens: 1 };
+    const r = applyHarkonnenAction(s, {
+      kind: "move",
+      legion: "carthag",
+      path: ["carthag", "s5_2"],
+    });
+    expect(r.state.legions.find((l) => l.area === "carthag")?.deploymentTokens).toBe(1);
+    expect(r.note).toMatch(/Token pool exhausted — reveal 1 deployment token/);
+  });
+
+  it("reminds the player when a Harkonnen legion enters a wormsign area", () => {
+    const s = state({
+      legions: [hLeg("s1_11", { regular: 3 })],
+      wormsigns: [{ area: "s1_12" }],
+    });
+    const r = applyHarkonnenAction(s, {
+      kind: "move",
+      legion: "s1_11",
+      path: ["s1_11", "s1_12"],
+    });
+    expect(r.note).toMatch(/enters a Wormsign — reveal and resolve/);
+  });
 });
 
 describe("moveLegionUnits — manual split move", () => {

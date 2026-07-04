@@ -19,6 +19,25 @@ export interface ApplyResult {
 
 const clamp0 = (n: number) => Math.max(0, n);
 
+/**
+ * Solo rule (fan p9): if deployment tokens must be placed but the pool is short, the player
+ * reveals tokens of their choice on the board first (placing their units), which frees the
+ * tokens for the required placement. The app can't flip physical tokens, so it surfaces this
+ * as an instruction whenever a garrison drop comes up short.
+ */
+export function tokenPoolShortNote(shortfall: number): string {
+  return (
+    `Token pool exhausted — reveal ${shortfall} deployment token${shortfall === 1 ? '' : 's'} of ` +
+    `your choice on the board (replace each with its unit via the area sheet), then add the freed ` +
+    `token${shortfall === 1 ? '' : 's'} here.`
+  );
+}
+
+/** Note for a Harkonnen legion entering a wormsign area — the reveal happens physically. */
+export const WORMSIGN_ENTRY_NOTE =
+  'The legion enters a Wormsign — reveal and resolve it physically, then record the outcome ' +
+  'with the area-sheet worm tools.';
+
 function mergeInto(target: Legion, src: Legion): Legion {
   return {
     ...target,
@@ -121,16 +140,19 @@ function applyMove(s: GameState, from: string, to: string): ApplyResult {
     }
   }
   const split = !remainderEmpty;
+  const notes: string[] = [
+    split
+      ? `Moved ${movedUnitCount} (stacking limit ${limit}); rest stayed behind.`
+      : "Legion moved.",
+  ];
+  if (droppedTokens > 0)
+    notes.push(`${droppedTokens} deployment token${droppedTokens === 1 ? "" : "s"} left in the settlement.`);
+  if (leftSettlement && droppedTokens < 2) notes.push(tokenPoolShortNote(2 - droppedTokens));
+  if (s.wormsigns.some((w) => w.area === to)) notes.push(WORMSIGN_ENTRY_NOTE);
   return {
     state: { ...s, legions, harkonnenReserve: reserve },
     applied: true,
-    note:
-      (split
-        ? `Moved ${movedUnitCount} (stacking limit ${limit}); rest stayed behind. `
-        : "Legion moved. ") +
-      (droppedTokens > 0
-        ? `${droppedTokens} deployment token${droppedTokens === 1 ? "" : "s"} left in the settlement.`
-        : ""),
+    note: notes.join(" "),
   };
 }
 

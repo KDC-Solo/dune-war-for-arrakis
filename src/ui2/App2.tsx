@@ -14,7 +14,7 @@ import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } fro
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
-import { moveLegionUnits, applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
+import { moveLegionUnits, applyHarkonnenAction, isAutoApplied, tokenPoolShortNote, WORMSIGN_ENTRY_NOTE } from '../engine/applyAction';
 import { type HarkonnenAction } from '../engine/harkonnenActions';
 import { decideHarkonnenAction, BRAIN_LABELS, type BrainId } from '../engine/harkonnenBrain';
 import { describeAction, actionHeadline } from '../ui/describeAction';
@@ -211,9 +211,27 @@ export function App2() {
   const onStageSelect = (id: string) => {
     if (movePick && moveDests) {
       if (!moveDests.has(id)) return;
-      commit(moveLegionUnits(s, movePick.faction, movePick.from, id, movePick.move), {
+      const next = moveLegionUnits(s, movePick.faction, movePick.from, id, movePick.move);
+      // Physical-table reminders the engine can't resolve: a Harkonnen legion entering a
+      // wormsign reveals it, and a garrison drop from an empty token pool needs board reveals.
+      const notes: string[] = [];
+      if (movePick.faction === 'harkonnen') {
+        if (s.wormsigns.some((w) => w.area === id)) notes.push(WORMSIGN_ENTRY_NOTE);
+        const fullyLeft = !next.legions.some(
+          (l) =>
+            l.faction === 'harkonnen' &&
+            l.area === movePick.from &&
+            l.units.regular + l.units.elite + l.units.special_elite + l.leaders.length > 0,
+        );
+        const fromSettlement = s.settlements.some((st) => st.area === movePick.from && !st.destroyed);
+        if (fullyLeft && fromSettlement && s.harkonnenReserve.deploymentTokens < 2) {
+          notes.push(tokenPoolShortNote(2 - s.harkonnenReserve.deploymentTokens));
+        }
+      }
+      commit(next, {
         headline: 'Legion moved',
         text: `${movePick.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'}: ${areaLabel(movePick.from)} → ${areaLabel(id)}`,
+        note: notes.length > 0 ? notes.join(' ') : undefined,
       });
       setMovePick(null);
       return;

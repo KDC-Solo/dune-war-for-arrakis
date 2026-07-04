@@ -8,7 +8,7 @@ import type { GameState, Legion } from './state';
 import { emptyLegion } from './state';
 import { battleReserveDelta, type BattleSession } from './combat';
 import { applyReserveDelta } from './reserve';
-import { upsertLegion } from './applyAction';
+import { upsertLegion, tokenPoolShortNote } from './applyAction';
 import { areaLabel } from './describeArea';
 
 const isEmpty = (l: Legion) =>
@@ -73,6 +73,7 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
         legions = [...legions, { ...emptyLegion(atk.faction, atk.area), deploymentTokens: dropped }];
         advanceNotes.push(`${dropped} garrison token${dropped === 1 ? '' : 's'} left in ${areaLabel(atk.area)}.`);
       }
+      if (dropped < 2) advanceNotes.push(tokenPoolShortNote(2 - dropped));
     }
     if (hkAttacking && s.wormsigns.some((w) => w.area === def.area)) {
       advanceNotes.push('The advance enters a Wormsign — reveal and resolve it.');
