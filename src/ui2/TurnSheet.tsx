@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import type { ImperiumPower, UnitType } from '../engine/state';
 import { availability, activeBans } from '../engine/spiceMustFlow';
+import { harkonnenFigureTally } from '../engine/figureBudget';
 import { resolveCardPlay } from '../engine/cardEffects';
 import { resolveLeaderSpecial } from '../engine/leaderEffects';
 import { applyEffectSteps } from '../engine/effectSteps';
@@ -29,10 +30,19 @@ const UNITS: { key: UnitType; label: string }[] = [
   { key: 'special_elite', label: 'Sardaukar' },
 ];
 
-export function TurnSheet({ game }: { game: Game }) {
+export interface ReserveDeployPick {
+  units: Record<UnitType, number>;
+  leader: string | null;
+}
+
+export function TurnSheet({ game, onStartDeploy }: { game: Game; onStartDeploy?: (pick: ReserveDeployPick) => void }) {
   const { s, commit, edit } = game;
   const avail = useMemo(() => availability(s.spice.markers), [s.spice.markers]);
   const [sel, setSel] = useState('');
+  const tally = useMemo(() => harkonnenFigureTally(s), [s]);
+  const [dep, setDep] = useState<Record<UnitType, number>>({ regular: 0, elite: 0, special_elite: 0 });
+  const [depLeader, setDepLeader] = useState('');
+  const depTotal = dep.regular + dep.elite + dep.special_elite;
   const resolution = useMemo(() => {
     if (sel.startsWith('card:')) return resolveCardPlay(sel.slice(5), s);
     if (sel.startsWith('leader:')) return resolveLeaderSpecial(sel.slice(7), s);
@@ -121,6 +131,49 @@ export function TurnSheet({ game }: { game: Game }) {
         </label>
       </div>
       <p className="sheet-hint">Leaders in the pool: {r.namedLeaders.length ? r.namedLeaders.join(', ') : 'none'}.</p>
+      <p className={`ts-budget${tally.over.length > 0 ? ' over' : ''}`}>
+        Figures (board + reserve): Reg {tally.total.regular}/{tally.max.regular} · Elite {tally.total.elite}/{tally.max.elite} · Sardaukar {tally.total.special_elite}/{tally.max.special_elite}
+        {tally.over.length > 0
+          ? ' — ⚠ more than the box contains; fix a legion or the reserve'
+          : ' ✓'}
+      </p>
+
+      {onStartDeploy && (
+        <>
+          <h3 className="ys-h"><Icon name="deployment" size={15} /> Deploy from the reserve <span className="sheet-hint">(keeps totals in sync)</span></h3>
+          <div className="as-tools">
+            {UNITS.map(({ key, label }) => (
+              <label key={key} className="bs-count">
+                {label}
+                <span className="mini-stepper">
+                  <button type="button" aria-label={`Deploy ${label} −1`} disabled={dep[key] <= 0} onClick={() => setDep({ ...dep, [key]: dep[key] - 1 })}>−</button>
+                  <b>{dep[key]}</b>
+                  <button type="button" aria-label={`Deploy ${label} +1`} disabled={dep[key] >= r.units[key]} onClick={() => setDep({ ...dep, [key]: dep[key] + 1 })}>+</button>
+                </span>
+              </label>
+            ))}
+            <select className="ts-select ts-depleader" value={depLeader} onChange={(e) => setDepLeader(e.target.value)}>
+              <option value="">no leader</option>
+              {r.bashars > 0 && <option value="Bashar">Bashar (generic)</option>}
+              {r.namedLeaders.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="g-primary"
+              disabled={depTotal === 0 && !depLeader}
+              onClick={() => {
+                onStartDeploy({ units: dep, leader: depLeader || null });
+                setDep({ regular: 0, elite: 0, special_elite: 0 });
+                setDepLeader('');
+              }}
+            >
+              Choose where →
+            </button>
+          </div>
+        </>
+      )}
 
       <h3 className="ys-h"><Icon name="log" size={15} /> Play a card or leader special</h3>
       <select className="ts-select" value={sel} onChange={(e) => setSel(e.target.value)}>

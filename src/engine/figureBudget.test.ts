@@ -36,3 +36,22 @@ describe('harkonnenFigureTally', () => {
     expect(t.over).toEqual([]);
   });
 });
+
+describe('atreidesFigureTally', () => {
+  it('flags board counts above the component totals', async () => {
+    const { atreidesFigureTally, ATREIDES_UNIT_TOTALS } = await import('./figureBudget');
+    const s = newGameState();
+    expect(atreidesFigureTally(s).over).toEqual([]);
+    s.legions = [
+      ...s.legions,
+      {
+        faction: 'atreides',
+        area: 's1_11',
+        units: { regular: ATREIDES_UNIT_TOTALS.regular + 1, elite: 0, special_elite: 0 },
+        deploymentTokens: 0,
+        leaders: [],
+      },
+    ];
+    expect(atreidesFigureTally(s).over).toContain('regular');
+  });
+});

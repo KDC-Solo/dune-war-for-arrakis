@@ -447,6 +447,9 @@ html[data-ui='v2'] body {
 .as-battle.at { background: var(--atreides); }
 .bs-cease { margin-top: 0.5rem; }
 .ts-dicefix { margin-left: 0.5rem; vertical-align: middle; }
+.ts-budget { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--ink-soft); }
+.ts-budget.over { color: var(--harkonnen); font-weight: 600; }
+.ts-depleader { max-width: 12rem; }
 .more-brain { display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-start; font-size: 0.85rem; font-weight: 600; }
 .more-brain .ts-select { width: 100%; }
 

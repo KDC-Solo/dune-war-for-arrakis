@@ -45,3 +45,23 @@ export function harkonnenFigureTally(s: GameState): FigureTally {
   const over = UNIT_TYPES.filter((t) => total[t] > HARKONNEN_UNIT_TOTALS[t]);
   return { board, reserve, total, max: HARKONNEN_UNIT_TOTALS, over };
 }
+
+/** Total Atreides unit figures in the game (regular/elite/Fedaykin component counts). */
+export const ATREIDES_UNIT_TOTALS: Record<UnitType, number> = { regular: 16, elite: 8, special_elite: 6 };
+
+/**
+ * Tally Atreides unit figures on the board. The player's off-board pool is physical (the app
+ * doesn't model an Atreides reserve), so drift here means MORE figures on the board than the
+ * box contains — always a data-entry error.
+ */
+export function atreidesFigureTally(s: GameState): { board: Record<UnitType, number>; max: Record<UnitType, number>; over: UnitType[] } {
+  const board: Record<UnitType, number> = { regular: 0, elite: 0, special_elite: 0 };
+  for (const l of s.legions) {
+    if (l.faction !== 'atreides') continue;
+    board.regular += l.units.regular;
+    board.elite += l.units.elite;
+    board.special_elite += l.units.special_elite;
+  }
+  const over = UNIT_TYPES.filter((t) => board[t] > ATREIDES_UNIT_TOTALS[t]);
+  return { board, max: ATREIDES_UNIT_TOTALS, over };
+}

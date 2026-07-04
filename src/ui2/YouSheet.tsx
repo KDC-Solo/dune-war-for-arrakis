@@ -15,6 +15,7 @@ import {
 } from '../engine/victory';
 import { scoutingBanned } from '../engine/imperiumBans';
 import { desertPowerAvailable } from '../engine/round';
+import { atreidesFigureTally } from '../engine/figureBudget';
 import { ATREIDES_ACTION_DICE } from '../engine/state';
 import { HOUSE_ATREIDES_CARDS, FREMEN_ALLY_CARDS } from '../engine/atreidesCards';
 import { areaLabel } from '../ui/describeAction';
@@ -217,6 +218,16 @@ export function YouSheet({ game }: { game: Game }) {
           </button>
         ))}
       </div>
+
+      {(() => {
+        const t = atreidesFigureTally(s);
+        return (
+          <p className={`ts-budget${t.over.length > 0 ? ' over' : ''}`}>
+            Your figures on the board: Reg {t.board.regular}/{t.max.regular} · Elite {t.board.elite}/{t.max.elite} · Fedaykin {t.board.special_elite}/{t.max.special_elite}
+            {t.over.length > 0 ? ' — ⚠ more than the box contains; fix a legion' : ' ✓'}
+          </p>
+        );
+      })()}
 
       <h3 className="ys-h"><Icon name="log" size={15} /> Your planning cards <span className="sheet-hint">(reference — resolve on the board)</span></h3>
       <select className="ts-select" value={cardRef} onChange={(e) => setCardRef(e.target.value)}>

@@ -14,7 +14,7 @@ import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } fro
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
-import { moveLegionUnits, applyHarkonnenAction, isAutoApplied, tokenPoolShortNote, WORMSIGN_ENTRY_NOTE } from '../engine/applyAction';
+import { moveLegionUnits, applyHarkonnenAction, isAutoApplied, tokenPoolShortNote, WORMSIGN_ENTRY_NOTE, deployFromReserve, reserveDeployAreas } from '../engine/applyAction';
 import { type HarkonnenAction } from '../engine/harkonnenActions';
 import { decideHarkonnenAction, BRAIN_LABELS, type BrainId } from '../engine/harkonnenBrain';
 import { describeAction, actionHeadline } from '../ui/describeAction';
@@ -28,7 +28,7 @@ import { StageFocusContext, AreaRef } from './refs';
 import { BattleScreen } from './BattleScreen';
 import { YouSheet } from './YouSheet';
 import { VictoryScene } from './VictoryScene';
-import { TurnSheet } from './TurnSheet';
+import { TurnSheet, type ReserveDeployPick } from './TurnSheet';
 import { SetupWizard } from '../ui/SetupWizard';
 import { play } from '../ui/sound';
 import { VehiclesPanel, HazardsPanel, SpicePanel } from './PhasePanels';
@@ -60,6 +60,8 @@ export function App2() {
   const [sheet, setSheet] = useState<SheetId>(null);
   const [areaOpen, setAreaOpen] = useState<string | null>(null);
   const [movePick, setMovePick] = useState<MovePick | null>(null);
+  // Deploy-from-reserve: units chosen in the Turn sheet, destination picked on the stage.
+  const [deployPick, setDeployPick] = useState<ReserveDeployPick | null>(null);
   // The Harkonnen directive being reviewed (die tapped → AI order → confirm/battle/done).
   const [directive, setDirective] = useState<HarkonnenAction | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -124,6 +126,7 @@ export function App2() {
     const legion = s.legions.find((l) => l.faction === movePick.faction && l.area === movePick.from);
     return legion ? legalMoveDestinations(s, legion) : new Set<string>();
   }, [movePick, s]);
+  const deployDests = useMemo(() => (deployPick ? reserveDeployAreas(s) : null), [deployPick, s]);
 
   // Areas a pending directive touches — glowed on the stage behind the card.
   const directiveGlow = useMemo(() => {
@@ -188,6 +191,7 @@ export function App2() {
     setSheet(null);
     setAreaOpen(null);
     setMovePick(null);
+    setDeployPick(null);
     setDirective(null);
     setBattlePair(null);
   };
@@ -209,6 +213,16 @@ export function App2() {
   };
 
   const onStageSelect = (id: string) => {
+    if (deployPick && deployDests) {
+      if (!deployDests.has(id)) return;
+      const n = deployPick.units.regular + deployPick.units.elite + deployPick.units.special_elite;
+      commit(deployFromReserve(s, { settlement: id, units: deployPick.units, leader: deployPick.leader }), {
+        headline: 'Deployed from reserve',
+        text: `${n} unit${n === 1 ? '' : 's'}${deployPick.leader ? ` + ${deployPick.leader}` : ''} → ${areaLabel(id)}`,
+      });
+      setDeployPick(null);
+      return;
+    }
     if (movePick && moveDests) {
       if (!moveDests.has(id)) return;
       const next = moveLegionUnits(s, movePick.faction, movePick.from, id, movePick.move);
@@ -282,9 +296,9 @@ export function App2() {
           fill
           focus={stageFocus}
           highlight={areaOpen}
-          glow={moveDests ? [...moveDests] : directiveGlow ?? undefined}
-          picking={!!movePick}
-          selectable={moveDests ? (id) => moveDests.has(id) : undefined}
+          glow={deployDests ? [...deployDests] : moveDests ? [...moveDests] : directiveGlow ?? undefined}
+          picking={!!movePick || !!deployPick}
+          selectable={deployDests ? (id) => deployDests.has(id) : moveDests ? (id) => moveDests.has(id) : undefined}
           onSelect={onStageSelect}
         />
 
@@ -323,6 +337,19 @@ export function App2() {
                 <button className="as-btn" onClick={() => setDirective(null)}>Dismiss</button>
               </div>
             </div>
+          ) : deployPick ? (
+            <>
+              <div className="g-text">
+                <span className="g-now">Choose where to deploy</span>
+                <span className="g-detail">
+                  Glowing areas can take the reserve units: live settlements or existing Harkonnen
+                  legions with stacking room.
+                </span>
+              </div>
+              <button className="g-primary" onClick={() => setDeployPick(null)}>
+                Cancel
+              </button>
+            </>
           ) : movePick ? (
             <>
               <div className="g-text">
@@ -398,7 +425,15 @@ export function App2() {
         <div className="sheet-veil" onClick={() => setSheet(null)}>
           <section className="sheet" role="dialog" onClick={(e) => e.stopPropagation()}>
             <div className="sheet-grip" />
-            {sheet === 'turn' && <TurnSheet game={game} />}
+            {sheet === 'turn' && (
+              <TurnSheet
+                game={game}
+                onStartDeploy={(pick) => {
+                  setSheet(null);
+                  setDeployPick(pick);
+                }}
+              />
+            )}
             {sheet === 'you' && <YouSheet game={game} />}
             {sheet === 'log' && (
               <>

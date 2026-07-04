@@ -342,6 +342,35 @@ test('v2: a difficulty brain can be selected and resolves dice into directives',
   await expect(page.locator('.more-brain select')).toHaveValue('baron');
 });
 
+test('v2: deploy-from-reserve places units via the stage pick and the drift meter stays balanced', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  await seed(page, s);
+  await page.goto('/');
+  // Turn sheet: pick 2 regulars + a Bashar, then choose where on the stage.
+  await page.getByRole('button', { name: 'Turn' }).click();
+  const sheet = page.locator('.sheet');
+  await expect(sheet.locator('.ts-budget')).toContainText('✓'); // balanced before
+  await sheet.getByRole('button', { name: 'Deploy Reg +1' }).click();
+  await sheet.getByRole('button', { name: 'Deploy Reg +1' }).click();
+  await sheet.locator('.ts-depleader').selectOption('Bashar');
+  await sheet.getByRole('button', { name: /Choose where/ }).click();
+  await expect(page.locator('.guide')).toContainText('Choose where to deploy');
+  await page.locator('path[data-area="carthag"]').dispatchEvent('click');
+  await expect(page.locator('.toast2')).toContainText('Deployed from reserve');
+  // The reserve drew down as the units landed — totals stay conserved.
+  await page.getByRole('button', { name: 'Turn' }).click();
+  await expect(sheet.locator('.ts-budget')).toContainText('✓');
+  await page.locator('.sheet-veil').click({ position: { x: 10, y: 10 } });
+  // Free-editing units ABOVE the box count flips the meter to the warning.
+  await page.locator('path[data-area="carthag"]').dispatchEvent('click');
+  await page.locator('.area-sheet .as-legion.harkonnen').getByRole('button', { name: 'Edit' }).click();
+  for (let i = 0; i < 3; i++) await page.locator('.area-sheet').getByRole('button', { name: 'Regulars +1' }).click();
+  await page.locator('.sheet-veil').click({ position: { x: 10, y: 10 } });
+  await page.getByRole('button', { name: 'Turn' }).click();
+  await expect(sheet.locator('.ts-budget')).toContainText('more than the box contains');
+});
+
 test('v2: a campaign plays from round 1 until someone wins', async ({ page }) => {
   test.setTimeout(300_000);
   page.on('dialog', (d) => d.accept());
