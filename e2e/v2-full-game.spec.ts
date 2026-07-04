@@ -353,7 +353,10 @@ test('v2: a campaign plays from round 1 until someone wins', async ({ page }) =>
 
     let battleBroke = false;
     for (const face of ['Deployment', 'House', 'Mentat', 'Strategy', 'Leadership']) {
-      await page.locator('.g-dice').getByRole('button', { name: face }).click();
+      // The dice pool is limited per round now — stop when the faces disable.
+      const dieBtn = page.locator('.g-dice').getByRole('button', { name: face });
+      if (!(await dieBtn.isEnabled().catch(() => false))) break;
+      await dieBtn.click();
       const card = page.locator('.directive-card');
       await expect(card).toBeVisible();
       const confirm = card.getByRole('button', { name: /Confirm/ });

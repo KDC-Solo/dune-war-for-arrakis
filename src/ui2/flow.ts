@@ -41,14 +41,20 @@ export function guideFor(s: GameState): GuideStep {
         action: 'next-phase',
         actionLabel: 'Vehicles placed →',
       };
-    case 'action_resolution':
+    case 'action_resolution': {
+      const avail = availability(s.spice.markers).diceAvailable;
+      const used = s.harkonnenDiceUsed ?? 0;
       return {
-        now: 'Roll the Harkonnen action die',
-        detail: `Tap the face you rolled — ${availability(s.spice.markers).diceAvailable} dice this round. Record your own turns from the board or the 🜁 sheet.`,
+        now: used >= avail ? 'All Harkonnen dice spent' : 'Roll the Harkonnen action die',
+        detail:
+          used >= avail
+            ? `${used}/${avail} dice resolved this round. Record your own turns, then continue.`
+            : `Tap the face you rolled — ${avail - used} of ${avail} dice left this round. Record your own turns from the board or the 🜁 sheet.`,
         action: 'next-phase',
         actionLabel: 'Actions done →',
         showDice: true,
       };
+    }
     case 'desert_hazards':
       return {
         now: 'Desert hazards',

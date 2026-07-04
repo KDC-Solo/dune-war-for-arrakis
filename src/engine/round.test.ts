@@ -145,6 +145,11 @@ describe('setupRound', () => {
     expect(next.round).toBe(1);
     expect(next.tracks.supremacy).toBe(0);
   });
+
+  it('resets the Harkonnen dice-used counter for the new round', () => {
+    const s = { ...miniState({ round: 1, phase: 'start', tracks: { supremacy: 0, prescience: [0, 0, 0] } }), harkonnenDiceUsed: 5 };
+    expect(setupRound(s, () => 0).harkonnenDiceUsed).toBe(0);
+  });
 });
 
 describe('startNextRound', () => {

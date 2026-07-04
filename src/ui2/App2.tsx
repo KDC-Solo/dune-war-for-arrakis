@@ -11,6 +11,7 @@ import './tokens.css';
 import './shell.css';
 import type { ActionResult, GameState } from '../engine/state';
 import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } from '../engine/round';
+import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
 import { moveLegionUnits, applyHarkonnenAction, isAutoApplied } from '../engine/applyAction';
@@ -126,7 +127,14 @@ export function App2() {
     }
   }, [directive]);
 
-  const rollDie = (face: ActionResult) => setDirective(resolveAction(s, face));
+  // Tapping a face = one physical die spent: count it (quiet commit → chronicle line + undo).
+  const diceUsed = s.harkonnenDiceUsed ?? 0;
+  const diceAvail = availability(s.spice.markers).diceAvailable;
+  const rollDie = (face: ActionResult) => {
+    const next = { ...s, harkonnenDiceUsed: diceUsed + 1 };
+    commit(next, { headline: `Harkonnen die ${diceUsed + 1}/${diceAvail}: ${face}`, quiet: true });
+    setDirective(resolveAction(next, face));
+  };
 
   const confirmDirective = () => {
     if (!directive) return;
@@ -305,7 +313,13 @@ export function App2() {
               {guide.showDice && (
                 <div className="g-dice" role="group" aria-label="Harkonnen die result">
                   {DIE.map((d) => (
-                    <button key={d.face} className="g-die" onClick={() => rollDie(d.face)}>
+                    <button
+                      key={d.face}
+                      className="g-die"
+                      disabled={diceUsed >= diceAvail}
+                      title={diceUsed >= diceAvail ? 'All Harkonnen dice for this round are spent (adjust in the Turn sheet if needed)' : undefined}
+                      onClick={() => rollDie(d.face)}
+                    >
                       <Icon name={d.icon} size={20} />
                       <span>{d.label}</span>
                     </button>

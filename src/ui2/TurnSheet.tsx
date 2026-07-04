@@ -52,7 +52,23 @@ export function TurnSheet({ game }: { game: Game }) {
     <>
       <h2><Icon name="leadership" size={18} /> This round</h2>
       <div className="kv2">
-        <span><Icon name="mentat" size={16} /> Dice</span><b>{avail.diceAvailable}</b>
+        <span><Icon name="mentat" size={16} /> Dice</span>
+        <b>
+          {s.harkonnenDiceUsed ?? 0}/{avail.diceAvailable} used
+          <span className="mini-stepper ts-dicefix">
+            <button
+              type="button"
+              aria-label="Dice used −1"
+              disabled={(s.harkonnenDiceUsed ?? 0) <= 0}
+              onClick={() => edit({ ...s, harkonnenDiceUsed: (s.harkonnenDiceUsed ?? 0) - 1 }, 'Dice used')}
+            >−</button>
+            <button
+              type="button"
+              aria-label="Dice used +1"
+              onClick={() => edit({ ...s, harkonnenDiceUsed: (s.harkonnenDiceUsed ?? 0) + 1 }, 'Dice used')}
+            >+</button>
+          </span>
+        </b>
         <span><Icon name="harvester" size={16} /> Vehicles</span>
         <b>{avail.harvesters}·{avail.ornithopters}·{avail.carryalls}</b>
         <span><Icon name="objective" size={16} /> Target</span>

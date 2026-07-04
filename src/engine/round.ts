@@ -198,6 +198,7 @@ export function setupRound(
     phase: "vehicle_placement",
     harvestingSector,
     targetSietchId,
+    harkonnenDiceUsed: 0,
   };
 
   // Auto-place vehicles for this round so s.vehicles is the single source of truth.

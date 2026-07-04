@@ -269,6 +269,9 @@ export interface GameState {
   // Action-die pools (counts; faces are assigned as dice are rolled/placed).
   harkonnenUnusedDice: number;
   atreidesUnusedDice: number;
+  /** Harkonnen action dice resolved so far this round (reset by setupRound). Optional for
+   *  save-compatibility — absent means 0. The SMF active row caps how many are available. */
+  harkonnenDiceUsed?: number;
 }
 
 // ---------------------------------------------------------------------------

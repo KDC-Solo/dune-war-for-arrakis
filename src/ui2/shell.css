@@ -446,6 +446,8 @@ html[data-ui='v2'] body {
 .as-battle { align-self: stretch; width: 100%; margin-top: 0.4rem; animation: none; }
 .as-battle.at { background: var(--atreides); }
 .bs-cease { margin-top: 0.5rem; }
+.ts-dicefix { margin-left: 0.5rem; vertical-align: middle; }
+.g-die:disabled { opacity: 0.4; cursor: default; }
 .bs-hintline { margin-top: 0.4rem; font-size: 0.8rem; opacity: 0.75; }
 
 .ys-cardtext {
