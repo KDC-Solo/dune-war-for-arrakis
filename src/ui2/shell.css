@@ -424,6 +424,24 @@ html[data-ui='v2'] body {
 }
 .as-edit label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
 .as-step { justify-content: flex-start; }
+/* named-leader chips inside the edit panel */
+.as-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.as-chip {
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.6rem;
+  cursor: pointer;
+}
+.as-chip.on {
+  border-color: var(--spice);
+  color: var(--ink);
+  background: var(--spice-soft);
+  font-weight: 600;
+}
 .as-tools { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.6rem; }
 .as-battle { align-self: stretch; width: 100%; margin-top: 0.4rem; animation: none; }
 

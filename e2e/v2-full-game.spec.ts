@@ -234,6 +234,46 @@ test('v2: battling an unrevealed sietch demands the rank and adds it to the defe
   await expect(bs).toContainText('4 Atreides dice');
 });
 
+test('v2: a named Atreides leader added via the area-sheet chips fights with its combat strip', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  s.legions = [
+    ...s.legions.filter((l) => l.area !== 'gara_kulon'),
+    {
+      faction: 'atreides',
+      area: 'gara_kulon',
+      units: { regular: 4, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaders: [],
+    },
+    {
+      faction: 'harkonnen',
+      area: 's1_11',
+      units: { regular: 4, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaders: [],
+    },
+  ];
+  s.sietches = s.sietches.map((si) => (si.area === 'gara_kulon' ? { ...si, revealed: true, rank: 1 as const } : si));
+  await seed(page, s);
+  await page.goto('/');
+  // Add Stilgar (⚔2) to the defenders through the edit chips.
+  await page.locator('path[data-area="gara_kulon"]').dispatchEvent('click');
+  const sheet = page.locator('.area-sheet');
+  await sheet.locator('.as-legion.atreides').getByRole('button', { name: 'Edit' }).click();
+  await sheet.getByRole('button', { name: 'Stilgar', exact: true }).click();
+  await expect(sheet.locator('.as-named')).toContainText('Stilgar');
+  // Fight: 1 Atreides Special converts to 2 hits; +1 sietch assault hit → attacker 4 → 1.
+  await page.getByRole('button', { name: /Battle — Harkonnen attack from/ }).click();
+  const bs = page.locator('.battle-screen');
+  await expect(bs.locator('.bs-col.atreides .bs-named')).toContainText('Stilgar');
+  await bs.getByRole('button', { name: /Begin battle/ }).click();
+  await bs.locator('.bs-rollrow.atreides').getByRole('button', { name: 'Specials +1' }).click();
+  await bs.getByRole('button', { name: 'Apply round' }).click();
+  await expect(bs.locator('.bs-col.harkonnen')).toContainText('1');
+  await expect(bs.locator('.bs-col.atreides')).toContainText('4');
+});
+
 test('v2: a campaign plays from round 1 until someone wins', async ({ page }) => {
   test.setTimeout(300_000);
   page.on('dialog', (d) => d.accept());

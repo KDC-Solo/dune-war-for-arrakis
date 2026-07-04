@@ -8,6 +8,8 @@ import { emptyLegion, unitCount } from '../engine/state';
 import { AREAS } from '../engine/board';
 import { canPlaceSandworm, canPlaceWormsign } from '../engine/wormsigns';
 import { harkonnenNeighbors } from '../engine/movement';
+import { NAMED_LEADERS } from '../engine/leaders';
+import { ATREIDES_LEADERS } from '../engine/atreidesLeaders';
 import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
 import type { Game } from './useGame';
@@ -17,6 +19,18 @@ export interface MovePick {
   faction: Legion['faction'];
   move: { units: Record<UnitType, number>; deploymentTokens: number; leaderIndices: number[] };
 }
+
+// Named-leader cards per side (v1 StateEditor parity): chip label + a combat-strip tooltip.
+const NAMED_BY_FACTION: Record<Legion['faction'], readonly { name: string; hint: string }[]> = {
+  harkonnen: NAMED_LEADERS.map((l) => ({
+    name: l.name,
+    hint: `Special ⚔${l.combatAbility.hits} 🛡${l.combatAbility.shields} — ${l.special}`,
+  })),
+  atreides: ATREIDES_LEADERS.map((l) => ({
+    name: l.name,
+    hint: `Special ⚔${l.combatAbility.hits} 🛡${l.combatAbility.shields} — ${l.entry}`,
+  })),
+};
 
 const UNIT_ROWS: { key: UnitType | 'deploymentTokens' | 'generic'; label: (f: Legion['faction']) => string }[] = [
   { key: 'regular', label: () => 'Regulars' },
@@ -96,6 +110,42 @@ export function AreaSheet({
     );
   };
 
+  const toggleNamed = (faction: Legion['faction'], name: string) => {
+    edit(
+      upsert(s, faction, area, (l) => {
+        const has = l.leaders.some((x) => x.kind === 'named' && x.name === name);
+        return {
+          ...l,
+          leaders: has
+            ? l.leaders.filter((x) => !(x.kind === 'named' && x.name === name))
+            : [...l.leaders, { kind: 'named' as const, faction, name }],
+        };
+      }),
+      `Edited ${areaLabel(area)}`,
+    );
+  };
+
+  // Named-leader chips for the edit panels — tap to add/remove the leader card from this legion.
+  const namedChips = (faction: Legion['faction']) => {
+    const l = s.legions.find((x) => x.faction === faction && x.area === area);
+    const have = new Set(l?.leaders.filter((x) => x.kind === 'named').map((x) => x.name));
+    return (
+      <div className="as-chips" role="group" aria-label="Named leaders">
+        {NAMED_BY_FACTION[faction].map((n) => (
+          <button
+            key={n.name}
+            type="button"
+            title={n.hint}
+            className={`as-chip${have.has(n.name) ? ' on' : ''}`}
+            onClick={() => toggleNamed(faction, n.name)}
+          >
+            {n.name}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   const legionRow = (l: Legion) => {
     const total = unitCount(l) + l.leaders.length;
     const named = l.leaders.filter((x) => x.kind === 'named' && x.name && x.name !== 'Named');
@@ -148,6 +198,7 @@ export function AreaSheet({
                 />
               </label>
             ))}
+            {namedChips(l.faction)}
           </div>
         )}
       </div>
@@ -256,6 +307,7 @@ export function AreaSheet({
                 <Step label={r.label(editing!)} value={0} onChange={(n) => setCount(editing!, r.key, n)} />
               </label>
             ))}
+            {namedChips(editing!)}
           </div>
         ) : null}
       </section>
