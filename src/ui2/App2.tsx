@@ -13,6 +13,7 @@ import type { ActionResult, GameState } from '../engine/state';
 import { ATREIDES_ACTION_DICE } from '../engine/state';
 import { adviseAtreides } from '../engine/atreidesAdvisor';
 import { AdvisorFloat } from './AdvisorFloat';
+import { GuideFloat } from './GuideFloat';
 import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } from '../engine/round';
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
@@ -332,8 +333,13 @@ export function App2() {
         {/* The Advisor floats over the map — Atreides business, kept out of the Harkonnen bar. */}
         <AdvisorFloat advice={advice} />
 
-        {/* Guide bar — during a move pick it narrates the pick; otherwise the flow step. */}
-        <div className={`guide${outcome.winner ? ' won' : ''}`}>
+        {/* Guide bar — floats over the map so the board keeps the whole stage; draggable by
+            its grip, collapsible to a pill. Narrates a pick when one is live, else the step. */}
+        <GuideFloat
+          won={!!outcome.winner}
+          pill={directive ? 'Directive' : deployPick ? 'Deploying' : movePick ? 'Moving' : guide.now}
+          wakeKey={directive ? 'directive' : deployPick ? 'deploy' : movePick ? 'move' : s.phase}
+        >
           {directive ? (
             <div className="directive-card">
               <div className="dc-head">
@@ -425,7 +431,7 @@ export function App2() {
               )}
             </>
           )}
-        </div>
+        </GuideFloat>
       </main>
 
       <nav className="dock">

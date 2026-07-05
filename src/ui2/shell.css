@@ -147,12 +147,16 @@ html[data-ui='v2'] body {
 .ap-tag.atreides { background: var(--atreides); }
 .ap-tag.target { background: var(--fremen); }
 
-/* --- guide bar --------------------------------------------------------------- */
+/* --- guide bar — floats over the stage so the map keeps the whole height ------- */
 .guide {
-  position: relative;
+  position: absolute;
+  /* Centered via auto margins, not transform — drift-in's fill would clobber a translate. */
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  bottom: 0.65rem;
   z-index: 4;
-  margin: 0.5rem auto 0.65rem;
-  width: min(100%, 34rem);
+  width: min(calc(100% - 0.8rem), 34rem);
   background: color-mix(in srgb, var(--sand-0) 92%, transparent);
   border: 1.5px solid var(--spice);
   border-radius: var(--r-card);
@@ -223,6 +227,61 @@ html[data-ui='v2'] body {
 }
 .g-die:disabled { opacity: 0.55; cursor: default; }
 .guide.won { border-color: var(--fremen); box-shadow: var(--shadow); }
+
+/* The guide's grip strip: drag handle + collapse. touch-action:none so a touch drag moves
+   the card instead of scrolling/panning; the collapse button opts back out of dragging. */
+.guide-grip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -0.25rem -0.3rem -0.15rem;
+  color: var(--ink-soft);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.guide-grip:active { cursor: grabbing; }
+.grip-dots {
+  padding-left: 0.25rem;
+  letter-spacing: 0.3em;
+  font-weight: 700;
+  line-height: 0.7;
+  opacity: 0.7;
+}
+
+/* Collapsed guide: a small pill in the same spot; tap to bring the guide back. */
+.guide-pill {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
+  bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--tap);
+  max-width: min(88%, 22rem);
+  padding: 0.3rem 1rem;
+  border: 1.5px solid var(--spice);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--sand-0) 92%, transparent);
+  color: var(--spice);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  box-shadow: var(--shadow), 0 0 0 4px var(--spice-soft);
+  cursor: pointer;
+}
+.guide-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.guide-pill.won { border-color: var(--fremen); color: var(--fremen); }
 
 /* --- dock ---------------------------------------------------------------------- */
 .dock {
@@ -359,7 +418,8 @@ html[data-ui='v2'] body {
 
 /* Tablet/desktop: the Turn rail can persist right of the stage (M0 keeps sheets; rails in M1+). */
 @media (min-width: 768px) {
-  .guide { margin-bottom: 1rem; }
+  .guide,
+  .guide-pill { bottom: 1rem; }
 }
 
 /* --- stage fill: the map covers the stage like a camera (v2 `fill` mode) --- */

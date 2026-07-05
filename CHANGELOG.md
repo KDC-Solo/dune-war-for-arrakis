@@ -16,6 +16,10 @@ All notable changes to this project are documented here. Format loosely follows
   push, shore up the threatened settlement) instead of always copying the Mahdi placement.
 
 ### Changed
+- **The guide bar floats over the map** — the board now keeps the entire stage height. The
+  guide hovers bottom‑center, drags anywhere by its grip strip (position remembered), and
+  collapses to a small pill; it re‑expands on its own when the game moves to a new phase,
+  directive, or map pick.
 - Watchful brains no longer count Naib garrisons sitting in their sietches as threats to
   settlements, so Baron stops cowering in the early game.
 
