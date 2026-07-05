@@ -9,7 +9,7 @@ desert hazards and the economy. This app automates all of that: keep it in sync 
 on the Harkonnen's turn, it tells you exactly what they do. **The physical board stays the source of
 truth; the app is the co‑processor.**
 
-🎲 **Live app:** https://dune-war-for-arrakis.kdc.sh
+🎲 **Live app:** https://solo.kdc.sh/dune-war-for-arrakis
 
 > Fan‑made companion for solo play. Not affiliated with or endorsed by the publisher; contains no
 > game art or rules text — just the state the AI needs to make its decisions.
@@ -154,7 +154,7 @@ npm run typecheck  # tsc --noEmit
 ## Deployment & releases
 
 - **Continuous deploy:** every push to `main` runs `.github/workflows/deploy.yml` (type‑check →
-  tests → build → publish `dist/` to GitHub Pages at **https://dune-war-for-arrakis.kdc.sh**). The
+  tests → build → publish `dist/` to GitHub Pages at **https://solo.kdc.sh/dune-war-for-arrakis**). The
   custom domain is pinned by `public/CNAME`, which Vite copies into every build.
 - **Versioned releases:** pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`, which builds,
   tests, and publishes a GitHub Release with auto‑generated notes and a zipped `dist/`. See

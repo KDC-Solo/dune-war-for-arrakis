@@ -3,7 +3,7 @@
 Versions follow [semver](https://semver.org): `vMAJOR.MINOR.PATCH`.
 
 - **Continuous deploy** — every push to `main` redeploys the live site
-  (https://dune-war-for-arrakis.kdc.sh) via `.github/workflows/deploy.yml`.
+  (https://solo.kdc.sh/dune-war-for-arrakis) via `.github/workflows/deploy.yml`.
 - **A release** is a versioned snapshot: a git tag + a GitHub Release with notes and a built
   `dist/` zip, produced by `.github/workflows/release.yml`.
 
@@ -43,6 +43,9 @@ If a release job fails, fix forward and either push a new tag, or re‑run from 
 
 ## Custom domain
 
-The site is served from `dune-war-for-arrakis.kdc.sh`. The domain is pinned by `public/CNAME`,
-which Vite copies into `dist/` on every build, so each deploy preserves it. Changing the domain =
-edit `public/CNAME` (and the DNS `CNAME` record → `ianpogi5.github.io`).
+The site is served at `solo.kdc.sh/dune-war-for-arrakis` (moved 2026-07-05 from the dedicated
+`dune-war-for-arrakis.kdc.sh`). The domain lives on the **org Pages site**, not this repo: with
+`solo.kdc.sh` set as the custom domain there, every project's Pages site is served under
+`solo.kdc.sh/<repo>/` automatically — this repo must have NO custom domain of its own in
+Settings → Pages, and no `public/CNAME` (removed). The app builds with relative asset paths
+(`base: './'` in vite.config.ts), so it works at any subpath without config changes.
