@@ -19,7 +19,7 @@ import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
 import { moveLegionUnits, applyHarkonnenAction, isAutoApplied, tokenPoolShortNote, WORMSIGN_ENTRY_NOTE, deployFromReserve, reserveDeployAreas } from '../engine/applyAction';
 import { type HarkonnenAction } from '../engine/harkonnenActions';
-import { decideHarkonnenAction, BRAIN_LABELS, type BrainId } from '../engine/harkonnenBrain';
+import { decideHarkonnenAction, ensureBrainPlan, BRAIN_LABELS, type BrainId } from '../engine/harkonnenBrain';
 import { describeAction, actionHeadline } from '../ui/describeAction';
 import { areaLabel } from '../ui/describeAction';
 import { BoardMap } from '../ui/BoardMap';
@@ -86,7 +86,7 @@ export function App2() {
   const [brain, setBrain] = useState<BrainId>(() => {
     try {
       const v = localStorage.getItem('dwfa.aiBrain');
-      return v === 'recruit' || v === 'bashar' || v === 'baron' ? v : 'mahdi';
+      return v === 'recruit' || v === 'bashar' || v === 'baron' || v === 'mentat' ? v : 'mahdi';
     } catch {
       return 'mahdi';
     }
@@ -176,7 +176,9 @@ export function App2() {
   const diceUsed = s.harkonnenDiceUsed ?? 0;
   const diceAvail = availability(s.spice.markers).diceAvailable;
   const rollDie = (face: ActionResult) => {
-    const next = { ...s, harkonnenDiceUsed: diceUsed + 1 };
+    // Refresh the brain's multi-round plan alongside the die spend so it rides the same
+    // quiet commit (and therefore save/undo) as the dice accounting.
+    const next = ensureBrainPlan({ ...s, harkonnenDiceUsed: diceUsed + 1 }, brain);
     commit(next, { headline: `Harkonnen die ${diceUsed + 1}/${diceAvail}: ${face}`, quiet: true });
     setDirective(decideHarkonnenAction(next, face, brain));
   };

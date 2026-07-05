@@ -3,6 +3,22 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [Unreleased]
+
+### Added
+- **Mentat difficulty** — a fifth Harkonnen brain above Baron: lowest temperature, the longest
+  plans, and a one‑ply lookahead that avoids moves leaving a legion or settlement hanging to the
+  best visible Atreides reply. Still honest: it reads only what a human opponent could see.
+- **Brain plans** — the human‑like brains now hold a multi‑round intention (push a sietch /
+  defend a settlement) that persists through saves and undo, and bias their dice decisions
+  toward it instead of re‑deciding from zero on every die.
+- **Deployment variants** — brains weigh three drop schemes (Mahdi's default, reinforce the
+  push, shore up the threatened settlement) instead of always copying the Mahdi placement.
+
+### Changed
+- Watchful brains no longer count Naib garrisons sitting in their sietches as threats to
+  settlements, so Baron stops cowering in the early game.
+
 ## [1.0.0] — 2026-07-04
 
 **The board‑first reimagining ships as the app.** The v2 interface (full‑viewport stage, guide

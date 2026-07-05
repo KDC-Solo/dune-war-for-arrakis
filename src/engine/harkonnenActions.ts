@@ -418,8 +418,12 @@ function pickUnits(
  * by priority — the settlement whose legion has the highest combat power, then the settlement
  * closest to the target sietch. Units overflow into the next settlement when the stacking limit
  * (6 units/area) is reached. Returns a `none` action if there is nothing to deploy.
+ *
+ * `settlementOrder` (M8 brains) overrides the priority: listed areas first, in that order;
+ * unlisted live settlements follow under the standard Mahdi sort. Unit picking, leader choice,
+ * capacity, and overflow are unchanged — only WHERE the drop lands differs.
  */
-export function resolveDeployment(s: GameState): HarkonnenAction {
+export function resolveDeployment(s: GameState, settlementOrder?: readonly string[]): HarkonnenAction {
   const reserve = { ...s.harkonnenReserve.units };
   const leader = chooseDeployLeader(s);
   const totalAvail = reserve.regular + reserve.elite + reserve.special_elite;
@@ -427,6 +431,10 @@ export function resolveDeployment(s: GameState): HarkonnenAction {
     return { kind: "none", reason: "nothing to deploy" };
 
   // Ordered settlements: highest-CP legion first, then closest to the target sietch.
+  const rankIn = (area: string): number => {
+    const i = settlementOrder?.indexOf(area) ?? -1;
+    return i === -1 ? Infinity : i;
+  };
   const settlements = s.settlements
     .filter((st) => !st.destroyed)
     .map((st) => {
@@ -441,7 +449,11 @@ export function resolveDeployment(s: GameState): HarkonnenAction {
         used: leg ? unitCount(leg) : 0,
       };
     })
-    .sort((a, b) => (b.cp !== a.cp ? b.cp - a.cp : a.dist - b.dist));
+    .sort(
+      (a, b) =>
+        rankIn(a.area) - rankIn(b.area) ||
+        (b.cp !== a.cp ? b.cp - a.cp : a.dist - b.dist),
+    );
 
   if (settlements.length === 0)
     return { kind: "none", reason: "no settlements to deploy into" };

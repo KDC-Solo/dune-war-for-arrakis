@@ -224,6 +224,22 @@ export interface HarkonnenReserve {
 }
 
 // ---------------------------------------------------------------------------
+// Brain plans (M8 — human-like Harkonnen AI)
+// ---------------------------------------------------------------------------
+
+/** A brain's persistent intention, carried across dice and rounds until it expires or dies. */
+export interface BrainPlan {
+  /** Brain id that authored the plan — a different brain re-plans from scratch. */
+  brain: string;
+  /** 'push' = march on / assault the area; 'defend' = hold the threatened settlement there. */
+  kind: 'push' | 'defend';
+  /** Board area the plan is about (a sietch for pushes, a settlement for defends). */
+  area: string;
+  /** Round the plan was made; profiles keep a plan for `planHorizon` rounds. */
+  round: number;
+}
+
+// ---------------------------------------------------------------------------
 // Aggregate game state
 // ---------------------------------------------------------------------------
 
@@ -265,6 +281,14 @@ export interface GameState {
    * absent/null means "not entered yet".
    */
   atreidesObjective?: [number, number, number] | null;
+
+  /**
+   * The current multi-round plan of a human-like Harkonnen brain (M8): a committed push toward
+   * an objective or a defensive stand at a settlement. Written by `ensureBrainPlan`, read by
+   * `decideHarkonnenAction` to bias candidates; ignored (and left untouched) by the Mahdi bot.
+   * Optional for save-compatibility.
+   */
+  brainPlan?: BrainPlan | null;
 
   // Action-die pools (counts; faces are assigned as dice are rolled/placed).
   harkonnenUnusedDice: number;

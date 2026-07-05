@@ -215,17 +215,16 @@ Board-first rebuild per PRD.md; engine reused unchanged; v1 reachable via `?clas
 - [x] **M5** phase flows in the guide bar (vehicles/hazards/storms/spice), TurnSheet
       (markers/reserve/cards), saves + import/export; v2 E2E suite (4 journeys; 9 total green)
 - [x] **M6** onboarding: first-run welcome, reskinned guided setup, win cue
-- [ ] **M7 — PARITY GATE (owner sign-off required):** playtest v2, tick the §8 parity list in
-      PRD.md, then swap the default, delete src/ui (v1), and release v1.0.0. Known deltas from
-      v1 noted in the M6 report (deep editor coverage vs area-sheet editing; deploy-from-reserve
-      conservation UI; wormsign placement via area sheets).
+- [x] **M7 — PARITY GATE — ✅ shipped as v1.0.0 (2026-07-04)** after two days of autonomous +
+      owner playtesting: parity list ticked, default swapped, v1 panel UI deleted (shared
+      modules kept in src/ui), docs & screenshots refreshed.
 
 ## 4. Current status (update me each session)
 
-- **Phases 0–2 and 4 complete; Phase 3 nearly complete.** 256 tests pass; v0.3.0 shipped
-  2026-07-01 and is being playtested. A full Mahdi-solo round runs end-to-end in the app
-  (dice → actions → cards/leaders → battles → spice → storms → next round), with undo,
-  saves, and the map-first area-picker convention.
+- **v1.0.0 shipped 2026-07-04** (board-first UI is the app); M8 is code-complete — all five
+  difficulties (Mahdi / Recruit / Bashar / Baron / Mentat) with deployment variants,
+  persistent plans, and Mentat lookahead — only playtest tuning remains. 324 unit tests +
+  14 E2E journeys green (2026-07-05).
 
 ### Next up (roadmap, 2026-07-03)
 
@@ -299,8 +298,21 @@ battles, UI) is untouched.
 - [x] Picker in the More sheet (persisted, per-device); dice resolve through the chosen brain.
 - [x] Self-play harness (`selfplay.test.ts`): every brain plays full engine-level games to a win
       with invariant checks; tempo (rounds-to-win) compared across profiles.
-- [ ] Tune from real playtests: evaluation weights, deployment variants (currently Mahdi's
-      placement only), persistent multi-round plans, and possibly a search-based "Mentat" level.
+- [x] **Deployment variants (2026-07-05):** brains score alternative drop orders — Mahdi's
+      default, reinforce-the-push (settlements closest to the objective first), and
+      shore-up-the-threat — via `resolveDeployment(s, settlementOrder)`; softmax picks.
+- [x] **Persistent multi-round plans (2026-07-05):** `GameState.brainPlan` (push a sietch /
+      defend a settlement) written by `ensureBrainPlan` on each die spend — it rides the same
+      quiet commit as the dice accounting, so plans survive save/load and undo. Per-profile
+      `planWeight`/`planHorizon` bias candidates toward the plan; sietch-garrison legions do
+      NOT count as settlement threats (else watchful brains cower from round 1).
+- [x] **Search-based "Mentat" level (2026-07-05):** fifth difficulty above Baron — lowest
+      temperature, longest plans, and a one-ply lookahead: candidates are penalized by the
+      best visible Atreides reply on the resulting board (`atreidesReplyThreat`: the juiciest
+      battle against a weaker legion or strike on an under-garrisoned settlement). Honest —
+      reads only on-board Atreides strength.
+- [ ] Tune evaluation weights, plan bonuses, and the lookahead penalty from real playtests;
+      consider a deeper (multi-ply) Mentat search if it still feels exploitable.
 
 ## 5. Key references
 

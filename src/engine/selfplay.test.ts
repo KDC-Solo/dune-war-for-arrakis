@@ -9,7 +9,7 @@ import { setupRound, startNextRound, SUPREMACY_WIN } from './round';
 import { availability, resolveSpiceHarvesting, totalHarvesterSpice, activeBans } from './spiceMustFlow';
 import { placeWormsigns } from './wormsigns';
 import { gameOutcome } from './victory';
-import { decideHarkonnenAction, type BrainId } from './harkonnenBrain';
+import { decideHarkonnenAction, ensureBrainPlan, type BrainId } from './harkonnenBrain';
 import { applyHarkonnenAction } from './applyAction';
 import { beginBattle, resolveBattleRound, battleRoundSetup } from './combat';
 import { commitBattle } from './battleApply';
@@ -78,6 +78,7 @@ function playGame(brain: BrainId, seed: number): number {
     const dice = availability(s.spice.markers).diceAvailable;
     for (let i = 0; i < dice; i++) {
       const face = FACES[Math.floor(rng() * FACES.length)];
+      s = ensureBrainPlan(s, brain); // plans persist across dice/rounds, exactly as the UI does it
       const a = decideHarkonnenAction(s, face, brain, rng);
       if (a.kind === 'attack_sietch') s = fightItOut(s, a.attacker, a.sietch);
       else if (a.kind === 'attack_legion') s = fightItOut(s, a.attacker, a.defender);
@@ -111,7 +112,7 @@ describe('self-play: every brain finishes real games', () => {
   const GAMES = 12;
   const tempo: Record<string, number> = {};
 
-  for (const brain of ['mahdi', 'recruit', 'bashar', 'baron'] as const) {
+  for (const brain of ['mahdi', 'recruit', 'bashar', 'baron', 'mentat'] as const) {
     it(`${brain} plays ${GAMES} full games to a win`, () => {
       let total = 0;
       for (let g = 0; g < GAMES; g++) {
@@ -123,9 +124,10 @@ describe('self-play: every brain finishes real games', () => {
     });
   }
 
-  it('difficulty ordering holds loosely: Baron is no slower than Recruit', () => {
-    // Both win via supremacy eventually; a sharper brain should not be materially slower.
+  it('difficulty ordering holds loosely: sharper brains are no slower than Recruit', () => {
+    // All win via supremacy eventually; a sharper brain should not be materially slower.
     expect(tempo.baron).toBeLessThanOrEqual(tempo.recruit + 1);
+    expect(tempo.mentat).toBeLessThanOrEqual(tempo.recruit + 1);
     // eslint-disable-next-line no-console
     console.log('mean rounds-to-win:', tempo);
   });
