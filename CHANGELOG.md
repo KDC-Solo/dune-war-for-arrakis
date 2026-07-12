@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
-## [Unreleased]
+## [1.1.0] — 2026-07-12
 
 ### Fixed
 - **Troop transport now consumes the ornithopter** (rulebook: "Remove the ornithopter and either
