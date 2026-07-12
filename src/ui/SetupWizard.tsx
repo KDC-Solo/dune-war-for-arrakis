@@ -103,7 +103,8 @@ const STEPS: Step[] = [
         <p>
           Shuffle the <strong>16 wormsign tokens</strong> into a facedown pool. Set up the planning
           decks (House Harkonnen + Corrino Ally for the AI), the prescience deck, and the 8 solo
-          tactical cards.
+          tactical cards. Then draw <strong>1 card from each Harkonnen deck</strong> facedown to
+          form the <strong>reinforcements deck</strong> (the AI spends these for combat dice).
         </p>
         <p className="hint">
           Named leaders that start in play for the Harkonnen: {START_LEADERS.join(', ')} — they sit

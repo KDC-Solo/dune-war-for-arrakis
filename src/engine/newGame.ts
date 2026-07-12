@@ -84,8 +84,9 @@ export function newGameState(): GameState {
       planning: {
         house_atreides: 18,
         fremen_ally: 18,
-        house_harkonnen: deckSize(HOUSE_HARKONNEN_CARDS),
-        corrino_ally: deckSize(CORRINO_ALLY_CARDS),
+        // Solo setup: 1 card from each Harkonnen deck seeds the reinforcements deck facedown.
+        house_harkonnen: deckSize(HOUSE_HARKONNEN_CARDS) - 1,
+        corrino_ally: deckSize(CORRINO_ALLY_CARDS) - 1,
       },
       planningDiscard: {
         house_atreides: 0,
@@ -94,7 +95,7 @@ export function newGameState(): GameState {
         corrino_ally: 0,
       },
       prescienceDeck: 18,
-      reinforcements: 0,
+      reinforcements: 2,
       wormsignPool: 16,
       tacticalDeck: 8,
     },

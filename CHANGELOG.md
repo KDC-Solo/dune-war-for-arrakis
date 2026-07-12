@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [1.1.4] — 2026-07-13
+
+### Fixed
+- **New games seed the reinforcements deck with 2 cards** (setup: 1 from the House Harkonnen
+  pile + 1 from the Corrino Ally pile, facedown) — it wrongly started empty. The guided setup
+  now walks through forming the deck too.
+
 ## [1.1.3] — 2026-07-13
 
 ### Added

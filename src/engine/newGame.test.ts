@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { newGameState } from "./newGame";
 import { AREA_IDS, AREAS } from "./board";
+import { deckSize, HOUSE_HARKONNEN_CARDS, CORRINO_ALLY_CARDS } from "./planningCards";
 
 describe("newGameState", () => {
   const s = newGameState();
@@ -88,5 +89,15 @@ describe("newGameState", () => {
     expect(s.sandworms).toEqual([]);
     expect(s.harvestingSector).toBeNull();
     expect(s.targetSietchId).toBeNull();
+  });
+});
+
+describe('reinforcements deck at setup', () => {
+  it('starts with 2 cards (1 Harkonnen + 1 Corrino), drawn from those piles', () => {
+    const s = newGameState();
+    expect(s.decks.reinforcements).toBe(2);
+    // The seeded cards came out of the two Harkonnen planning draw piles.
+    expect(s.decks.planning.house_harkonnen).toBe(deckSize(HOUSE_HARKONNEN_CARDS) - 1);
+    expect(s.decks.planning.corrino_ally).toBe(deckSize(CORRINO_ALLY_CARDS) - 1);
   });
 });
