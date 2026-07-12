@@ -106,6 +106,9 @@ export function BattleScreen({
   const [surprise, setSurprise] = useState(false);
   const [att, setAtt] = useState<RawRoll>(emptyRaw);
   const [def, setDef] = useState<RawRoll>(emptyRaw);
+  // Planning cards the Atreides player discards from hand this round (+1 die each, rulebook
+  // battle sequence step 1). The hand is physical — this only raises the dice count to roll.
+  const [atCards, setAtCards] = useState(0);
 
   const sietch = s.sietches.find((si) => si.area === area && !si.destroyed);
   const settlement = s.settlements.find((st) => st.area === area && !st.destroyed);
@@ -136,6 +139,7 @@ export function BattleScreen({
     setSession(beginBattle(ctx));
     setAtt(emptyRaw());
     setDef(emptyRaw());
+    setAtCards(0);
   };
 
   const confirmReveal = () => {
@@ -159,6 +163,7 @@ export function BattleScreen({
     setSession(resolveBattleRound(session, { attacker: aRoll, defender: dRoll }));
     setAtt(emptyRaw());
     setDef(emptyRaw());
+    setAtCards(0); // hand discards are chosen anew each round
   };
 
   const finish = () => {
@@ -276,15 +281,36 @@ export function BattleScreen({
             </div>
           )}
 
-          {session && setup && (
+          {session && setup && (() => {
+            // The Atreides side may discard planning cards from hand for +1 die each (cap 6).
+            const atkIsAt = attackerFaction === 'atreides';
+            const atBase = atkIsAt ? setup.attackerDice : setup.defenderDice;
+            const atDice = Math.min(6, atBase + atCards);
+            const attackerDice = atkIsAt ? atDice : setup.attackerDice;
+            const defenderDice = atkIsAt ? setup.defenderDice : atDice;
+            const banned = !!session.ctx.landsraadBan;
+            return (
             <div className="bs-panel">
               <p className="bs-note">
-                Roll <b>{setup.attackerDice}</b> {atkName} {setup.discards > 0 && attackerFaction === 'harkonnen' ? `(+${setup.discards} reinforcement discards) ` : ''}
-                and <b>{setup.defenderDice}</b> {defName} {setup.discards > 0 && defenderFaction === 'harkonnen' ? `(+${setup.discards} reinforcement discards) ` : ''}
-                dice, then enter the results:
+                <Icon name="mentat" size={14} /> Harkonnen reinforcements deck: <b>{session.reinforcements}</b> card{session.reinforcements === 1 ? '' : 's'}
+                {banned
+                  ? ' — Landsraad ban: no discards.'
+                  : setup.discards > 0
+                    ? ` — discards ${setup.discards} this round to reach 6 dice (remove ${setup.discards === 1 ? 'it' : 'them'} from the physical deck).`
+                    : session.reinforcements > 0
+                      ? ' — none needed this round.'
+                      : ' — empty.'}
+              </p>
+              <div className="bs-rollrow atreides">
+                <strong>Your planning cards</strong>
+                <Count label="Discards" value={atCards} onChange={setAtCards} max={Math.max(0, 6 - atBase)} />
+                <span className="bs-note">+1 die each — discard them from your hand</span>
+              </div>
+              <p className="bs-note">
+                Roll <b>{attackerDice}</b> {atkName} and <b>{defenderDice}</b> {defName} dice, then enter the results:
               </p>
               <p className="bs-note bs-hintline">
-                Dice = units in the legion, max 6. Leaders add no dice — each converts 1 ✴ Special
+                Dice = units in the legion + discarded cards, max 6. Leaders add no dice — each converts 1 ✴ Special
                 you roll into its combat strip (a generic Naib/Bashar = 1 hit).
                 {defenseRank ? ` The defender rolls +${defenseRank} for the ${defenderFaction === 'atreides' ? 'sietch' : 'settlement'} rank.` : ''}
                 {setup.surprise ? ' Surprise attack: +1 attacker die this round.' : ''}
@@ -313,7 +339,8 @@ export function BattleScreen({
                 </p>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {session && session.status !== 'ongoing' && (
             <div className="bs-panel bs-outcome">

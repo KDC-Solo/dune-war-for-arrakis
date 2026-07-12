@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [1.1.3] — 2026-07-13
+
+### Added
+- **Battle screen shows the cards.** A reinforcements line names the deck size and exactly how
+  many cards the bot discards this round ("remove them from the physical deck") — or why not
+  (Landsraad ban / empty / none needed). And a "Your planning cards" counter lets the Atreides
+  discard hand cards for +1 combat die each (rulebook battle step 1), raising the shown dice
+  count live (cap 6, reset every round).
+
 ## [1.1.2] — 2026-07-13
 
 ### Added

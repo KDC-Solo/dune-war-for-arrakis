@@ -503,3 +503,28 @@ test('v2: an Atreides move onto a testing station opens the marker pick', async 
   await sheet.locator('.ys-pick').getByRole('button', { name: 'Kwisatz Haderach +1' }).click();
   await expect(page.locator('.toast2')).toContainText('Station taken');
 });
+
+test('v2: the battle shows the reinforcements deck and hand-card discards raise the Atreides dice', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  s.decks.reinforcements = 2;
+  s.legions = [
+    ...s.legions.filter((l) => l.area !== 'arsunt'),
+    { faction: 'atreides', area: 'arsunt', units: { regular: 3, elite: 0, special_elite: 0 }, deploymentTokens: 0, leaders: [] },
+    { faction: 'harkonnen', area: 'arsunt', units: { regular: 1, elite: 0, special_elite: 0 }, deploymentTokens: 0, leaders: [] },
+  ];
+  await seed(page, s);
+  await page.goto('/');
+  await page.locator('path[data-area="arsunt"]').dispatchEvent('click');
+  await page.getByRole('button', { name: /Battle — Atreides attack from here/ }).click();
+  const bs = page.locator('.battle-screen');
+  await bs.getByRole('button', { name: /Begin battle/ }).click();
+  // The defending bot spends its whole 2-card deck: 1 unit + settlement rank 1 + 2 discards = 4 dice.
+  await expect(bs).toContainText('Harkonnen reinforcements deck: 2');
+  await expect(bs).toContainText('discards 2 this round');
+  await expect(bs).toContainText(/Roll 3 Atreides and 4 Harkonnen dice/);
+  // Discarding 2 planning cards from hand lifts the Atreides to 5 dice.
+  await bs.getByRole('button', { name: 'Discards +1' }).click();
+  await bs.getByRole('button', { name: 'Discards +1' }).click();
+  await expect(bs).toContainText(/Roll 5 Atreides and 4 Harkonnen dice/);
+});
