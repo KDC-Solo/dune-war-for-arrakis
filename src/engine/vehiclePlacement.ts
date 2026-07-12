@@ -295,3 +295,58 @@ export function placeVehicles(
   const ornithopters = placeOrnithopters(withCarryalls, available.ornithopters);
   return { harvesters, carryalls, ornithopters };
 }
+
+// ---------------------------------------------------------------------------
+// Vehicle consumption (troop transport / carryall rescue)
+// ---------------------------------------------------------------------------
+
+/** Index of a vehicle of `type` in an air zone connected to `sector` (first by zone id), or -1. */
+function connectedVehicleIndex(
+  s: GameState,
+  type: "carryall" | "ornithopter",
+  sector: SectorId,
+): number {
+  const zones = new Set(airZonesConnectedToSector(sector));
+  let best = -1;
+  for (let i = 0; i < s.vehicles.length; i++) {
+    const v = s.vehicles[i];
+    if (v.type !== type || !zones.has(v.location)) continue;
+    if (best < 0 || v.location < s.vehicles[best].location) best = i;
+  }
+  return best;
+}
+
+/**
+ * Remove 1 ornithopter used for troop transport by a legion starting in `sector` (rulebook:
+ * "Remove the ornithopter and either move or attack with the legion up to 1 additional area
+ * away"). Prefers a zone connected to the starting sector; falls back to any ornithopter so a
+ * transport that already happened is always paid for. Null when none is on the board.
+ */
+export function removeOrnithopterForSector(
+  s: GameState,
+  sector: SectorId,
+): GameState | null {
+  let i = connectedVehicleIndex(s, "ornithopter", sector);
+  if (i < 0) i = s.vehicles.findIndex((v) => v.type === "ornithopter");
+  if (i < 0) return null;
+  return { ...s, vehicles: s.vehicles.filter((_, k) => k !== i) };
+}
+
+/** Whether a carryall sits in an air zone connected to `sector` (it could rescue a harvester there). */
+export function hasCarryallForSector(s: GameState, sector: SectorId): boolean {
+  return connectedVehicleIndex(s, "carryall", sector) >= 0;
+}
+
+/**
+ * Remove 1 carryall from an air zone connected to `sector` — the Desert Hazards rescue: "the
+ * Harkonnen player can remove a carryall from a connected air zone instead; the harvester is
+ * not removed". Null when no connected carryall exists.
+ */
+export function removeCarryallForSector(
+  s: GameState,
+  sector: SectorId,
+): GameState | null {
+  const i = connectedVehicleIndex(s, "carryall", sector);
+  if (i < 0) return null;
+  return { ...s, vehicles: s.vehicles.filter((_, k) => k !== i) };
+}

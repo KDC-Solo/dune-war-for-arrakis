@@ -18,7 +18,8 @@ describe('resolveCardPlay', () => {
     expect(r.name).toBe('Carthag, the Former Capital');
     expect(r.steps).toHaveLength(2);
     expect(r.steps[0].auto).toBe(true); // place 3 reg + 1 elite in Carthag
-    expect(r.steps[1].auto).toBe(false); // leader choice is player's
+    expect(r.steps[1].auto).toBe(true); // leader chosen by the AI (deploy priority)
+    expect(r.steps[1].text).toContain('Feyd-Rautha'); // sampleState reserve's named leader
   });
 
   it('has a structured encoding for every Harkonnen planning card', () => {
@@ -43,9 +44,11 @@ describe('applyCardSteps', () => {
     const after = harkAt(next, 'carthag')!;
     expect(after.units.regular).toBe(before.units.regular + 3);
     expect(after.units.elite).toBe(before.units.elite + 1);
-    // Reserve drained by what was placed.
+    // Reserve drained by what was placed (units + the AI-chosen leader).
     expect(next.harkonnenReserve.units.regular).toBe(s.harkonnenReserve.units.regular - 3);
     expect(next.harkonnenReserve.units.elite).toBe(s.harkonnenReserve.units.elite - 1);
+    expect(after.leaders.some((l) => l.name === 'Feyd-Rautha')).toBe(true);
+    expect(next.harkonnenReserve.namedLeaders).not.toContain('Feyd-Rautha');
   });
 
   it('places one unit in each of several fixed areas', () => {
@@ -77,9 +80,80 @@ describe('applyCardSteps', () => {
 
   it('leaves manual steps unapplied (no state change from them)', () => {
     const s = sampleState();
-    const r = resolveCardPlay('harkonnen_patrols', s)!; // single manual step
+    const r = resolveCardPlay('breeding_program', s)!; // both steps manual
     expect(r.steps.every((st) => !st.auto)).toBe(true);
     expect(applyCardSteps(s, r.steps)).toEqual(s);
+  });
+
+  it('AI picks empty desert areas for Harkonnen Patrols and places the units', () => {
+    const s = sampleState();
+    const r = resolveCardPlay('harkonnen_patrols', s)!;
+    expect(r.steps[0].auto).toBe(true);
+    const areas = r.steps[0].groundLocations!;
+    expect(areas).toHaveLength(3);
+    const next = applyCardSteps(s, r.steps);
+    for (const a of areas) {
+      expect(harkAt(next, a)?.units.regular).toBe(1);
+      // chosen areas were empty desert without a legion beforehand
+      expect(harkAt(s, a)).toBeUndefined();
+    }
+    expect(next.harkonnenReserve.units.regular).toBe(s.harkonnenReserve.units.regular - 3);
+  });
+
+  it('AI places the Battle Group in a free mountain area (Bashar + 2 elites)', () => {
+    const s = sampleState();
+    const r = resolveCardPlay('moving_the_battle_group', s)!;
+    expect(r.steps.every((st) => st.auto)).toBe(true);
+    const area = r.steps[0].groundLocations![0];
+    expect(harkAt(s, area)).toBeUndefined(); // was free
+    const next = applyCardSteps(s, r.steps);
+    const leg = harkAt(next, area)!;
+    expect(leg.units.elite).toBe(2);
+    expect(leg.leaders).toHaveLength(1);
+    expect(leg.leaders[0].kind).toBe('generic');
+    expect(next.harkonnenReserve.bashars).toBe(s.harkonnenReserve.bashars - 1);
+    expect(next.harkonnenReserve.units.elite).toBe(s.harkonnenReserve.units.elite - 2);
+  });
+
+  it('AI discards the wormsigns nearest its legions for Spotter Control', () => {
+    const s = sampleState();
+    s.wormsigns = [{ area: 's1_10' }, { area: 's3_1' }, { area: 's4_1' }, { area: 's2_1' }];
+    const r = resolveCardPlay('spotter_control', s)!;
+    expect(r.steps[0].auto).toBe(true);
+    const next = applyCardSteps(s, r.steps);
+    expect(next.wormsigns).toHaveLength(1);
+    expect(next.decks.wormsignPool).toBe(s.decks.wormsignPool + 3);
+  });
+
+  it('AI upgrades forward elites to Sardaukar for Sardaukar Disguised', () => {
+    const s = sampleState();
+    const r = resolveCardPlay('sardaukar_disguised', s)!;
+    const next = applyCardSteps(s, r.steps);
+    // sampleState has 1 elite at s1_11 (front) — swap capped by elites on the board.
+    const front = harkAt(next, 's1_11')!;
+    expect(front.units.special_elite).toBe(1);
+    expect(front.units.elite).toBe(0);
+    expect(next.harkonnenReserve.units.special_elite).toBe(s.harkonnenReserve.units.special_elite - 1);
+    expect(next.harkonnenReserve.units.elite).toBe(s.harkonnenReserve.units.elite + 1);
+  });
+
+  it('AI picks a settlement for Evidence of Rebellion', () => {
+    const s = sampleState();
+    const r = resolveCardPlay('evidence_of_rebellion', s)!;
+    expect(r.steps[0].auto).toBe(true);
+    const area = r.steps[0].groundLocations![0];
+    expect(s.settlements.some((st) => st.area === area && !st.destroyed)).toBe(true);
+    const next = applyCardSteps(s, r.steps);
+    expect(harkAt(next, area)!.units.elite).toBeGreaterThanOrEqual(2);
+  });
+
+  it('names a concrete legion and destination for "move a Legion of your choice"', () => {
+    const s = sampleState();
+    const r = resolveCardPlay('seek_out_the_mahdi', s)!;
+    expect(r.steps[0].auto).toBe(false);
+    expect(r.steps[0].text).toContain('Move the legion in');
+    expect(r.steps[0].text).toContain("Mahdi's pick");
+    expect(r.steps[0].groundLocations!.length).toBe(2);
   });
 
   it('never overdraws units beyond the reserve', () => {

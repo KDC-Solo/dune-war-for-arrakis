@@ -223,8 +223,16 @@ Board-first rebuild per PRD.md; engine reused unchanged; v1 reachable via `?clas
 
 - **v1.0.0 shipped 2026-07-04** (board-first UI is the app); M8 is code-complete — all five
   difficulties (Mahdi / Recruit / Bashar / Baron / Mentat) with deployment variants,
-  persistent plans, and Mentat lookahead — only playtest tuning remains. 324 unit tests +
-  14 E2E journeys green (2026-07-05).
+  persistent plans, and Mentat lookahead — only playtest tuning remains. 351 unit tests +
+  14 E2E journeys green (2026-07-12).
+- **AI decides "of your choice" card wordings (2026-07-12):** every Harkonnen planning card
+  choice is now made by the bot (`cardChoices.ts`) — free placements auto-applied, move/attack
+  choices surfaced as "Mahdi's pick" directives — so the player never chooses against
+  themselves when resolving the Harkonnen/Corrino decks.
+- **Desert-hazards & vehicle rules pass (2026-07-12, playtest findings):** wormsigns now flip &
+  resolve every hazards phase and return to the pool (guide step + area-sheet worm tools incl.
+  carryall-saves-harvester); troop transport consumes the ornithopter on moves and 2-area
+  sietch attacks. 358 unit tests + 16 E2E.
 
 ### Next up (roadmap, 2026-07-03)
 

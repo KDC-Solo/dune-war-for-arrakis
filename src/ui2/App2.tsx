@@ -18,6 +18,9 @@ import { setupRound, startNextRound, nextPhase, SUPREMACY_WIN, PHASE_ORDER } fro
 import { availability } from '../engine/spiceMustFlow';
 import { gameOutcome, PRESCIENCE_MARKERS } from '../engine/victory';
 import { legalMoveDestinations } from '../engine/moveTargets';
+import { transportNeeded } from '../engine/movement';
+import { removeOrnithopterForSector } from '../engine/vehiclePlacement';
+import { AREAS } from '../engine/board';
 import { moveLegionUnits, applyHarkonnenAction, isAutoApplied, tokenPoolShortNote, WORMSIGN_ENTRY_NOTE, deployFromReserve, reserveDeployAreas } from '../engine/applyAction';
 import { type HarkonnenAction } from '../engine/harkonnenActions';
 import { decideHarkonnenAction, ensureBrainPlan, BRAIN_LABELS, type BrainId } from '../engine/harkonnenBrain';
@@ -200,6 +203,17 @@ export function App2() {
   const directiveToBattle = () => {
     if (!directive || (directive.kind !== 'attack_sietch' && directive.kind !== 'attack_legion')) return;
     const defArea = directive.kind === 'attack_sietch' ? directive.sietch : directive.defender;
+    // A 2-area sietch attack rides an ornithopter, and the transport consumes it — pay up
+    // front (the ornithopter is spent even if the attack is later ceased).
+    if (directive.kind === 'attack_sietch' && directive.useOrnithopter) {
+      const paid = removeOrnithopterForSector(s, AREAS[directive.attacker].sector);
+      if (paid)
+        commit(paid, {
+          headline: 'Troop transport',
+          text: `1 ornithopter removed for the 2-area attack from ${areaLabel(directive.attacker)}`,
+          quiet: true,
+        });
+    }
     setBattlePair({ atk: directive.attacker, def: defArea, faction: 'harkonnen' });
     setDirective(null);
   };
@@ -253,11 +267,20 @@ export function App2() {
     }
     if (movePick && moveDests) {
       if (!moveDests.has(id)) return;
-      const next = moveLegionUnits(s, movePick.faction, movePick.from, id, movePick.move);
+      let next = moveLegionUnits(s, movePick.faction, movePick.from, id, movePick.move);
       // Physical-table reminders the engine can't resolve: a Harkonnen legion entering a
       // wormsign reveals it, and a garrison drop from an empty token pool needs board reveals.
       const notes: string[] = [];
       if (movePick.faction === 'harkonnen') {
+        // Troop transport consumes the ornithopter ("Remove the ornithopter and either move
+        // or attack with the legion up to 1 additional area away").
+        if (transportNeeded(movePick.from, id)) {
+          const paid = removeOrnithopterForSector(next, AREAS[movePick.from].sector);
+          if (paid) {
+            next = paid;
+            notes.push('Troop transport: 1 ornithopter is removed.');
+          }
+        }
         if (s.wormsigns.some((w) => w.area === id)) notes.push(WORMSIGN_ENTRY_NOTE);
         const fullyLeft = !next.legions.some(
           (l) =>

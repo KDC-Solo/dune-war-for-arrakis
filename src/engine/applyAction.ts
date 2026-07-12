@@ -36,7 +36,8 @@ export function tokenPoolShortNote(shortfall: number): string {
 /** Note for a Harkonnen legion entering a wormsign area — the reveal happens physically. */
 export const WORMSIGN_ENTRY_NOTE =
   'The legion enters a Wormsign — reveal and resolve it physically, then record the outcome ' +
-  'with the area-sheet worm tools.';
+  'with the area-sheet worm tools (− Wormsign, Sandworm, “Sandworm (devours harvester)”; ' +
+  'edit the legion for any casualties).';
 
 function mergeInto(target: Legion, src: Legion): Legion {
   return {

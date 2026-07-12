@@ -380,7 +380,7 @@ export const STACKING_LIMIT = 6;
 const PRIORITY_NAMED = ["Beast Rabban", "Feyd-Rautha"];
 
 /** Pick the leader to deploy: priority named first, then any named, then a Bashar, else null. */
-function chooseDeployLeader(s: GameState): string | null {
+export function chooseDeployLeader(s: GameState): string | null {
   const named = s.harkonnenReserve.namedLeaders;
   for (const p of PRIORITY_NAMED) if (named.includes(p)) return p;
   if (named.length > 0) return named[0];

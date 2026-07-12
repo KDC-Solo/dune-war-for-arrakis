@@ -129,6 +129,15 @@ export function canTroopTransport(fromSector: SectorId, ornithopterZoneIds: Iter
 }
 
 /**
+ * Whether a Harkonnen move from `from` to `dest` needed troop transport: any destination beyond
+ * the legion's own (impassable-ignoring) neighbours is only reachable by the ornithopter jump —
+ * which consumes the ornithopter.
+ */
+export function transportNeeded(from: string, dest: string): boolean {
+  return !harkonnenNeighbors(from).includes(dest);
+}
+
+/**
  * Whether a Harkonnen legion at `from` can attack a target area this turn.
  * Adjacent (ground distance 1) always works. With troop-transport it can also reach a target
  * exactly 2 areas away, jumping over the (possibly blocked) intervening area.

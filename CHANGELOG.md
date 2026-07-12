@@ -5,7 +5,28 @@ All notable changes to this project are documented here. Format loosely follows
 
 ## [Unreleased]
 
+### Fixed
+- **Troop transport now consumes the ornithopter** (rulebook: "Remove the ornithopter and either
+  move or attack with the legion up to 1 additional area away") — both on manual 2‑area moves and
+  when an AI sietch‑attack directive rides an ornithopter into battle.
+- **Wormsigns now resolve every Desert Hazards phase** — new "Flip & resolve" step in the guide:
+  flip all signs on the physical board, record sandworm appearances by tapping the area, then
+  "Signs resolved" shuffles every token back into the pool (they no longer pile up round after
+  round). Discarding a wormsign anywhere now returns it to the pool.
+
 ### Added
+- **Sandworm resolution tools on the area sheet** — one‑tap "Sandworm appears (discard sign)",
+  "Sandworm (devours harvester)", and "Sandworm (carryall saves harvester)" (spends a carryall
+  from a connected air zone, per the Desert Hazards rescue rule); plus manual +/− Harvester for
+  board fix‑ups.
+- **The AI makes the card choices** — planning cards printed with "of your choice" address the
+  Harkonnen side, so the Mahdi bot now decides them instead of the player (who would otherwise
+  pick against themselves). Free placements are chosen and auto‑applied (Battle Group's mountain
+  area, Patrols' desert areas, Evidence of Rebellion's settlement, Spotter Control's wormsign
+  discards, Sardaukar Disguised's elite→Sardaukar swaps, leader drops from the deploy priority);
+  move/attack choices come back as directives naming the exact legion, destination, and target
+  ("Mahdi's pick") — including the Sardaukar cards, Troop Carriers, Shigawire's leader hunt,
+  Hunter‑Seeker's victim, and Spies All Over Arrakis' reveal area (`cardChoices.ts`, 27 new tests).
 - **Mentat difficulty** — a fifth Harkonnen brain above Baron: lowest temperature, the longest
   plans, and a one‑ply lookahead that avoids moves leaving a legion or settlement hanging to the
   best visible Atreides reply. Still honest: it reads only what a human opponent could see.

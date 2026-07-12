@@ -73,9 +73,11 @@ test('v2: a full round plays through the guide bar', async ({ page }) => {
   }
   await page.getByRole('button', { name: /Actions done/ }).click();
 
-  // Hazards: wormsigns then storms inside the guide slot.
-  const worms = page.getByRole('button', { name: /Apply wormsigns|Continue to storms/ });
+  // Hazards: wormsigns → flip-and-resolve → storms inside the guide slot.
+  const worms = page.getByRole('button', { name: /Apply wormsigns|Resolve signs|Continue to storms/ });
   if (await worms.isVisible().catch(() => false)) await worms.click();
+  const resolved = page.getByRole('button', { name: /Signs resolved/ });
+  if (await resolved.isVisible().catch(() => false)) await resolved.click();
   const storms = page.getByRole('button', { name: 'Apply storms' });
   if (await storms.isVisible().catch(() => false)) await storms.click();
   await page.getByRole('button', { name: /Hazards done/ }).click();
@@ -420,8 +422,10 @@ test('v2: a campaign plays from round 1 until someone wins', async ({ page }) =>
 
     if (await stepOrScene(/Actions done/)) break;
 
-    const worms = page.getByRole('button', { name: /Apply wormsigns|Continue to storms/ });
+    const worms = page.getByRole('button', { name: /Apply wormsigns|Resolve signs|Continue to storms/ });
     if (await worms.isVisible().catch(() => false)) await worms.click();
+    const resolved = page.getByRole('button', { name: /Signs resolved/ });
+    if (await resolved.isVisible().catch(() => false)) await resolved.click();
     const storms = page.getByRole('button', { name: 'Apply storms' });
     if (await storms.isVisible().catch(() => false)) await storms.click();
     if (await stepOrScene(/Hazards done/)) break;
@@ -434,4 +438,43 @@ test('v2: a campaign plays from round 1 until someone wins', async ({ page }) =>
 
   await expect(scene).toBeVisible({ timeout: 15_000 });
   await expect(scene).toContainText(/Baron|Sleeper/);
+});
+
+test('v2: a revealed wormsign becomes a sandworm that devours the harvester', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'desert_hazards';
+  s.vehicles = [{ type: 'harvester', location: 's1_10' }];
+  s.wormsigns = [{ area: 's1_10' }];
+  await seed(page, s);
+  await page.goto('/');
+  await page.locator('path[data-area="s1_10"]').dispatchEvent('click');
+  const sheet = page.locator('.area-sheet');
+  await expect(sheet).toContainText('Harvester');
+  await expect(sheet).toContainText('Wormsign');
+  await sheet.getByRole('button', { name: /devours harvester/ }).click();
+  await expect(page.locator('.toast2')).toContainText('Sandworm devours the harvester');
+  await page.locator('path[data-area="s1_10"]').dispatchEvent('click');
+  await expect(sheet).toContainText('Sandworm');
+  await expect(sheet).not.toContainText('Harvester');
+  await expect(sheet.locator('.ap-tag', { hasText: 'Wormsign' })).toHaveCount(0);
+});
+
+test('v2: a connected carryall saves the harvester from the sandworm', async ({ page }) => {
+  const { airZonesConnectedToSector } = await import('../src/engine/movement');
+  const s = newGameState();
+  s.phase = 'desert_hazards';
+  s.vehicles = [
+    { type: 'harvester', location: 's1_10' },
+    { type: 'carryall', location: airZonesConnectedToSector('s1')[0] },
+  ];
+  s.wormsigns = [{ area: 's1_10' }];
+  await seed(page, s);
+  await page.goto('/');
+  await page.locator('path[data-area="s1_10"]').dispatchEvent('click');
+  const sheet = page.locator('.area-sheet');
+  await sheet.getByRole('button', { name: /carryall saves harvester/ }).click();
+  await expect(page.locator('.toast2')).toContainText('Carryall saves the harvester');
+  await page.locator('path[data-area="s1_10"]').dispatchEvent('click');
+  await expect(sheet).toContainText('Sandworm');
+  await expect(sheet).toContainText('Harvester'); // rescued, still on the board
 });

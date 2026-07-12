@@ -49,11 +49,11 @@ export function HazardsPanel({ game }: { game: Game }) {
   const discard = useMemo(() => wormsignsToDiscard(s), [s]);
   const targets = useMemo(() => stormTargets(s), [s]);
   const [dice, setDice] = useState<Record<number, StormDice>>({});
-  const [wormsDone, setWormsDone] = useState(false);
-  useEffect(() => setWormsDone(false), [s.round]);
+  const [step, setStep] = useState<'signs' | 'resolve' | 'storms'>('signs');
+  useEffect(() => setStep('signs'), [s.round]);
   const get = (i: number) => dice[i] ?? { swords: 0, specials: 0 };
 
-  if (!wormsDone) {
+  if (step === 'signs') {
     const nothing = place.length === 0 && discard.length === 0;
     return (
       <div className="pp">
@@ -67,11 +67,43 @@ export function HazardsPanel({ game }: { game: Game }) {
         <button
           className="g-primary"
           onClick={() => {
-            if (!nothing) commit(placeWormsigns(s).state, { headline: 'Wormsigns', text: `−${discard.length} / +${place.length}` });
-            setWormsDone(true);
+            const applied = nothing ? s : placeWormsigns(s).state;
+            if (!nothing) commit(applied, { headline: 'Wormsigns', text: `−${discard.length} / +${place.length}` });
+            setStep(applied.wormsigns.length > 0 ? 'resolve' : 'storms');
           }}
         >
-          {nothing ? 'Continue to storms →' : 'Apply wormsigns →'}
+          {!nothing ? 'Apply wormsigns →' : s.wormsigns.length > 0 ? 'Resolve signs →' : 'Continue to storms →'}
+        </button>
+      </div>
+    );
+  }
+
+  if (step === 'resolve') {
+    const signs = s.wormsigns.map((w) => w.area);
+    return (
+      <div className="pp">
+        <div className="pp-row"><Icon name="wormsign" size={16} />
+          <span>
+            Flip every sign on the physical board{signs.length > 0 && <>: <AreaRefs ids={[...new Set(signs)]} /></>}.
+            Sand = false alarm. Sandworm icon = tap the area → “Sandworm appears” (a harvester is
+            devoured unless a connected carryall saves it; a Harkonnen legion there must retreat
+            first — if it can’t, the worm attacks it and is not placed). Burrowing worm = only in
+            deep desert. At most 4 signs spawn worms — you discard the excess.
+          </span>
+        </div>
+        <button
+          className="g-primary"
+          onClick={() => {
+            const n = s.wormsigns.length;
+            if (n > 0)
+              commit(
+                { ...s, wormsigns: [], decks: { ...s.decks, wormsignPool: s.decks.wormsignPool + n } },
+                { headline: 'Wormsigns resolved', text: `${n} sign${n === 1 ? '' : 's'} shuffled back into the pool` },
+              );
+            setStep('storms');
+          }}
+        >
+          Signs resolved → storms
         </button>
       </div>
     );

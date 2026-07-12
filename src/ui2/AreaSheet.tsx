@@ -4,9 +4,10 @@
 
 import { useState } from 'react';
 import type { GameState, Legion, UnitType } from '../engine/state';
-import { emptyLegion, unitCount } from '../engine/state';
+import { emptyLegion, unitCount, COMPONENTS } from '../engine/state';
 import { AREAS } from '../engine/board';
 import { canPlaceSandworm, canPlaceWormsign } from '../engine/wormsigns';
+import { hasCarryallForSector, removeCarryallForSector } from '../engine/vehiclePlacement';
 import { revealDeploymentTokens } from '../engine/revealTokens';
 import { ADJACENCY } from '../engine/board';
 import { harkonnenNeighbors } from '../engine/movement';
@@ -89,7 +90,38 @@ export function AreaSheet({
   const station = s.testingStations.find((x) => x.area === area);
   const worm = s.wormsigns.findIndex((w) => w.area === area);
   const sand = s.sandworms.findIndex((w) => w.area === area);
+  const harvester = s.vehicles.findIndex((v) => v.type === 'harvester' && v.location === area);
   const desert = a?.terrain === 'desert' || a?.terrain === 'minor_erg';
+  // A carryall in a connected air zone can rescue the harvester (Desert Hazards only).
+  const carryallNearby = a ? hasCarryallForSector(s, a.sector) : false;
+
+  // A sandworm arrives (wormsign reveal / sandworm attack): one commit places the worm and
+  // shuffles the sign back into the pool. The harvester in the area is devoured — unless a
+  // connected carryall is spent to save it (Desert Hazards rescue rule).
+  const sandwormArrives = (opts: { saveHarvester?: boolean } = {}) => {
+    let vehicles = s.vehicles;
+    let headline = 'Sandworm placed';
+    if (harvester >= 0) {
+      if (opts.saveHarvester && a) {
+        const saved = removeCarryallForSector({ ...s, vehicles }, a.sector);
+        vehicles = saved ? saved.vehicles : vehicles;
+        headline = 'Carryall saves the harvester';
+      } else {
+        vehicles = vehicles.filter((_, i) => i !== harvester);
+        headline = 'Sandworm devours the harvester';
+      }
+    }
+    commit(
+      {
+        ...s,
+        sandworms: [...s.sandworms, { area }],
+        vehicles,
+        wormsigns: worm >= 0 ? s.wormsigns.filter((_, i) => i !== worm) : s.wormsigns,
+        decks: worm >= 0 ? { ...s.decks, wormsignPool: s.decks.wormsignPool + 1 } : s.decks,
+      },
+      { headline, text: areaLabel(area) },
+    );
+  };
 
   const counts = (l: Legion) => ({
     regular: l.units.regular,
@@ -302,7 +334,16 @@ export function AreaSheet({
             <button
               type="button"
               className="as-btn"
-              onClick={() => commit({ ...s, wormsigns: s.wormsigns.filter((_, i) => i !== worm) }, { headline: 'Wormsign removed', text: areaLabel(area) })}
+              onClick={() =>
+                commit(
+                  {
+                    ...s,
+                    wormsigns: s.wormsigns.filter((_, i) => i !== worm),
+                    decks: { ...s.decks, wormsignPool: s.decks.wormsignPool + 1 },
+                  },
+                  { headline: 'Wormsign removed', text: areaLabel(area) },
+                )
+              }
             >
               − Wormsign
             </button>
@@ -314,6 +355,50 @@ export function AreaSheet({
               onClick={() => commit({ ...s, sandworms: [...s.sandworms, { area }] }, { headline: 'Sandworm placed', text: areaLabel(area) })}
             >
               <Icon name="sandworm" size={15} /> Sandworm
+            </button>
+          )}
+          {desert && sand < 0 && worm >= 0 && harvester < 0 && legions.length === 0 && (
+            <button type="button" className="as-btn" onClick={() => sandwormArrives()}>
+              <Icon name="sandworm" size={15} /> Sandworm appears (discard sign)
+            </button>
+          )}
+          {desert && sand < 0 && harvester >= 0 && legions.length === 0 && (
+            <button type="button" className="as-btn" onClick={() => sandwormArrives()}>
+              <Icon name="sandworm" size={15} /> Sandworm (devours harvester)
+            </button>
+          )}
+          {desert && sand < 0 && harvester >= 0 && legions.length === 0 && carryallNearby && (
+            <button type="button" className="as-btn" onClick={() => sandwormArrives({ saveHarvester: true })}>
+              <Icon name="sandworm" size={15} /> Sandworm (carryall saves harvester)
+            </button>
+          )}
+          {desert && harvester < 0 && sand < 0 &&
+            s.vehicles.filter((v) => v.type === 'harvester').length < COMPONENTS.vehicles.harvester && (
+              <button
+                type="button"
+                className="as-btn"
+                onClick={() =>
+                  commit(
+                    { ...s, vehicles: [...s.vehicles, { type: 'harvester', location: area }] },
+                    { headline: 'Harvester placed', text: areaLabel(area) },
+                  )
+                }
+              >
+                <Icon name="harvester" size={15} /> Harvester
+              </button>
+            )}
+          {harvester >= 0 && (
+            <button
+              type="button"
+              className="as-btn"
+              onClick={() =>
+                commit(
+                  { ...s, vehicles: s.vehicles.filter((_, i) => i !== harvester) },
+                  { headline: 'Harvester removed', text: areaLabel(area) },
+                )
+              }
+            >
+              − Harvester
             </button>
           )}
           {sand >= 0 && (

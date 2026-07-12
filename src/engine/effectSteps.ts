@@ -63,10 +63,12 @@ export function fmtUnits(units: Partial<Record<UnitType, number>>): string {
 export function placeUnits(
   units: Partial<Record<UnitType, number>>,
   area: string,
+  note?: string,
 ): EffectStep {
   return {
-    text: `Place ${fmtUnits(units)} in ${areaLabel(area)}.`,
+    text: `Place ${fmtUnits(units)} in ${areaLabel(area)}${note ? ` ${note}` : ""}.`,
     auto: true,
+    groundLocations: [area],
     apply: (s) => {
       const reserve = { ...s.harkonnenReserve.units };
       const add = emptyLegion("harkonnen", area);
@@ -93,6 +95,7 @@ export function placeOneEach(
   return {
     text: `Place 1 ${UNIT_LABEL[type][0]} in ${label}.`,
     auto: true,
+    groundLocations: [...areas],
     apply: (s) => {
       let legions = s.legions;
       const reserve = { ...s.harkonnenReserve.units };
@@ -188,8 +191,112 @@ export function draw(deck: PlanningDeck, count: number): EffectStep {
 }
 
 /** A step the player resolves on the board (move / attack / choice). Not auto-applied. */
-export function manual(text: string): EffectStep {
-  return { text, auto: false };
+export function manual(
+  text: string,
+  locations?: { ground?: string[]; air?: string[] },
+): EffectStep {
+  return {
+    text,
+    auto: false,
+    groundLocations: locations?.ground,
+    airLocations: locations?.air,
+  };
+}
+
+/** Place a leader ("Bashar" or a named leader) from the reserve into the legion in `area`. Auto. */
+export function placeLeader(leader: string, area: string): EffectStep {
+  const label = leader === "Bashar" ? "1 Bashar Leader" : leader;
+  return {
+    text: `Place ${label} in ${areaLabel(area)}.`,
+    auto: true,
+    groundLocations: [area],
+    apply: (s) => {
+      const r = s.harkonnenReserve;
+      let reserve = r;
+      if (leader === "Bashar") {
+        if (r.bashars <= 0) return s;
+        reserve = { ...r, bashars: r.bashars - 1 };
+      } else {
+        if (!r.namedLeaders.includes(leader)) return s;
+        reserve = { ...r, namedLeaders: r.namedLeaders.filter((n) => n !== leader) };
+      }
+      // upsertLegion MERGES contents, so hand it only the newly-added leader.
+      const add = emptyLegion("harkonnen", area);
+      add.leaders.push(
+        leader === "Bashar"
+          ? { kind: "generic", faction: "harkonnen" }
+          : { kind: "named", faction: "harkonnen", name: leader },
+      );
+      return {
+        ...s,
+        legions: upsertLegion(s.legions, add),
+        harkonnenReserve: reserve,
+      };
+    },
+  };
+}
+
+/**
+ * Discard one wormsign token per listed area (tokens return to the draw pool, matching the
+ * hazard-phase rule). Areas may repeat when an area holds several tokens.
+ */
+export function discardWormsigns(areas: string[]): EffectStep {
+  const labels = areas.map((a) => areaLabel(a)).join(", ");
+  return {
+    text: `Discard ${areas.length} Wormsign${areas.length === 1 ? "" : "s"}: ${labels}.`,
+    auto: true,
+    groundLocations: [...new Set(areas)],
+    apply: (s) => {
+      const remaining = [...s.wormsigns];
+      let removed = 0;
+      for (const area of areas) {
+        const i = remaining.findIndex((w) => w.area === area);
+        if (i >= 0) {
+          remaining.splice(i, 1);
+          removed += 1;
+        }
+      }
+      if (removed === 0) return s;
+      return {
+        ...s,
+        wormsigns: remaining,
+        decks: { ...s.decks, wormsignPool: s.decks.wormsignPool + removed },
+      };
+    },
+  };
+}
+
+/** Swap up to `count` units of one type in the legion at `area` for another type from the reserve. Auto. */
+export function replaceUnits(
+  area: string,
+  from: UnitType,
+  to: UnitType,
+  count: number,
+): EffectStep {
+  return {
+    text: `Replace ${fmtUnits({ [from]: count })} in ${areaLabel(area)} with ${fmtUnits({ [to]: count })}.`,
+    auto: true,
+    groundLocations: [area],
+    apply: (s) => {
+      const leg = s.legions.find((l) => l.faction === "harkonnen" && l.area === area);
+      if (!leg) return s;
+      const n = Math.min(count, leg.units[from], s.harkonnenReserve.units[to]);
+      if (n <= 0) return s;
+      const updated = {
+        ...leg,
+        units: { ...leg.units, [from]: leg.units[from] - n, [to]: leg.units[to] + n },
+      };
+      const reserve = { ...s.harkonnenReserve.units };
+      reserve[to] -= n;
+      reserve[from] += n;
+      return {
+        ...s,
+        // in-place swap: upsertLegion would MERGE and double the legion's contents
+        legions: s.legions.map((l) => (l === leg ? updated : l)),
+        harkonnenReserve: { ...s.harkonnenReserve, units: reserve },
+      };
+    },
+  };
 }
 
 /** Apply every auto step in order, returning the resulting state. */

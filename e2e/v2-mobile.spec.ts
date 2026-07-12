@@ -49,8 +49,10 @@ test('mobile: a full round plays through the guide bar without sideways scroll',
   }
   await page.getByRole('button', { name: /Actions done/ }).click();
 
-  const worms = page.getByRole('button', { name: /Apply wormsigns|Continue to storms/ });
+  const worms = page.getByRole('button', { name: /Apply wormsigns|Resolve signs|Continue to storms/ });
   if (await worms.isVisible().catch(() => false)) await worms.click();
+  const resolved = page.getByRole('button', { name: /Signs resolved/ });
+  if (await resolved.isVisible().catch(() => false)) await resolved.click();
   const storms = page.getByRole('button', { name: 'Apply storms' });
   if (await storms.isVisible().catch(() => false)) await storms.click();
   await expectNoSidewaysScroll(page, 'hazards');
