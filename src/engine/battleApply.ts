@@ -84,6 +84,13 @@ export function commitBattle(s: GameState, session: BattleSession): CommitBattle
       vehicles = vehicles.filter((v) => !(v.type === 'harvester' && v.location === def.area));
       advanceNotes.push(`The harvester in ${areaLabel(def.area)} is destroyed.`);
     }
+    // Advancing into an untaken testing station takes it (rulebook): the symbol is on the
+    // physical token, so the player flips it and records the marker in the Atreides sheet.
+    if (!hkAttacking && s.testingStations.some((t) => t.area === def.area && !t.revealed)) {
+      advanceNotes.push(
+        `The advance reaches the ${areaLabel(def.area)} testing station — flip its token and pick the marker it advances (Atreides sheet).`,
+      );
+    }
   }
 
   let sietches = s.sietches;

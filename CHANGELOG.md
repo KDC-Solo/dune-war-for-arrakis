@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [1.1.2] — 2026-07-13
+
+### Added
+- **Testing-station pickup prompts.** Moving an Atreides legion onto an untaken ecological
+  testing station now opens the Atreides sheet with that station's marker pick pre-armed
+  (flip the physical token, tap the marker it advances). A battle advance into a station
+  area surfaces the same reminder in the battle notes.
+
 ## [1.1.1] — 2026-07-13
 
 ### Fixed

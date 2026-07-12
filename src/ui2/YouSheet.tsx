@@ -22,9 +22,14 @@ import { areaLabel } from '../ui/describeAction';
 import { Icon } from './icons';
 import type { Game } from './useGame';
 
-export function YouSheet({ game }: { game: Game }) {
+export function YouSheet({ game, initialStationPick }: { game: Game; initialStationPick?: string | null }) {
   const { s, commit } = game;
-  const [stationPick, setStationPick] = useState<string | null>(null);
+  // A move/advance onto an untaken station can open this sheet with the marker pick pre-armed.
+  const [stationPick, setStationPick] = useState<string | null>(() =>
+    initialStationPick && game.s.testingStations.some((t) => t.area === initialStationPick && !t.revealed)
+      ? initialStationPick
+      : null,
+  );
   const [revealPick, setRevealPick] = useState<string | null>(null);
   const [cardRef, setCardRef] = useState('');
   const refCard =

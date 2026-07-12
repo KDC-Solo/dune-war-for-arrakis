@@ -245,3 +245,16 @@ describe('commitBattle — adjacent battles (rulebook positions)', () => {
     expect(state.legions.some((l) => l.faction === 'harkonnen' && l.area === 's1_11')).toBe(false);
   });
 });
+
+  it('an Atreides advance onto an untaken testing station surfaces the take-it note', () => {
+    const attacker = leg('atreides', 's1_5', { regular: 4 });
+    const defender = leg('harkonnen', 's1_4', { regular: 1 }); // s1_4 holds a testing station
+    let session = beginBattle({ attacker, defender });
+    while (session.status === 'ongoing')
+      session = resolveBattleRound(session, { attacker: { hits: 3, shields: 0 }, defender: { hits: 0, shields: 0 } });
+    const s = sampleState();
+    s.testingStations = [{ area: 's1_4', revealed: false }];
+    s.legions = [attacker, defender];
+    const { note } = commitBattle(s, session);
+    expect(note).toMatch(/testing station — flip its token/);
+  });

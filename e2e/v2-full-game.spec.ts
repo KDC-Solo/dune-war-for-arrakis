@@ -478,3 +478,28 @@ test('v2: a connected carryall saves the harvester from the sandworm', async ({ 
   await expect(sheet).toContainText('Sandworm');
   await expect(sheet).toContainText('Harvester'); // rescued, still on the board
 });
+
+test('v2: an Atreides move onto a testing station opens the marker pick', async ({ page }) => {
+  const s = newGameState();
+  s.phase = 'action_resolution';
+  s.legions = [
+    ...s.legions.filter((l) => l.area !== 's1_5'),
+    {
+      faction: 'atreides',
+      area: 's1_5', // adjacent to the s1_4 testing station
+      units: { regular: 2, elite: 0, special_elite: 0 },
+      deploymentTokens: 0,
+      leaders: [],
+    },
+  ];
+  await seed(page, s);
+  await page.goto('/');
+  await page.locator('path[data-area="s1_5"]').dispatchEvent('click');
+  await page.getByRole('button', { name: /Move/ }).first().click();
+  await page.locator('path[data-area="s1_4"]').dispatchEvent('click');
+  // The You sheet opens with the station's marker pick armed — take the station.
+  const sheet = page.locator('.sheet');
+  await expect(sheet).toContainText('Testing stations');
+  await sheet.locator('.ys-pick').getByRole('button', { name: 'Kwisatz Haderach +1' }).click();
+  await expect(page.locator('.toast2')).toContainText('Station taken');
+});

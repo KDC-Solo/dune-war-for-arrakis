@@ -65,6 +65,12 @@ export function App2() {
   const game = useGame();
   const { s, commit, undo, canUndo, toast, setToast, startNew } = game;
   const [sheet, setSheet] = useState<SheetId>(null);
+  // Area of an untaken testing station an Atreides move just landed on — arms the You sheet's
+  // marker pick when it opens; cleared once consumed so later opens start clean.
+  const [stationPrompt, setStationPrompt] = useState<string | null>(null);
+  useEffect(() => {
+    if (sheet !== 'you') setStationPrompt(null);
+  }, [sheet]);
   const [areaOpen, setAreaOpen] = useState<string | null>(null);
   const [movePick, setMovePick] = useState<MovePick | null>(null);
   // Deploy-from-reserve: units chosen in the Turn sheet, destination picked on the stage.
@@ -293,12 +299,23 @@ export function App2() {
           notes.push(tokenPoolShortNote(2 - s.harkonnenReserve.deploymentTokens));
         }
       }
+      // An Atreides legion ending its move on an untaken testing station takes it immediately
+      // (rulebook): flip the physical token, then record which marker it advanced.
+      const ontoStation =
+        movePick.faction === 'atreides' &&
+        s.testingStations.some((t) => t.area === id && !t.revealed);
+      if (ontoStation)
+        notes.push('Testing station: flip its token and pick the marker it advances.');
       commit(next, {
         headline: 'Legion moved',
         text: `${movePick.faction === 'harkonnen' ? 'Harkonnen' : 'Atreides'}: ${areaLabel(movePick.from)} → ${areaLabel(id)}`,
         note: notes.length > 0 ? notes.join(' ') : undefined,
       });
       setMovePick(null);
+      if (ontoStation) {
+        setStationPrompt(id);
+        setSheet('you');
+      }
       return;
     }
     setAreaOpen(id);
@@ -493,7 +510,7 @@ export function App2() {
                 }}
               />
             )}
-            {sheet === 'you' && <YouSheet game={game} />}
+            {sheet === 'you' && <YouSheet game={game} initialStationPick={stationPrompt} />}
             {sheet === 'log' && (
               <>
                 <h2><Icon name="log" size={18} /> Chronicle</h2>
