@@ -3,6 +3,17 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [1.1.1] — 2026-07-13
+
+### Fixed
+- **A defending Harkonnen legion now spends reinforcement cards too.** The solo combat criteria
+  apply to any battle the bot fights ("If a battle starts and there are cards in the
+  reinforcements deck, during each round … discard as many cards as necessary to reach 6 combat
+  dice") — previously only a Harkonnen *attacker* topped up, so Atreides-initiated battles were
+  too easy. The settlement-rank bonus counts first (only the gap to 6 is spent), the Landsraad
+  ban still blocks the discards, and the battle screen shows the discards on whichever row is
+  the bot's.
+
 ## [1.1.0] — 2026-07-12
 
 ### Fixed

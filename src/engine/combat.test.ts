@@ -223,3 +223,46 @@ describe('stepwise battle (beginBattle / battleRoundSetup / resolveBattleRound)'
     expect(same).toBe(session);
   });
 });
+
+describe('reinforcements for a DEFENDING Harkonnen legion (Atreides attack)', () => {
+  const atreidesAttack = (over: { reinforcements?: number; landsraadBan?: boolean; rank?: number } = {}) =>
+    beginBattle({
+      attacker: leg({ faction: 'atreides', area: 'sihaya_ridge', units: { regular: 5, elite: 0, special_elite: 0 } }),
+      defender: leg({ units: { regular: 2, elite: 0, special_elite: 0 } }),
+      defenderSettlementRank: over.rank,
+      reinforcements: over.reinforcements ?? 3,
+      landsraadBan: over.landsraadBan,
+    });
+
+  it('tops the bot defender up toward 6 dice, never the Atreides attacker', () => {
+    const setup = battleRoundSetup(atreidesAttack());
+    expect(setup.discards).toBe(3); // 2 units + 3 cards = 5 (deck-limited)
+    expect(setup.defenderDice).toBe(5);
+    expect(setup.attackerDice).toBe(5); // attacker units only — no discards for Atreides
+  });
+
+  it('counts the settlement rank before discarding (only the gap to 6 is spent)', () => {
+    const setup = battleRoundSetup(atreidesAttack({ rank: 3, reinforcements: 5 }));
+    expect(setup.discards).toBe(1); // 2 units + rank 3 = 5 → 1 card to reach 6
+    expect(setup.defenderDice).toBe(6);
+  });
+
+  it('spends nothing under the Landsraad ban', () => {
+    const setup = battleRoundSetup(atreidesAttack({ landsraadBan: true }));
+    expect(setup.discards).toBe(0);
+    expect(setup.defenderDice).toBe(2);
+  });
+
+  it('accounts the discards on the session round by round', () => {
+    let session = atreidesAttack({ reinforcements: 2 });
+    const setup = battleRoundSetup(session);
+    expect(setup.discards).toBe(2);
+    session = resolveBattleRound(session, {
+      attacker: { hits: 1, shields: 0 },
+      defender: { hits: 0, shields: 0 },
+    });
+    expect(session.reinforcementsUsed).toBe(2);
+    expect(session.reinforcements).toBe(0);
+    expect(battleRoundSetup(session).discards).toBe(0); // deck exhausted
+  });
+});

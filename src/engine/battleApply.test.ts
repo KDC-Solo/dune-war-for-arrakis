@@ -179,11 +179,14 @@ describe('commitBattle — adjacent battles (rulebook positions)', () => {
     expect(note).toMatch(/Atreides ceased/);
   });
 
-  it('an Atreides attacker never spends Harkonnen reinforcement cards', () => {
+  it('reinforcement discards go to the DEFENDING Harkonnen when the Atreides attack', () => {
     const attacker = leg('atreides', 's1_11', { regular: 2 });
     const defender = leg('harkonnen', 'gara_kulon', { regular: 3 });
     const session = beginBattle({ attacker, defender, reinforcements: 4 });
-    expect(battleRoundSetup(session).discards).toBe(0);
+    const setup = battleRoundSetup(session);
+    expect(setup.discards).toBe(3); // bot defender tops up from 3 units to 6 dice
+    expect(setup.defenderDice).toBe(6);
+    expect(setup.attackerDice).toBe(2); // the Atreides never get the cards
   });
 
   it('a winning Atreides advance destroys the settlement (+prescience), removes the harvester, and refunds Harkonnen casualties', () => {

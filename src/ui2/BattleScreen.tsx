@@ -128,7 +128,9 @@ export function BattleScreen({
       defender: defL,
       defenderSettlementRank: defenseRank ?? undefined,
       surprise,
-      reinforcements: attackerFaction === 'harkonnen' ? s.decks.reinforcements : 0,
+      // The bot spends reinforcement cards to reach 6 dice on WHICHEVER side it fights
+      // (solo combat criteria: "If a battle starts…"), so pass the deck for both directions.
+      reinforcements: s.decks.reinforcements,
       landsraadBan: combatDiceDiscardBanned(s.spice.activeBans),
     };
     setSession(beginBattle(ctx));
@@ -277,8 +279,9 @@ export function BattleScreen({
           {session && setup && (
             <div className="bs-panel">
               <p className="bs-note">
-                Roll <b>{setup.attackerDice}</b> {atkName} {setup.discards > 0 ? `(+${setup.discards} reinforcement discards) ` : ''}
-                and <b>{setup.defenderDice}</b> {defName} dice, then enter the results:
+                Roll <b>{setup.attackerDice}</b> {atkName} {setup.discards > 0 && attackerFaction === 'harkonnen' ? `(+${setup.discards} reinforcement discards) ` : ''}
+                and <b>{setup.defenderDice}</b> {defName} {setup.discards > 0 && defenderFaction === 'harkonnen' ? `(+${setup.discards} reinforcement discards) ` : ''}
+                dice, then enter the results:
               </p>
               <p className="bs-note bs-hintline">
                 Dice = units in the legion, max 6. Leaders add no dice — each converts 1 ✴ Special

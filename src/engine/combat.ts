@@ -258,15 +258,25 @@ export function battleRoundSetup(session: BattleSession): RoundSetup {
   const { ctx } = session;
   const attUnits = liveUnits(session.attacker);
   const defUnits = liveUnits(session.defender);
+  const harkAttacking = ctx.attacker.faction === 'harkonnen';
+  // Reinforcement discards are a Harkonnen-AI mechanic and apply to WHICHEVER side the bot is
+  // fighting on (solo criteria: "If a battle starts and there are cards in the reinforcements
+  // deck, during each round of the battle, discard as many cards … as necessary for the
+  // Harkonnens to reach 6 combat dice") — blocked by the Landsraad ban.
   let discards = 0;
-  // Reinforcement discards are a Harkonnen-AI mechanic — never for an Atreides attacker.
-  if (ctx.attacker.faction === 'harkonnen' && !ctx.landsraadBan && session.reinforcements > 0) {
-    discards = Math.max(0, Math.min(session.reinforcements, MAX_COMBAT_DICE - attUnits));
+  if (!ctx.landsraadBan && session.reinforcements > 0) {
+    const harkBase = harkAttacking
+      ? combatDiceCount(attUnits)
+      : combatDiceCount(defUnits, { defendingSettlementRank: ctx.defenderSettlementRank });
+    discards = Math.max(0, Math.min(session.reinforcements, MAX_COMBAT_DICE - harkBase));
   }
   const surprise = !!ctx.surprise && session.rounds === 0;
-  let attackerDice = combatDiceCount(attUnits, { discards });
+  let attackerDice = combatDiceCount(attUnits, { discards: harkAttacking ? discards : 0 });
   if (surprise) attackerDice = Math.min(MAX_COMBAT_DICE, attackerDice + 1);
-  const defenderDice = combatDiceCount(defUnits, { defendingSettlementRank: ctx.defenderSettlementRank });
+  const defenderDice = combatDiceCount(defUnits, {
+    defendingSettlementRank: ctx.defenderSettlementRank,
+    discards: harkAttacking ? 0 : discards,
+  });
   return { attackerDice, defenderDice, discards, surprise };
 }
 
