@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com); versions follow [semver](https://semver.org).
 
+## [1.1.5] — 2026-07-15
+
+### Changed
+- Harkonnen action dice order matches the physical player board: Leadership · Strategy ·
+  **Deployment · Mentat** · House (Deployment and Mentat were swapped).
+
 ## [1.1.4] — 2026-07-13
 
 ### Fixed

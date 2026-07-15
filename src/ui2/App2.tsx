@@ -42,11 +42,12 @@ import { VehiclesPanel, HazardsPanel, SpicePanel } from './PhasePanels';
 import { exportState, importState, listSaves, saveNamedGame, loadNamedGame, deleteNamedGame } from '../ui/persistence';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
+// Order mirrors the physical Harkonnen player board (…deployment before mentat).
 const DIE: { face: ActionResult; icon: IconName; label: string }[] = [
   { face: 'leadership', icon: 'leadership', label: 'Leadership' },
   { face: 'strategy', icon: 'strategy', label: 'Strategy' },
-  { face: 'mentat', icon: 'mentat', label: 'Mentat' },
   { face: 'deployment', icon: 'deployment', label: 'Deployment' },
+  { face: 'mentat', icon: 'mentat', label: 'Mentat' },
   { face: 'house', icon: 'house', label: 'House' },
 ];
 
