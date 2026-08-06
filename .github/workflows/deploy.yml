@@ -1,15 +1,12 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 
 on:
   push:
     branches: [main]
   workflow_dispatch: # allow manual runs from the Actions tab
 
-# Permissions the GitHub Pages deployment needs.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Only one Pages deployment at a time; don't cancel an in-progress one.
 concurrency:
@@ -17,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,29 +35,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      # Pages intermittently answers "Deployment failed, try again later" even when nothing is
-      # wrong with the artifact; a cool-down retry reliably clears it (observed repeatedly).
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-        continue-on-error: true
-
-      - name: Cool down before retry
-        if: steps.deployment.outcome == 'failure'
-        run: sleep 300
-
-      - name: Deploy to GitHub Pages (retry after cool-down)
-        if: steps.deployment.outcome == 'failure'
-        uses: actions/deploy-pages@v5
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=dune-war-for-arrakis --branch=main
